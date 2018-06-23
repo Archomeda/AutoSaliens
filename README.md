@@ -34,8 +34,7 @@ Salien commands:
 joinedplanet                - Shows the current joined planet
 joinedzone                  - Shows the current joined zone
 overrideplanetid [id]       - Shows or sets the current overridden planet id
-                              Overridden planets will always be joined, unless it's
-                              fully captured
+                              Overridden planets will always be joined, unless it's fully captured
 planet <id>                 - Shows information about a planet
 planets                     - Shows the list of all planets
 strategy [strategy]         - Shows or sets the current active strategy
@@ -44,10 +43,9 @@ zones <planet_id>           - Shows the list of the zones of a planet
 
 Informative commands:
 getstarted - Shows information about how and where to start
-gettoken   - Opens the browser where the token can be retrieved
-             and shows information about how to set the token
+gettoken   - Shows information about where you can get your Saliens token
 help       - Shows this help message
-homepage   - Opens the homepage of this application in your browser
+homepage   - Shows the homepage URL of this application
 
 Application commands:
 debug              - Toggles exception handling by the debugger
