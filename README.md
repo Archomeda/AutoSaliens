@@ -1,15 +1,36 @@
 # AutoSaliens
 *Automating the Steam Summer Sale 2018 game with overkill.*
 
-**Note:** This is a hobby project, so expect bugs. Want to have them fixed? Report it as an issue or submit a pull request.
-
+**Note:** This is a hobby project, so expect bugs. Want to have them fixed? Please report an issue or submit a pull request.
 
 ## Why another automation tool?
 This tool is simply way too overkill for such a small mini game. However, I thought it would be a nice experience for me to get back into C# again. So here it is, another one.
 
-Besides automating the mini game, just like the other tools do, this one includes the following features:
-- Interactive console with various commands
-- Customizable settings, like strategy, planet override, game time
+### Features
+This application automates the mini game, just like most other tools do. But let's list all the features:
+- Interactive console with various commands that can show the game status or change the settings
+- Automatically joins planets and zones based on a configurable strategy
+- Supports overriding the joining planet, in case you want to spend as much time as possible there
+- Configurable game time, which is by default 120 seconds (keep in mind that setting this too low might cause failures)
+
+### Strategy
+There's a couple of strategies that you can use. You can manipulate the strategy with the `strategy` command. Without parameters, this command will return the current used strategy. In order to set the strategy, use the names below *(it's case sensitive!)*. You can use multiple names, just be sure to separate them with a comma or a space.
+
+Some strategies are incompatible with each other, in that case, the top-most one will take priority.
+- FocusCurrentPlanet
+- FocusRandomPlanet
+- MostDifficultPlanetsFirst
+- LeastDifficultPlanetsFirst
+- MostCompletedPlanetsFirst
+- LeastCompletedPlanetsFirst
+- MostDifficultZonesFirst
+- LeastDifficultZonesFirst
+- MostCompletedZonesFirst
+- LeastCompletedZonesFirst
+- TopDown
+- BottomUp
+
+The default strategy is: MostDifficultPlanetsFirst, MostCompletedPlanetsFirst, MostDifficultZonesFirst, MostCompletedZonesFirst, TopDown.
 
 ## How to use
 ### Windows
