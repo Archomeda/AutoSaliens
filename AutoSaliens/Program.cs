@@ -31,11 +31,11 @@ namespace AutoSaliens
 
         public static Task Main(string[] args)
         {
-            Shell.WriteLine("AutoSaliens - A Saliens mini game automation tool", false);
+            Shell.WriteLine("[c=White]Auto[/c][c=Purple]S[/c][c=Orange]a[/c][c=Fuchsia]l[/c][c=Lime]i[/c][c=Red]e[/c][c=Turquoise]n[/c][c=Yellow]s[/c] - A Saliens mini game automation tool", false);
             Shell.WriteLine("Author: Archomeda", false);
             Shell.WriteLine($"Homepage: {HomepageUrl}", false);
             Shell.WriteLine("", false);
-            Shell.WriteLine("This console is interactive, type \"help\" to get the list of available commands.", false);
+            Shell.WriteLine("[c=Lime]This console is interactive, type \"help\" to get the list of available commands.[/c]", false);
 
             return Start();
         }
@@ -68,13 +68,13 @@ namespace AutoSaliens
 #if !DEBUG
                 await Task.WhenAll(Shell.StartRead(), Saliens.Start());
 #else
-                Shell.WriteLine("Debug build: type \"resume\" to start automation");
+                Shell.WriteLine("[c=Lime]Debug build: type \"resume\" to start automation[/c]");
                 await Shell.StartRead();
 #endif
             }
             else
             {
-                Shell.WriteLine("It seems like that this is your first time running this application! Type \"getstarted\" to get started.", false);
+                Shell.WriteLine("[c=Lime]It seems like that this is your first time running this application! Type \"getstarted\" to get started.[/c]", false);
                 Shell.WriteLine("", false);
 
                 await Shell.StartRead();
