@@ -1,4 +1,5 @@
 # AutoSaliens
+[![](https://ci.appveyor.com/api/projects/status/78eoqoe0cn4muu9g/branch/master?svg=true)](https://ci.appveyor.com/project/Archomeda/AutoSaliens/branch/master)
 *Automating the Steam Summer Sale 2018 game with overkill.*
 
 **Note:** This is a hobby project, so expect bugs. Want to have them fixed? Please report an issue or submit a pull request.
