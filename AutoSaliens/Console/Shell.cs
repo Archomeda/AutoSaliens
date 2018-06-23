@@ -1,13 +1,10 @@
 using System;
 using System.Collections.Generic;
-using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Text;
-using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using Colorful;
-using CConsole = Colorful.Console;
 using SConsole = System.Console;
 
 namespace AutoSaliens.Console
@@ -16,8 +13,6 @@ namespace AutoSaliens.Console
     {
         private static bool stopRequested = false;
         private static CancellationTokenSource cancellationTokenSource;
-
-        private static readonly Color defaultConsoleColor = Color.FromArgb(192, 192, 192);
 
         static Shell()
         {
@@ -66,7 +61,7 @@ namespace AutoSaliens.Console
                             if (pos < buf.Length - 1)
                             {
                                 buf.Remove(pos, 1);
-                                CConsole.Write(buf.ToString().Substring(pos) + " " + new string('\b', buf.Length - pos + 1), defaultConsoleColor);
+                                SConsole.Write(buf.ToString().Substring(pos) + " " + new string('\b', buf.Length - pos + 1));
                             }
                         }
                         else if (key.Key == ConsoleKey.LeftArrow)
@@ -81,7 +76,7 @@ namespace AutoSaliens.Console
                         {
                             if (pos < buf.Length - 1)
                             {
-                                CConsole.Write(buf[pos], defaultConsoleColor);
+                                SConsole.Write(buf[pos]);
                                 pos++;
                             }
                         }
@@ -94,9 +89,9 @@ namespace AutoSaliens.Console
                         {
                             buf.Insert(pos, key.KeyChar);
                             pos++;
-                            CConsole.Write(key.KeyChar, defaultConsoleColor);
+                            SConsole.Write(key.KeyChar);
                             if (pos < buf.Length)
-                                CConsole.Write(buf.ToString().Substring(pos) + new string('\b', buf.Length - pos), defaultConsoleColor);
+                                SConsole.Write(buf.ToString().Substring(pos) + new string('\b', buf.Length - pos));
                         }
                     }
 
@@ -150,25 +145,10 @@ namespace AutoSaliens.Console
 
         public static void WriteLine(string format, bool includeTime, params string[] args)
         {
-            if (string.IsNullOrEmpty(format))
-            {
-                SConsole.WriteLine();
-                return;
-            }
-            var startIndex = args.Length;
-            var colored = new List<Formatter>();
-            format = Regex.Replace(format, @"\[c=(.*?)\](.*?)\[\/c\]", match =>
-            {
-                colored.Add(new Formatter(match.Groups[2].Value, Color.FromName(match.Groups[1].Value)));
-                return $"{{{(startIndex++).ToString()}}}";
-            });
-
-            var defaultColor = Color.FromArgb(192, 192, 192);
-            var objectArgs = args.Select(a => new Formatter(a, defaultColor)).Concat(colored).ToArray();
             if (includeTime)
-                CConsole.WriteLineFormatted($"[{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss zzz")}] {format}", defaultColor, objectArgs);
+                SConsole.WriteLine($"[{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss zzz")}] {format}", args);
             else
-                CConsole.WriteLineFormatted(format, defaultColor, objectArgs);
+                SConsole.WriteLine(format, args);
         }
 
         public static void WriteLines(string[] lines) => WriteLines(lines, true);
@@ -181,8 +161,8 @@ namespace AutoSaliens.Console
 
 
         public static string FormatCommandOuput(string text) =>
-            string.Join("\n", text.Split('\n').Select(l => $"[c=White]> {l}[/c]"));
+            string.Join("\n", text.Split('\n').Select(l => $"> {l}"));
 
-        public static string FormatExceptionOutput(Exception ex) => $"[c=Red]An error has occured: {ex.Message}[/c]\n{ex.StackTrace}";
+        public static string FormatExceptionOutput(Exception ex) => $"An error has occured: {ex.Message}\n{ex.StackTrace}";
     }
 }

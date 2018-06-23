@@ -166,14 +166,14 @@ namespace AutoSaliens
                         var planetName = this.JoinedPlanet.State.Name;
                         var planetId = this.JoinedPlanetId;
                         if (this.JoinedPlanet.State.Captured)
-                            Shell.WriteLine($"[c=Yellow]{planetName} has been fully captured, leaving...[/c]");
+                            Shell.WriteLine($"{planetName} has been fully captured, leaving...");
                         await this.LeaveGame(this.JoinedPlanetId, this.cancellationTokenSource.Token);
                     }
 
                     // Fly to the new planet when it's different
                     if (planet.Id != this.JoinedPlanetId)
                     {
-                        Shell.WriteLine($"[c=Yellow]Choosing {planet.State.Name} as new planet[/c]");
+                        Shell.WriteLine($"Choosing {planet.State.Name} as new planet");
                         Shell.WriteLines(planet.ToString().Split('\n'));
                         await this.JoinPlanet(planet.Id, this.cancellationTokenSource.Token);
                         // Force wait for a second
@@ -199,7 +199,7 @@ namespace AutoSaliens
                     zone = zones.First();
 
                     // Join the zone
-                    Shell.WriteLine($"[c=Turquoise]Choosing zone {zone.ZonePosition} as new zone[/c]");
+                    Shell.WriteLine($"Choosing {zone.ZonePosition} as new zone");
                     Shell.WriteLines(zone.ToString().Split('\n'));
                     await this.JoinZone(zone.ZonePosition, this.cancellationTokenSource.Token);
 
@@ -292,19 +292,19 @@ namespace AutoSaliens
                 Shell.WriteLine("Player info updated");
                 if (!string.IsNullOrWhiteSpace(this.PlayerInfo.ActivePlanet)) {
                     if (!string.IsNullOrWhiteSpace(this.PlayerInfo.ActiveZonePosition))
-                        Shell.WriteLine($"Active on: [c=Yellow]planet {this.PlayerInfo.ActivePlanet}[/c], [c=Turquoise]zone {this.PlayerInfo.ActiveZonePosition}[/c] for [c=Yellow]{this.PlayerInfo.TimeOnPlanet.ToString()}[/c], [c=Turquoise]{this.PlayerInfo.TimeInZone.TotalSeconds}s[/c]");
+                        Shell.WriteLine($"Active on: planet {this.PlayerInfo.ActivePlanet}, zone {this.PlayerInfo.ActiveZonePosition} for {this.PlayerInfo.TimeOnPlanet.ToString()}, {this.PlayerInfo.TimeInZone.TotalSeconds}s");
                     else
-                        Shell.WriteLine($"Active on: [c=Yellow]planet {this.PlayerInfo.ActivePlanet}[/c] for [c=Yellow]{this.PlayerInfo.TimeOnPlanet.ToString()}[/c]");
+                        Shell.WriteLine($"Active on: planet {this.PlayerInfo.ActivePlanet} for {this.PlayerInfo.TimeOnPlanet.ToString()}");
                 }
                 else
                 {
                     if (!string.IsNullOrWhiteSpace(this.PlayerInfo.ActiveZonePosition))
-                        Shell.WriteLine($"Active on: unknown planet, [c=Turquoise]zone {this.PlayerInfo.ActiveZonePosition}[/c] for [c=Turquoise]{this.PlayerInfo.TimeInZone.TotalSeconds}s[/c]");
+                        Shell.WriteLine($"Active on: unknown planet, zone {this.PlayerInfo.ActiveZonePosition} for {this.PlayerInfo.TimeOnPlanet.ToString()}, {this.PlayerInfo.TimeInZone.TotalSeconds}s");
                     else
                         Shell.WriteLine($"Not active on any planet and/or zone");
                 }
 
-                Shell.WriteLine($"Level: [c=Orange]{this.PlayerInfo.Level}[/c] ([c=Fuchsia]{long.Parse(this.PlayerInfo.Score).ToString("#,##0")}[/c]/[c=Purple]{long.Parse(this.PlayerInfo.NextLevelScore).ToString("#,##0")}[/c])");
+                Shell.WriteLine($"Level: {this.PlayerInfo.Level} ({long.Parse(this.PlayerInfo.Score).ToString("#,##0")}/{long.Parse(this.PlayerInfo.NextLevelScore).ToString("#,##0")})");
             }
             catch (Exception ex)
             {
@@ -314,27 +314,27 @@ namespace AutoSaliens
 
         public async Task JoinPlanet(string planetId, CancellationToken cancellationToken)
         {
-            Shell.WriteLine($"[c=Yellow]Joining planet...[/c]");
+            Shell.WriteLine($"Joining planet...");
             await SaliensApi.JoinPlanet(this.Token, planetId, this.cancellationTokenSource.Token);
-            Shell.WriteLine($"[c=Yellow]Joined {this.PlanetDetails.FirstOrDefault(p => p.Id == planetId)?.State.Name ?? $"planet {planetId}"}[/c]");
+            Shell.WriteLine($"Joined {this.PlanetDetails.FirstOrDefault(p => p.Id == planetId)?.State.Name ?? $"planet {planetId}"}");
             this.JoinedPlanetId = planetId;
         }
 
         public async Task JoinZone(int zonePosition, CancellationToken cancellationToken)
         {
-            Shell.WriteLine($"[c=Turquoise]Joining zone...[/c]");
+            Shell.WriteLine($"Joining zone...");
 
             try
             {
                 await SaliensApi.JoinZone(this.Token, zonePosition, this.cancellationTokenSource.Token);
-                Shell.WriteLine($"[c=Turquoise]Joined zone {zonePosition}[/c]");
+                Shell.WriteLine($"Joined zone {zonePosition}");
                 this.JoinedZonePosition = zonePosition;
             }
             catch (SaliensApiException ex)
             {
                 if (ex.EResult == EResult.Expired || ex.EResult == EResult.NoMatch)
                 {
-                    Shell.WriteLine("[c=Red]Failed to join zone: Zone already captured[/c]");
+                    Shell.WriteLine("Failed to join zone: Zone already captured");
                     this.JoinedZonePosition = null;
                 }
                 else
@@ -351,14 +351,14 @@ namespace AutoSaliens
                 var response = await SaliensApi.ReportScore(this.Token, score, this.cancellationTokenSource.Token);
                 Shell.WriteLine("Score submitted");
                 if (!string.IsNullOrWhiteSpace(response.NewScore))
-                    Shell.WriteLine($"XP progression: {long.Parse(response.OldScore).ToString("#,##0")} -> [c=Fuchsia]{long.Parse(response.NewScore).ToString("#,##0")}[/c] (next level at [c=Purple]{long.Parse(response.NextLevelScore).ToString("#,##0")}[/c])");
+                    Shell.WriteLine($"XP progression: {long.Parse(response.OldScore).ToString("#,##0")} -> {long.Parse(response.NewScore).ToString("#,##0")} (next level at {long.Parse(response.NextLevelScore).ToString("#,##0")})");
                 if (response.NewLevel != response.OldLevel)
-                    Shell.WriteLine($"New level: {response.OldLevel} -> [c=Orange]{response.NewLevel}[/c]");
+                    Shell.WriteLine($"New level: {response.OldLevel} -> {response.NewLevel}");
             }
             catch (SaliensApiException ex)
             {
                 if (ex.EResult == EResult.Expired || ex.EResult == EResult.NoMatch)
-                    Shell.WriteLine("[c=Red]Failed to submit score: Zone already captured[/c]");
+                    Shell.WriteLine("Failed to submit score: Zone already captured");
                 else
                     throw ex;
             }
