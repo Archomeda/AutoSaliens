@@ -106,15 +106,11 @@ namespace AutoSaliens
                     if (!string.IsNullOrWhiteSpace(this.PlayerInfo.ActiveZonePosition))
                     {
                         var timeLeft = this.GameTime - (int)this.PlayerInfo.TimeInZone.TotalSeconds;
-                        if (timeLeft < -120)
-                        {
-                            // Assume we're stuck somehow after 2 minutes, leave game and restart
-                            Shell.WriteLine($"We are stuck, leaving and restarting...");
-                            await this.LeaveGame(this.JoinedPlanetId, this.cancellationTokenSource.Token);
-                            continue;
-                        }
                         if (timeLeft > 0)
+                        {
+                            Shell.WriteLine($"Waiting for {timeLeft} seconds...");
                             await Task.Delay(timeLeft * 1000, this.cancellationTokenSource.Token);
+                        }
                         if (this.cancellationTokenSource.Token.IsCancellationRequested)
                             return;
 
@@ -223,6 +219,10 @@ namespace AutoSaliens
                 catch (Exception ex)
                 {
                     Shell.WriteLine(Shell.FormatExceptionOutput(ex));
+
+                    // Assume we're stuck leave game and restart
+                    Shell.WriteLine($"Leaving and restarting...");
+                    await this.LeaveGame(this.JoinedPlanetId, this.cancellationTokenSource.Token);
                     try
                     {
                         await Task.Delay(5000, this.cancellationTokenSource.Token);
@@ -323,20 +323,46 @@ namespace AutoSaliens
         public async Task JoinZone(int zonePosition, CancellationToken cancellationToken)
         {
             Shell.WriteLine($"Joining zone...");
-            await SaliensApi.JoinZone(this.Token, zonePosition, this.cancellationTokenSource.Token);
-            Shell.WriteLine($"Joined zone {zonePosition}");
-            this.JoinedZonePosition = zonePosition;
+
+            try
+            {
+                await SaliensApi.JoinZone(this.Token, zonePosition, this.cancellationTokenSource.Token);
+                Shell.WriteLine($"Joined zone {zonePosition}");
+                this.JoinedZonePosition = zonePosition;
+            }
+            catch (SaliensApiException ex)
+            {
+                if (ex.EResult == EResult.Expired || ex.EResult == EResult.NoMatch)
+                {
+                    Shell.WriteLine("Failed to join zone: Zone already captured");
+                    this.JoinedZonePosition = null;
+                }
+                else
+                    throw ex;
+            }
         }
 
         public async Task ReportScore(int score, CancellationToken cancellationToken)
         {
             Shell.WriteLine($"Submitting score: {score.ToString("#,##0")}...");
-            var response = await SaliensApi.ReportScore(this.Token, score, this.cancellationTokenSource.Token);
-            Shell.WriteLine("Score submitted");
-            if (!string.IsNullOrWhiteSpace(response.NewScore))
-                Shell.WriteLine($"XP progression: {long.Parse(response.OldScore).ToString("#,##0")} -> {long.Parse(response.NewScore).ToString("#,##0")} (next level at {long.Parse(response.NextLevelScore).ToString("#,##0")})");
-            if (response.NewLevel != response.OldLevel)
-                Shell.WriteLine($"New level: {response.OldLevel} -> {response.NewLevel}");
+
+            try
+            {
+                var response = await SaliensApi.ReportScore(this.Token, score, this.cancellationTokenSource.Token);
+                Shell.WriteLine("Score submitted");
+                if (!string.IsNullOrWhiteSpace(response.NewScore))
+                    Shell.WriteLine($"XP progression: {long.Parse(response.OldScore).ToString("#,##0")} -> {long.Parse(response.NewScore).ToString("#,##0")} (next level at {long.Parse(response.NextLevelScore).ToString("#,##0")})");
+                if (response.NewLevel != response.OldLevel)
+                    Shell.WriteLine($"New level: {response.OldLevel} -> {response.NewLevel}");
+            }
+            catch (SaliensApiException ex)
+            {
+                if (ex.EResult == EResult.Expired || ex.EResult == EResult.NoMatch)
+                    Shell.WriteLine("Failed to submit score: Zone already captured");
+                else
+                    throw ex;
+            }
+
             this.JoinedZonePosition = null;
         }
 

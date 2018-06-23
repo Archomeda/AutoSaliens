@@ -58,11 +58,6 @@ namespace AutoSaliens
             var uri = new Uri(JoinPlanetUrl + $"?access_token={accessToken}&id={planetId}");
             await PostJson<ApiResponse<object>>(uri);
             // Always an empty response? Well then...
-
-            // Verify...
-            var playerInfo = await GetPlayerInfo(accessToken);
-            if (playerInfo.ActivePlanet != planetId)
-                throw new Exception("Failed to join planet"); //TODO: Implement custom exception maybe?
         }
 
         public static Task JoinPlanet(string accessToken, string planetId, CancellationToken cancellationToken) =>
@@ -73,12 +68,7 @@ namespace AutoSaliens
             var uri = new Uri(JoinZoneUrl + $"?access_token={accessToken}&zone_position={zonePosition}");
             var response = await PostJson<ApiResponse<JoinZoneResponse>>(uri);
             if (response.Response == null)
-                throw new Exception("Failed to join zone"); //TODO: Implement custom exception maybe?
-
-            // Verify...
-            var playerInfo = await GetPlayerInfo(accessToken);
-            if (playerInfo.ActiveZonePosition != zonePosition.ToString())
-                throw new Exception("Failed to join zone"); //TODO: Implement custom exception maybe?
+                throw new SaliensApiException();
 
             return response.Response.ZoneInfo;
         }
@@ -91,12 +81,7 @@ namespace AutoSaliens
             var uri = new Uri(ReportScoreUrl + $"?access_token={accessToken}&score={score}");
             var response = await PostJson<ApiResponse<ReportScoreResponse>>(uri);
             if (response.Response == null)
-                throw new Exception("Failed to submit score"); //TODO: Implement custom exception maybe?
-
-            // Verify...
-            var playerInfo = await GetPlayerInfo(accessToken);
-            if (!string.IsNullOrEmpty(playerInfo.ActiveZonePosition))
-                throw new Exception("Failed to submit score"); //TODO: Implement custom exception maybe?
+                throw new SaliensApiException();
 
             return response.Response;
         }
@@ -109,11 +94,6 @@ namespace AutoSaliens
             var uri = new Uri(LeaveGameUrl + $"?access_token={accessToken}&gameid={planetId}");
             await PostJson<ApiResponse<object>>(uri);
             // Always an empty response? Well then...
-
-            // Verify...
-            var playerInfo = await GetPlayerInfo(accessToken);
-            if (playerInfo.ActivePlanet == planetId)
-                throw new Exception("Failed to leave planet"); //TODO: Implement custom exception maybe?
         }
 
         public static Task LeaveGame(string accessToken, string planetId, CancellationToken cancellationToken) =>
@@ -132,12 +112,17 @@ namespace AutoSaliens
                 {
                     return await func();
                 }
+                catch (SaliensApiException)
+                {
+                    // Game error, no use repeating this...
+                    throw;
+                }
                 catch (Exception ex)
                 {
                     exceptions.Add(ex);
                     try
                     {
-                        await Task.Delay(5000, cancellationToken);
+                        await Task.Delay(2000, cancellationToken);
                     }
                     catch (OperationCanceledException)
                     {
@@ -155,6 +140,9 @@ namespace AutoSaliens
             {
                 webClient.Headers.Add("User-Agent", "AutoSaliens/1.0 (https://github.com/Archomeda/AutoAliens)");
                 var json = await webClient.DownloadStringTaskAsync(uri);
+                var eResult = webClient.ResponseHeaders["x-eresult"].ToString();
+                if (!string.IsNullOrWhiteSpace(eResult) && eResult != "1")
+                    throw SaliensApiException.FromString(eResult);
                 return JsonConvert.DeserializeObject<T>(json);
             }
         }
@@ -165,6 +153,9 @@ namespace AutoSaliens
             {
                 webClient.Headers.Add("User-Agent", "AutoSaliens/1.0 (https://github.com/Archomeda/AutoAliens)");
                 var json = await webClient.UploadStringTaskAsync(uri, "");
+                var eResult = webClient.ResponseHeaders["x-eresult"].ToString();
+                if (!string.IsNullOrWhiteSpace(eResult) && eResult != "1")
+                    throw SaliensApiException.FromString(eResult);
                 return JsonConvert.DeserializeObject<T>(json);
             }
         }
