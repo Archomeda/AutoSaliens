@@ -86,7 +86,7 @@ namespace AutoSaliens
         public void Stop()
         {
             this.AutomationActive = false;
-            this.cancellationTokenSource.Cancel();
+            this.cancellationTokenSource?.Cancel();
             this.updatePlanetsTimer.Stop();
         }
 
