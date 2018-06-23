@@ -12,10 +12,10 @@ build_script:
   - dotnet publish -f netcoreapp2.0
 
 after_build:
-  - 7z a "AutoSaliens_%APPVEYOR_BUILD_VERSION%_win.zip" "%APPVEYOR_BUILD_FOLDER%\bin\%CONFIGURATION%\net451\"
+  - 7z a "AutoSaliens_%APPVEYOR_BUILD_VERSION%_win.zip" "%APPVEYOR_BUILD_FOLDER%\AutoSaliens\bin\%CONFIGURATION%\net451\"
   - 7z rn "AutoSaliens_%APPVEYOR_BUILD_VERSION%_win.zip" net451 AutoSaliens
-  - 7z a "AutoSaliens_%APPVEYOR_BUILD_VERSION%_portable.zip" "%APPVEYOR_BUILD_FOLDER%\bin\%CONFIGURATION%\netcoreapp2.0\"
-  - 7z rn "AutoSaliens_%APPVEYOR_BUILD_VERSION%_portable.zip" netcoreapp2.0 AutoSaliens
+  - 7z a "AutoSaliens_%APPVEYOR_BUILD_VERSION%_portable.zip" "%APPVEYOR_BUILD_FOLDER%\AutoSaliens\bin\%CONFIGURATION%\netcoreapp2.0\publish\"
+  - 7z rn "AutoSaliens_%APPVEYOR_BUILD_VERSION%_portable.zip" publish AutoSaliens
 
 artifacts:
   - path: AutoSaliens_$(appveyor_build_version)_win.zip
