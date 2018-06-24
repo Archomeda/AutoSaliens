@@ -21,7 +21,7 @@ namespace AutoSaliens
 
         public void Save()
         {
-            File.WriteAllText("settings.json", JsonConvert.SerializeObject(this));
+            File.WriteAllText("settings.json", JsonConvert.SerializeObject(this, Formatting.Indented));
             Shell.WriteLine("Saved settings to settings.json");
         }
     }
