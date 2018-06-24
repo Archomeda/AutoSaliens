@@ -26,10 +26,9 @@ namespace AutoSaliens
 
         public Saliens()
         {
-            this.updatePlanetsTimer.Elapsed += async (s, a) => await this.UpdatePlanets(false, this.cancellationTokenSource.Token);
-            this.updatePlayerInfoTimer.Elapsed += async (s, a) => await this.UpdatePlayerInfo(this.cancellationTokenSource.Token);
+            this.updatePlanetsTimer.Elapsed += this.UpdatePlanetsTimer_Elapsed;
+            this.updatePlayerInfoTimer.Elapsed += this.UpdatePlayerInfoTimer_Elapsed;
         }
-
 
         public bool AutomationActive { get; private set; }
 
@@ -244,6 +243,31 @@ namespace AutoSaliens
                     try { await Task.Delay(TimeSpan.FromSeconds(10), this.cancellationTokenSource.Token); }
                     catch (Exception) { }
                 }
+            }
+        }
+
+
+        private async void UpdatePlanetsTimer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
+        {
+            try
+            {
+                await this.UpdatePlanets(false, this.cancellationTokenSource.Token);
+            }
+            catch (Exception ex)
+            {
+                Shell.WriteLine(Shell.FormatExceptionOutput(ex));
+            }
+        }
+
+        private async void UpdatePlayerInfoTimer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
+        {
+            try
+            {
+                await this.UpdatePlayerInfo(this.cancellationTokenSource.Token);
+            }
+            catch (Exception ex)
+            {
+                Shell.WriteLine(Shell.FormatExceptionOutput(ex));
             }
         }
 
