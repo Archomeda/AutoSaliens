@@ -26,7 +26,11 @@ namespace AutoSaliens
         public static async Task<List<Planet>> GetPlanets(bool activeOnly = false)
         {
             var uri = new Uri(GetPlanetsUrl + (activeOnly ? "&active_only=1" : ""));
-            return (await GetJson<ApiResponse<PlanetsResponse>>(uri)).Response?.Planets;
+            var response = await GetJson<ApiResponse<PlanetsResponse>>(uri);
+            if (response?.Response?.Planets == null)
+                throw new SaliensApiException();
+
+            return response.Response.Planets;
         }
 
         public static Task<List<Planet>> GetPlanets(CancellationToken cancellationToken) =>
@@ -38,7 +42,11 @@ namespace AutoSaliens
         public static async Task<Planet> GetPlanet(string id)
         {
             var uri = new Uri(GetPlanetUrl + $"&id={id}");
-            return (await GetJson<ApiResponse<PlanetsResponse>>(uri)).Response?.Planets[0];
+            var response = await GetJson<ApiResponse<PlanetsResponse>>(uri);
+            if (response?.Response?.Planets == null || response.Response.Planets.Count < 1 || response.Response.Planets[0] == null)
+                throw new SaliensApiException();
+
+            return response.Response.Planets[0];
         }
 
         public static Task<Planet> GetPlanet(string id, CancellationToken cancellationToken) =>
@@ -47,7 +55,11 @@ namespace AutoSaliens
         public static async Task<PlayerInfoResponse> GetPlayerInfo(string accessToken)
         {
             var uri = new Uri(GetPlayerInfoUrl + $"?access_token={accessToken}");
-            return (await PostJson<ApiResponse<PlayerInfoResponse>>(uri)).Response;
+            var response = await PostJson<ApiResponse<PlayerInfoResponse>>(uri);
+            if (response?.Response == null)
+                throw new SaliensApiException();
+
+            return response.Response;
         }
 
         public static Task<PlayerInfoResponse> GetPlayerInfo(string accessToken, CancellationToken cancellationToken) =>
@@ -57,7 +69,6 @@ namespace AutoSaliens
         {
             var uri = new Uri(JoinPlanetUrl + $"?access_token={accessToken}&id={planetId}");
             await PostJson<ApiResponse<object>>(uri);
-            // Always an empty response? Well then...
         }
 
         public static Task JoinPlanet(string accessToken, string planetId, CancellationToken cancellationToken) =>
@@ -67,7 +78,7 @@ namespace AutoSaliens
         {
             var uri = new Uri(JoinZoneUrl + $"?access_token={accessToken}&zone_position={zonePosition}");
             var response = await PostJson<ApiResponse<JoinZoneResponse>>(uri);
-            if (response.Response == null)
+            if (response?.Response?.ZoneInfo == null)
                 throw new SaliensApiException();
 
             return response.Response.ZoneInfo;
@@ -80,7 +91,7 @@ namespace AutoSaliens
         {
             var uri = new Uri(ReportScoreUrl + $"?access_token={accessToken}&score={score}");
             var response = await PostJson<ApiResponse<ReportScoreResponse>>(uri);
-            if (response.Response == null)
+            if (response?.Response == null)
                 throw new SaliensApiException();
 
             return response.Response;

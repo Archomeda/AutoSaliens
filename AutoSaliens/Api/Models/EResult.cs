@@ -11,6 +11,8 @@ namespace AutoSaliens.Api.Models
         AccessDenied = 15,
         Expired = 27,
         NoMatch = 42,
+        ValueOutOfRange = 78,
+        UnexpectedError = 79,
         TimeIsOutOfSync = 93
     }
 }
