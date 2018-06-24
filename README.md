@@ -55,11 +55,14 @@ The list below might not be up-to-date. You can find the up-to-date command list
 Salien commands:
 joinedplanet                - Shows the current joined planet
 joinedzone                  - Shows the current joined zone
-overrideplanetid [id]       - Shows or sets the current overridden planet id
+overrideplanetid [id]       - Shows or sets the current overridden planet id;
                               Overridden planets will always be joined, unless it's fully captured
+networktolerance [toggle]   - Shows or sets whether the network tolerance is enabled or not;
+                              Enabling this will cause the application to try to send certain API
+                              calls earlier to account for network latency (default: enable)
 planet <id>                 - Shows information about a planet
 planets                     - Shows the list of all planets
-strategy [strategy]         - Shows or sets the current active strategy
+strategy [strategy]         - Shows or sets the current active strategy (to reset to default, use: 0)
 zone <planet_id> <zone_pos> - Shows information about a zone
 zones <planet_id>           - Shows the list of the zones of a planet
 
@@ -72,7 +75,7 @@ homepage   - Shows the homepage URL of this application
 Application commands:
 debug              - Toggles exception handling by the debugger
 exit               - Exits the program
-gametime [seconds] - Shows or sets the game time in seconds
+gametime [seconds] - Shows or sets the game time in seconds (default: 110)
 pause              - Pauses the automation after completing one loop cycle
 resume             - Resumes the automation
 token [token]      - Shows or sets the token

@@ -42,7 +42,6 @@ Possible strategies are: {string.Join(", ", allValues.Select(v => v.ToString()))
                         AutomationStrategy.MostCompletedZonesFirst |
                         AutomationStrategy.MostDifficultPlanetsFirst |
                         AutomationStrategy.MostDifficultZonesFirst;
-                    Program.Saliens.Strategy = strategy;
                     Program.Settings.Strategy = strategy;
                     Program.Settings.Save();
                     return "Your game time has been saved.";

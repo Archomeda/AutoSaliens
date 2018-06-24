@@ -9,7 +9,9 @@ namespace AutoSaliens
     {
         public bool Debug { get; set; }
 
-        public int GameTime { get; set; } = 120;
+        public bool EnableNetworkTolerance { get; set; } = true;
+
+        public int GameTime { get; set; } = 110;
 
         public string OverridePlanetId { get; set; }
 

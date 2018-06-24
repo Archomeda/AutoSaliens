@@ -33,12 +33,6 @@ namespace AutoSaliens
             return response.Response.Planets;
         }
 
-        public static Task<List<Planet>> GetPlanets(CancellationToken cancellationToken) =>
-            CallN(() => GetPlanets(), NumberOfRetries, cancellationToken);
-
-        public static Task<List<Planet>> GetPlanets(bool activeOnly, CancellationToken cancellationToken) =>
-            CallN(() => GetPlanets(activeOnly), NumberOfRetries, cancellationToken);
-
         public static async Task<Planet> GetPlanet(string id)
         {
             var uri = new Uri(GetPlanetUrl + $"&id={id}");
@@ -48,9 +42,6 @@ namespace AutoSaliens
 
             return response.Response.Planets[0];
         }
-
-        public static Task<Planet> GetPlanet(string id, CancellationToken cancellationToken) =>
-            CallN(() => GetPlanet(id), NumberOfRetries, cancellationToken);
 
         public static async Task<PlayerInfoResponse> GetPlayerInfo(string accessToken)
         {
@@ -62,17 +53,11 @@ namespace AutoSaliens
             return response.Response;
         }
 
-        public static Task<PlayerInfoResponse> GetPlayerInfo(string accessToken, CancellationToken cancellationToken) =>
-            CallN(() => GetPlayerInfo(accessToken), NumberOfRetries, cancellationToken);
-
         public static async Task JoinPlanet(string accessToken, string planetId)
         {
             var uri = new Uri(JoinPlanetUrl + $"?access_token={accessToken}&id={planetId}");
             await PostJson<ApiResponse<object>>(uri);
         }
-
-        public static Task JoinPlanet(string accessToken, string planetId, CancellationToken cancellationToken) =>
-            CallN(() => JoinPlanet(accessToken, planetId), NumberOfRetries, cancellationToken);
 
         public static async Task<Zone> JoinZone(string accessToken, int zonePosition)
         {
@@ -84,9 +69,6 @@ namespace AutoSaliens
             return response.Response.ZoneInfo;
         }
 
-        public static Task<Zone> JoinZone(string accessToken, int zonePosition, CancellationToken cancellationToken) =>
-            CallN(() => JoinZone(accessToken, zonePosition), NumberOfRetries, cancellationToken);
-
         public static async Task<ReportScoreResponse> ReportScore(string accessToken, int score)
         {
             var uri = new Uri(ReportScoreUrl + $"?access_token={accessToken}&score={score}");
@@ -97,51 +79,11 @@ namespace AutoSaliens
             return response.Response;
         }
 
-        public static Task<ReportScoreResponse> ReportScore(string accessToken, int score, CancellationToken cancellationToken) =>
-            CallN(() => ReportScore(accessToken, score), NumberOfRetries, cancellationToken);
-
         public static async Task LeaveGame(string accessToken, string gameId)
         {
             var uri = new Uri(LeaveGameUrl + $"?access_token={accessToken}&gameid={gameId}");
             await PostJson<ApiResponse<object>>(uri);
             // Always an empty response? Well then...
-        }
-
-        public static Task LeaveGame(string accessToken, string gameId, CancellationToken cancellationToken) =>
-          CallN(() => LeaveGame(accessToken, gameId), NumberOfRetries, cancellationToken);
-
-
-        private static Task CallN(Func<Task> func, int times, CancellationToken cancellationToken) =>
-            CallN(() => { func(); return Task.FromResult(true); }, times, cancellationToken);
-
-        private static async Task<T> CallN<T>(Func<Task<T>> func, int times, CancellationToken cancellationToken)
-        {
-            var exceptions = new List<Exception>();
-            for (int i = 0; i < times; i++)
-            {
-                try
-                {
-                    return await func();
-                }
-                catch (SaliensApiException)
-                {
-                    // Game error, no use repeating this...
-                    throw;
-                }
-                catch (Exception ex)
-                {
-                    exceptions.Add(ex);
-                    try
-                    {
-                        await Task.Delay(2000, cancellationToken);
-                    }
-                    catch (OperationCanceledException)
-                    {
-                        throw;
-                    }
-                }
-            }
-            throw new AggregateException(exceptions);
         }
 
 

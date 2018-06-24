@@ -14,7 +14,7 @@ namespace AutoSaliens.Console.Commands
 
             try
             {
-                await Program.Saliens.UpdatePlayerInfo(cancellationToken);
+                await Program.Saliens.UpdatePlayerInfo();
             }
             catch (WebException ex)
             {

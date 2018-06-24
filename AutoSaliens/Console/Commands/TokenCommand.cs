@@ -13,7 +13,7 @@ namespace AutoSaliens.Console.Commands
             {
                 // Show the current token
                 if (!string.IsNullOrWhiteSpace(Program.Saliens.Token))
-                    this.WriteConsole($"Your token is currently set to: {Program.Saliens.Token}");
+                    this.WriteConsole($"Your token is currently set to: {Program.Saliens.Token}.");
                 else
                     this.WriteConsole("You have currently no token set.");
 
@@ -28,7 +28,6 @@ namespace AutoSaliens.Console.Commands
                 try
                 {
                     Program.Saliens.PlayerInfo = await SaliensApi.GetPlayerInfo(parameters);
-                    Program.Saliens.Token = parameters;
                     Program.Settings.Token = Program.Saliens.Token;
                     Program.Settings.Save();
                     return "Your token has been saved.";

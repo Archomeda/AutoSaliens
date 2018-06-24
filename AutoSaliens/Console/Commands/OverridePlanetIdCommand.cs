@@ -29,7 +29,6 @@ namespace AutoSaliens.Console.Commands
                 // Set the overridden planet id
                 if (Program.Saliens.PlanetDetails.FirstOrDefault(p => p.Id == parameters) == null)
                     return "Invalid planet id. Check the planets for ids.";
-                Program.Saliens.OverridePlanetId = parameters;
                 Program.Settings.OverridePlanetId = parameters;
                 Program.Settings.Save();
                 return "Your planet id override has been saved.";

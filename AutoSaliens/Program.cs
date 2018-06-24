@@ -47,21 +47,17 @@ namespace AutoSaliens
                 var settingsJson = File.ReadAllText("settings.json");
                 Settings = JsonConvert.DeserializeObject<Settings>(settingsJson);
                 Debug = Settings.Debug;
-                Saliens.GameTime = Settings.GameTime;
-                if (Saliens.GameTime < 1)
-                    Saliens.GameTime = 120;
-                Saliens.Strategy = Settings.Strategy;
-                if (Saliens.Strategy == 0)
+                if (Settings.GameTime < 1)
+                    Settings.GameTime = 110;
+                if (Settings.Strategy == 0)
                 {
-                     Saliens.Strategy =
+                     Settings.Strategy =
                         AutomationStrategy.TopDown |
                         AutomationStrategy.MostCompletedPlanetsFirst |
                         AutomationStrategy.MostCompletedZonesFirst |
                         AutomationStrategy.MostDifficultPlanetsFirst |
                         AutomationStrategy.MostDifficultZonesFirst;
                 }
-                Saliens.OverridePlanetId = Settings.OverridePlanetId;
-                Saliens.Token = Settings.Token;
                 Shell.WriteLine("", false);
                 Shell.WriteLine("Read settings from settings.json");
 
