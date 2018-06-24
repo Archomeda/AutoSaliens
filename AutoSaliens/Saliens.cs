@@ -174,7 +174,7 @@ namespace AutoSaliens
                     if (planet.Id != this.JoinedPlanetId)
                     {
                         Shell.WriteLine($"Choosing {planet.State.Name} as new planet");
-                        Shell.WriteLines(planet.ToString().Split('\n'));
+                        Shell.WriteLines(planet.ToShortString().Split('\n'));
                         await this.JoinPlanet(planet.Id, this.cancellationTokenSource.Token);
                         // Force wait for a second
                         await Task.Delay(1000);
@@ -199,8 +199,8 @@ namespace AutoSaliens
                     zone = zones.First();
 
                     // Join the zone
-                    Shell.WriteLine($"Choosing {zone.ZonePosition} as new zone");
-                    Shell.WriteLines(zone.ToString().Split('\n'));
+                    Shell.WriteLine($"Choosing zone {zone.ZonePosition} as new zone");
+                    Shell.WriteLines(zone.ToShortString().Split('\n'));
                     await this.JoinZone(zone.ZonePosition, this.cancellationTokenSource.Token);
 
                     // "Play"

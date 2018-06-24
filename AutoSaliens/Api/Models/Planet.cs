@@ -16,26 +16,21 @@ namespace AutoSaliens.Api.Models
 
         public List<Zone> Zones { get; set; }
 
-        public string[] ZonesToDifficulityCapturedCountString()
+        public string[] ZonesToDifficulityCapturedCountString(bool includeCaptured = true)
         {
             return this.Zones == null ? new string[0] : this.Zones
                 .GroupBy(z => z.Difficulty)
                 .ToDictionary(g => g.Key, g => g.ToList())
                 .OrderBy(kvp => kvp.Key)
-                .Select(kvp => $"{kvp.Key}: {kvp.Value.Count(z => z.Captured)}/{kvp.Value.Count} captured")
+                .Where(kvp => includeCaptured || (!includeCaptured && kvp.Value.Count(z => z.Captured) < kvp.Value.Count))
+                .Select(kvp => $"{kvp.Key}: {kvp.Value.Count - kvp.Value.Count(z => z.Captured)}/{kvp.Value.Count} free")
                 .ToArray();
         }
 
         public string ToShortString()
         {
-            return $@"{this.State.Name} ({this.Id}):
-  Started: {this.State.ActivationTime.ToString("yyyy-MM-dd HH:mm:ss zzz")}
-  Progress: {(this.State.CaptureProgress).ToString("0.00%")}
-  Difficulty: {this.State.Difficulty}
-  Players: {this.State.CurrentPlayers.ToString("#,##0")}/{this.State.TotalJoins.ToString("#,##0")}
-  Top clans: {(this.TopClans != null ? string.Join(", ", this.TopClans.Select(c => $"{c.ClanInfo.Name} ({c.NumZonesControlled})")) : "None")}
-  Zones:
-    {string.Join("\n    ", this.ZonesToDifficulityCapturedCountString())}";
+            return $@"{this.State.Name} ({this.Id}), {this.State.Difficulty} - {(this.State.CaptureProgress).ToString("0.00%")} - {this.State.CurrentPlayers.ToString("#,##0")}/{this.State.TotalJoins.ToString("#,##0")}:
+  {string.Join("\n  ", this.ZonesToDifficulityCapturedCountString(false))}";
         }
 
         public override string ToString()
@@ -47,7 +42,7 @@ namespace AutoSaliens.Api.Models
   Difficulty: {this.State.Difficulty}
   Priority: {this.State.Priority}
   Current players: {this.State.CurrentPlayers.ToString("#,##0")}
-  Total players: {this.State.TotalJoins.ToString("#,##0")}
+  Total joins: {this.State.TotalJoins.ToString("#,##0")}
   Top clans: {(this.TopClans != null ? string.Join(", ", this.TopClans.Select(c => $"{c.ClanInfo.Name} ({c.NumZonesControlled})")) : "None")}
   Zones:
     {string.Join("\n    ", this.ZonesToDifficulityCapturedCountString())}";

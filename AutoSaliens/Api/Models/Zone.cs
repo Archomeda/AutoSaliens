@@ -23,12 +23,8 @@ namespace AutoSaliens.Api.Models
 
         public List<ClanInfo> TopClans { get; set; }
 
-        public string ToShortString()
-        {
-            return $@"Zone {this.ZonePosition}:
-  Progress: {(this.Captured ? "Captured" : (this.CaptureProgress).ToString("0.00%"))}
-  Difficulty: {this.Difficulty}";
-        }
+        public string ToShortString() =>
+            $"Zone {this.ZonePosition}, {this.Difficulty} - {(this.Captured ? "Captured" : (this.CaptureProgress).ToString("0.00%"))}";
 
         public override string ToString()
         {
