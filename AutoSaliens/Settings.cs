@@ -1,5 +1,4 @@
 using System.IO;
-using System.Threading.Tasks;
 using AutoSaliens.Console;
 using Newtonsoft.Json;
 
@@ -15,7 +14,12 @@ namespace AutoSaliens
 
         public string OverridePlanetId { get; set; }
 
-        public AutomationStrategy Strategy { get; set; }
+        public AutomationStrategy Strategy { get; set; } =
+            AutomationStrategy.MostDifficultPlanetsFirst |
+            AutomationStrategy.MostCompletedPlanetsFirst |
+            AutomationStrategy.MostDifficultZonesFirst |
+            AutomationStrategy.MostCompletedZonesFirst |
+            AutomationStrategy.TopDown;
 
         public string Token { get; set; }
 

@@ -37,11 +37,11 @@ Possible strategies are: {string.Join(", ", allValues.Select(v => v.ToString()))
                     AutomationStrategy strategy = strategyValues.Aggregate((AutomationStrategy)0, (a, b) => a | b);
                     if (strategy == 0)
                         strategy =
-                        AutomationStrategy.TopDown |
-                        AutomationStrategy.MostCompletedPlanetsFirst |
-                        AutomationStrategy.MostCompletedZonesFirst |
-                        AutomationStrategy.MostDifficultPlanetsFirst |
-                        AutomationStrategy.MostDifficultZonesFirst;
+                            AutomationStrategy.MostDifficultPlanetsFirst |
+                            AutomationStrategy.MostCompletedPlanetsFirst |
+                            AutomationStrategy.MostDifficultZonesFirst |
+                            AutomationStrategy.MostCompletedZonesFirst |
+                            AutomationStrategy.TopDown;
                     Program.Settings.Strategy = strategy;
                     Program.Settings.Save();
                     return "Your game time has been saved.";
