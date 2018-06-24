@@ -89,15 +89,15 @@ namespace AutoSaliens
         public static Task<ReportScoreResponse> ReportScore(string accessToken, int score, CancellationToken cancellationToken) =>
             CallN(() => ReportScore(accessToken, score), NumberOfRetries, cancellationToken);
 
-        public static async Task LeaveGame(string accessToken, string planetId)
+        public static async Task LeaveGame(string accessToken, string gameId)
         {
-            var uri = new Uri(LeaveGameUrl + $"?access_token={accessToken}&gameid={planetId}");
+            var uri = new Uri(LeaveGameUrl + $"?access_token={accessToken}&gameid={gameId}");
             await PostJson<ApiResponse<object>>(uri);
             // Always an empty response? Well then...
         }
 
-        public static Task LeaveGame(string accessToken, string planetId, CancellationToken cancellationToken) =>
-          CallN(() => LeaveGame(accessToken, planetId), NumberOfRetries, cancellationToken);
+        public static Task LeaveGame(string accessToken, string gameId, CancellationToken cancellationToken) =>
+          CallN(() => LeaveGame(accessToken, gameId), NumberOfRetries, cancellationToken);
 
 
         private static Task CallN(Func<Task> func, int times, CancellationToken cancellationToken) =>

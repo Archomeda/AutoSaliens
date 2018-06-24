@@ -203,6 +203,7 @@ namespace AutoSaliens
                     {
                         // Assume we're stuck leave game and restart
                         Shell.WriteLine($"Leaving and restarting...");
+                        await this.LeaveGame(this.JoinedZone.GameId, this.cancellationTokenSource.Token);
                         await Task.WhenAll(
                             this.LeaveGame(this.JoinedPlanetId, this.cancellationTokenSource.Token),
                             this.UpdatePlayerInfo(this.cancellationTokenSource.Token)
@@ -356,11 +357,10 @@ namespace AutoSaliens
             this.JoinedZonePosition = null;
         }
 
-        public async Task LeaveGame(string planetId, CancellationToken cancellationToken)
+        public async Task LeaveGame(string gameId, CancellationToken cancellationToken)
         {
-            Shell.WriteLine($"Leaving planet...");
-            await SaliensApi.LeaveGame(this.Token, planetId, this.cancellationTokenSource.Token);
-            Shell.WriteLine($"Left {this.JoinedPlanet.State.Name}");
+            await SaliensApi.LeaveGame(this.Token, gameId, this.cancellationTokenSource.Token);
+            Shell.WriteLine($"Left game {gameId}");
             this.JoinedZonePosition = null;
             this.JoinedPlanetId = null;
         }
