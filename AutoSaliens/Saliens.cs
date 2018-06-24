@@ -61,7 +61,7 @@ namespace AutoSaliens
 
         public int? JoinedZonePosition
         {
-            get => this.PlayerInfo != null ? (int?)int.Parse(this.PlayerInfo.ActiveZonePosition) : null;
+            get => this.PlayerInfo?.ActiveZonePosition != null ? (int?)int.Parse(this.PlayerInfo.ActiveZonePosition) : null;
             set => this.PlayerInfo.ActiveZonePosition = value?.ToString();
         }
         
@@ -199,20 +199,19 @@ namespace AutoSaliens
                 {
                     Shell.WriteLine(Shell.FormatExceptionOutput(ex));
 
-                    // Assume we're stuck leave game and restart
-                    Shell.WriteLine($"Leaving and restarting...");
-                    await Task.WhenAll(
-                        this.LeaveGame(this.JoinedPlanetId, this.cancellationTokenSource.Token),
-                        this.UpdatePlayerInfo(this.cancellationTokenSource.Token)
-                    );
                     try
                     {
-                        await Task.Delay(5000, this.cancellationTokenSource.Token);
+                        // Assume we're stuck leave game and restart
+                        Shell.WriteLine($"Leaving and restarting...");
+                        await Task.WhenAll(
+                            this.LeaveGame(this.JoinedPlanetId, this.cancellationTokenSource.Token),
+                            this.UpdatePlayerInfo(this.cancellationTokenSource.Token)
+                        );
                     }
-                    catch (OperationCanceledException)
-                    {
-                        // Fine...
-                    }
+                    catch (Exception) { }
+
+                    try { await Task.Delay(5000, this.cancellationTokenSource.Token); }
+                    catch (OperationCanceledException) { }
                 }
             }
         }
