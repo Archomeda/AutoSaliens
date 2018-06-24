@@ -109,6 +109,9 @@ namespace AutoSaliens
                         await this.WaitForJoinedZoneToFinish();
                         var score = this.CalculatePoints(this.JoinedZone?.Difficulty ?? Difficulty.Low, maxGameTime);
                         await this.ReportScore(score, this.cancellationTokenSource.Token);
+
+                        // Manually leave game to hopefully prevent invalid states
+                        await this.LeaveGame(this.JoinedZone.GameId, this.cancellationTokenSource.Token);
                     }
 
                     // Get our most wanted planet
@@ -203,11 +206,14 @@ namespace AutoSaliens
                     {
                         // Assume we're stuck leave game and restart
                         Shell.WriteLine($"Leaving and restarting...");
-                        await this.LeaveGame(this.JoinedZone.GameId, this.cancellationTokenSource.Token);
-                        await Task.WhenAll(
-                            this.LeaveGame(this.JoinedPlanetId, this.cancellationTokenSource.Token),
-                            this.UpdatePlayerInfo(this.cancellationTokenSource.Token)
-                        );
+                        if (this.JoinedZonePosition != null)
+                            await this.LeaveGame(this.JoinedZone.GameId, this.cancellationTokenSource.Token);
+
+                        var tasks = new List<Task>();
+                        if (!string.IsNullOrWhiteSpace(this.JoinedPlanetId))
+                            tasks.Add(this.LeaveGame(this.JoinedPlanetId, this.cancellationTokenSource.Token));
+                        tasks.Add(this.UpdatePlayerInfo(this.cancellationTokenSource.Token));
+                        await Task.WhenAll(tasks);
                     }
                     catch (Exception) { }
 
@@ -353,16 +359,21 @@ namespace AutoSaliens
                 else
                     throw ex;
             }
-
-            this.JoinedZonePosition = null;
         }
 
         public async Task LeaveGame(string gameId, CancellationToken cancellationToken)
         {
             await SaliensApi.LeaveGame(this.Token, gameId, this.cancellationTokenSource.Token);
-            Shell.WriteLine($"Left game {gameId}");
-            this.JoinedZonePosition = null;
-            this.JoinedPlanetId = null;
+            if (this.JoinedPlanetId == gameId)
+            {
+                Shell.WriteLine($"Left planet {gameId}");
+                this.JoinedPlanetId = null;
+            }
+            else if (this.JoinedZone.GameId == gameId)
+            {
+                Shell.WriteLine($"Left zone {gameId}");
+                this.JoinedZonePosition = null;
+            }
         }
 
 
