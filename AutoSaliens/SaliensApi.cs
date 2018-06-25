@@ -95,7 +95,10 @@ namespace AutoSaliens
                 var json = await webClient.DownloadStringTaskAsync(uri);
                 var eResult = webClient.ResponseHeaders["x-eresult"].ToString();
                 if (!string.IsNullOrWhiteSpace(eResult) && eResult != "1")
-                    throw SaliensApiException.FromString(eResult);
+                {
+                    var message = webClient.ResponseHeaders["x-error_message"]?.ToString();
+                    throw SaliensApiException.FromString(eResult, message);
+                }
                 return JsonConvert.DeserializeObject<T>(json);
             }
         }
@@ -108,7 +111,10 @@ namespace AutoSaliens
                 var json = await webClient.UploadStringTaskAsync(uri, "");
                 var eResult = webClient.ResponseHeaders["x-eresult"].ToString();
                 if (!string.IsNullOrWhiteSpace(eResult) && eResult != "1")
-                    throw SaliensApiException.FromString(eResult);
+                {
+                    var message = webClient.ResponseHeaders["x-error_message"]?.ToString();
+                    throw SaliensApiException.FromString(eResult, message);
+                }
                 return JsonConvert.DeserializeObject<T>(json);
             }
         }
