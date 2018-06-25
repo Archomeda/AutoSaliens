@@ -31,10 +31,14 @@ namespace AutoSaliens
             using (var webClient = new WebClient())
             {
                 webClient.Headers.Add("User-Agent", "AutoSaliens/1.0 (https://github.com/Archomeda/AutoAliens)");
-                var json = await webClient.DownloadStringTaskAsync(uri);
-                JArray commits = JArray.Parse(json);
-                return commits.Count > 1;
+                try
+                {
+                    var json = await webClient.DownloadStringTaskAsync(uri);
+                    JArray commits = JArray.Parse(json);
+                    return commits.Count > 1;
+                } catch (Exception) { }
             }
+            return false;
         }
     }
 }

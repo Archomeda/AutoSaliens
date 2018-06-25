@@ -1,4 +1,5 @@
 using System.IO;
+using System.Net;
 using System.Threading.Tasks;
 using System.Timers;
 using AutoSaliens.Api.Converters;
@@ -31,11 +32,13 @@ namespace AutoSaliens
 
         static Program()
         {
-            updateCheckerTimer.Elapsed += async (s, e) => await CheckForUpdates();
+            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
             JsonConvert.DefaultSettings = () => new JsonSerializerSettings
             {
                 ContractResolver = new SnakeCasePropertyNamesContractResolver()
             };
+
+            updateCheckerTimer.Elapsed += async (s, e) => await CheckForUpdates();
         }
 
         public static Task Main(string[] args)
@@ -115,14 +118,16 @@ namespace AutoSaliens
                 HasUpdate = await UpdateChecker.HasUpdateForMaster();
 
             if (HasUpdate && UpdateChecker.AppBranch == "master")
-                Shell.WriteLine($"{{inf}}An update is available. Visit the homepage at {{url}}{HomepageUrl}", false);
+                Shell.WriteLine($"{{inf}}An update is available");
             else if (UpdateChecker.AppBranch != "master")
             {
                 if (HasUpdateBranch)
-                    Shell.WriteLine($"{{inf}}An update is available for your branch {{val}}{UpdateChecker.AppBranch}{{inf}}. Visit the homepage at {{url}}{HomepageUrl}", false);
+                    Shell.WriteLine($"{{inf}}An update is available for your branch {{value}}{UpdateChecker.AppBranch}{{inf}}");
                 if (HasUpdate)
-                    Shell.WriteLine($"{{inf}}An update is available for the {{val}}master{{inf}} branch. Check if it's worth going back from the {{val}}{UpdateChecker.AppBranch}{{inf}} branch. Visit the homepage at {{url}}{HomepageUrl}", false);
+                    Shell.WriteLine($"{{inf}}An update is available for the {{value}}master{{inf}} branch. Check if it's worth going back from the {{value}}{UpdateChecker.AppBranch}{{inf}} branch");
             }
+            if (HasUpdate || HasUpdateBranch)
+                    Shell.WriteLine($"{{inf}}Visit the homepage at {{url}}{HomepageUrl}");
         }
     }
 }
