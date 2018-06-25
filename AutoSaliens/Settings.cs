@@ -6,7 +6,9 @@ namespace AutoSaliens
 {
     internal class Settings
     {
-        public bool Debug { get; set; }
+        public bool EnableBot { get; set; } = false;
+
+        public bool EnableDiscordPresence { get; set; } = false;
 
         public bool EnableNetworkTolerance { get; set; } = true;
 

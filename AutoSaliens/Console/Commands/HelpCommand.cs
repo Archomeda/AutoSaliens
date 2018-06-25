@@ -36,6 +36,7 @@ Application commands:
 {command}exit{reset}               - Exits the program
 {command}gametime {param}[seconds]{reset} - Shows or sets the game time in seconds (default: 110)
 {command}pause{reset}              - Pauses the automation after completing one loop cycle
+{command}presence {param}[toggle]{reset}  - Shows or sets whether Discord presence is enabled or not
 {command}resume{reset}             - Resumes the automation
 {command}token {param}[token]{reset}      - Shows or sets the token";
         }

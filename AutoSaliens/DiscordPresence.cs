@@ -1,8 +1,9 @@
 using System;
-using System.Globalization;
-using AutoSaliens.Api.Models;
+using System.Threading;
 using DiscordRPC;
 using DiscordRPC.Logging;
+using DiscordRPC.Message;
+using Timer = System.Timers.Timer;
 
 namespace AutoSaliens
 {
@@ -11,53 +12,83 @@ namespace AutoSaliens
         private const string clientId = "460795723881906186";
 
         private DiscordRpcClient rpcClient;
+        private Thread loopThread;
+        private Thread reconnectThread;
+        private Timer reconnectTimer;
+        private bool stopRequested = false;
+
+        public event EventHandler OnEnable;
+        public event EventHandler OnDisable;
+
 
         public void Initialize()
         {
+            if (this.loopThread != null)
+                return;
+
             this.rpcClient = new DiscordRpcClient(clientId)
             {
                 Logger = new DiscordPresenceLogger() { Level = LogLevel.Warning }
             };
+            this.rpcClient.OnConnectionEstablished += this.RpcClient_OnConnectionEstablished;
+            this.rpcClient.OnConnectionFailed += this.RpcClient_OnConnectionFailed;
             this.rpcClient.Initialize();
+            this.loopThread = new Thread(this.Loop);
+            this.loopThread.Start();
+            if (this.reconnectTimer == null)
+            {
+                this.reconnectTimer = new Timer(5 * 60 * 1000);
+                this.reconnectTimer.Elapsed += (e, a) =>
+                {
+                    if (!this.Available)
+                        this.Initialize();
+                };
+                this.reconnectTimer.Start();
+            }
         }
+
+        public bool Available { get; private set; }
+
+
+        private void Loop()
+        {
+            this.Available = true;
+            while (!this.stopRequested && this.Available)
+            {
+                if (this.rpcClient != null && this.rpcClient.IsInitialized && !this.rpcClient.Disposed)
+                    this.rpcClient.Invoke();
+                Thread.Sleep(10);
+            }
+            this.rpcClient.Dispose();
+            this.rpcClient = null;
+            this.loopThread = null;
+        }
+
+
+        private void RpcClient_OnConnectionEstablished(object sender, ConnectionEstablishedMessage args)
+        {
+            this.Available = true;
+            this.OnEnable?.Invoke(this, null);
+        }
+
+        private void RpcClient_OnConnectionFailed(object sender, ConnectionFailedMessage args)
+        {
+            this.Available = false;
+            this.OnDisable?.Invoke(this, null);
+        }
+
 
         public void SetPresence(RichPresence presence)
         {
-            if (this.rpcClient.IsInitialized)
+            if (this.Available)
                 this.rpcClient.SetPresence(presence);
         }
 
-        public void SetSaliensPlayerState(PlayerInfoResponse playerInfo)
+        public void Dispose()
         {
-            string details = $"Level {playerInfo.Level}";
-            if (long.TryParse(playerInfo.Score, out long xp))
-                details += $" - {xp.ToString("#,##0", CultureInfo.InvariantCulture)} XP";
-
-            string state = "Inactive";
-            if (!string.IsNullOrWhiteSpace(playerInfo.ActivePlanet) && !string.IsNullOrWhiteSpace(playerInfo.ActiveZonePosition))
-                state = $"Planet {playerInfo.ActivePlanet} - Zone {playerInfo.ActiveZonePosition}";
-            else if (!string.IsNullOrWhiteSpace(playerInfo.ActivePlanet) && string.IsNullOrWhiteSpace(playerInfo.ActiveZonePosition))
-                state = $"Planet {playerInfo.ActivePlanet}";
-
-            Timestamps time = null;
-            if (!string.IsNullOrWhiteSpace(playerInfo.ActiveZonePosition))
-                time = new Timestamps { Start = (DateTime.Now - playerInfo.TimeInZone).ToUniversalTime() };
-            else if (!string.IsNullOrWhiteSpace(playerInfo.ActivePlanet))
-                time = new Timestamps { Start = (DateTime.Now - playerInfo.TimeOnPlanet).ToUniversalTime() };
-
-            this.SetPresence(new RichPresence
-            {
-                Details = details,
-                State = state,
-                Timestamps = time,
-                Assets = new Assets
-                {
-                    LargeImageKey = "logo_large"
-                }
-            });
+            this.reconnectTimer.Dispose();
+            this.stopRequested = true;
+            this.Available = false;
         }
-
-        public void Dispose() => this.rpcClient.Dispose();
-
     }
 }
