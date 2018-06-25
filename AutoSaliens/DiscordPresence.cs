@@ -13,7 +13,6 @@ namespace AutoSaliens
 
         private DiscordRpcClient rpcClient;
         private Thread loopThread;
-        private Thread reconnectThread;
         private Timer reconnectTimer;
         private bool stopRequested = false;
 
