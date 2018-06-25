@@ -8,7 +8,7 @@ install:
   - git submodule update --init --recursive
 
 before_build:
-  - dotnet restore
+  - nuget restore
 
 build_script:
   - msbuild /p:TargetFramework=net451 /v:minimal /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
