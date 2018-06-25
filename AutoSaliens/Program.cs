@@ -71,7 +71,7 @@ namespace AutoSaliens
                 if (Settings.EnableBot)
                 {
                     Shell.WriteLine("{verb}Initializing bot...");
-                    task.Add(Saliens.Start());
+                    tasks.Add(Saliens.Start());
                 }
 #else
                 Shell.WriteLine("{inf}Debug build: type {command}resume{inf} to start automation");
