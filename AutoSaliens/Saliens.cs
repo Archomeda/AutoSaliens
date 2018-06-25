@@ -275,13 +275,14 @@ namespace AutoSaliens
 
         private async Task WaitForJoinedZoneToFinish()
         {
-            var timeLeft = this.JoinedZoneStart - DateTime.Now + TimeSpan.FromSeconds(this.GameTime);
+            var targetTime = this.JoinedZoneStart + TimeSpan.FromSeconds(this.GameTime);
             if (this.EnableNetworkTolerance)
-                timeLeft -= TimeSpan.FromMilliseconds(this.ReportScoreNetworkDelay.TotalMilliseconds * (1 - this.ReportScoreNetworkDelayTolerance));
+                targetTime -= TimeSpan.FromMilliseconds(this.ReportScoreNetworkDelay.TotalMilliseconds * (1 - this.ReportScoreNetworkDelayTolerance));
 
+            var timeLeft = targetTime - DateTime.Now;
             if (timeLeft.TotalSeconds > 0)
             {
-                Shell.WriteLine($"{{action}}Waiting for zone to finish in {{value}}{timeLeft.TotalSeconds.ToString("#.###")} seconds{{action}}...");
+                Shell.WriteLine($"{{action}}Waiting for zone to finish in {{value}}{timeLeft.TotalSeconds.ToString("#.###")} seconds{{action}} (at {{value}}{targetTime.ToString("HH:mm:ss.fff")}{{action}})...");
                 var tasks = new List<Task>();
                 if (timeLeft.TotalSeconds > 10)
                 {
@@ -398,7 +399,6 @@ namespace AutoSaliens
 
         public async Task ReportScore(int score)
         {
-            bool wasOutOfSync = false;
             for (int i = 0; ; i++)
             {
                 try
@@ -422,7 +422,8 @@ namespace AutoSaliens
                 {
                     if (ex.EResult == EResult.TimeIsOutOfSync && i < 5)
                     {
-                        wasOutOfSync = true;
+                        // Gradually decrease the delay until we no longer get issues on future requests
+                        this.ReportScoreNetworkDelay -= TimeSpan.FromMilliseconds(10);
                         Shell.WriteLine($"{{warn}}Failed to submit score of {score.ToString("#,##0")}: Submitting too fast, giving it a second ({i + 1}/5)...");
                         await Task.Delay(1000);
                         continue;
@@ -432,9 +433,6 @@ namespace AutoSaliens
                     throw;
                 }
             }
-            if (wasOutOfSync)
-                // Gradually decrease the delay until we no longer get issues on future requests
-                this.ReportScoreNetworkDelay -= TimeSpan.FromMilliseconds(10);
         }
 
         public async Task LeaveGame(string gameId)

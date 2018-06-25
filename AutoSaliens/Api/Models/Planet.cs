@@ -94,8 +94,8 @@ namespace AutoSaliens.Api.Models
             }
 
             return $@"{{planet}}{this.Id}: {this.State.Name}{{reset}}
-Started: {(this.State.ActivationTime > new DateTime(1970, 1, 1) ? this.State.ActivationTime.ToString("yyyy-MM-dd HH:mm:ss zzz") : "Not yet")}
-Captured: {(this.State.Captured ? this.State.CaptureTime.ToString("yyyy-MM-dd HH:mm:ss zzz") : "Not yet")}
+Started: {(this.State.ActivationTime > new DateTime(1970, 1, 1) ? this.State.ActivationTime.ToString("yyyy-MM-dd HH:mm:ss") : "Not yet")}
+Captured: {(this.State.Captured ? this.State.CaptureTime.ToString("yyyy-MM-dd HH:mm:ss") : "Not yet")}
 Progress: {progress}{(this.State.CaptureProgress).ToString("0.00%")}{{reset}}
 Difficulty: {difficulty}{this.State.Difficulty}{{reset}}
 Priority: {this.State.Priority}
