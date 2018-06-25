@@ -28,7 +28,7 @@ namespace AutoSaliens.Console.Commands
                 try
                 {
                     Program.Saliens.PlayerInfo = await SaliensApi.GetPlayerInfo(parameters);
-                    Program.Settings.Token = Program.Saliens.Token;
+                    Program.Settings.Token = parameters;
                     Program.Settings.Save();
                     return "Your token has been saved.";
                 }
