@@ -61,7 +61,7 @@ networktolerance [toggle]   - Shows or sets whether the network tolerance is ena
                               Enabling this will cause the application to try to send certain API
                               calls earlier to account for network latency (default: enable)
 planet <id>                 - Shows information about a planet
-planets                     - Shows the list of all planets
+planets [option]            - Shows the list of all planets
 strategy [strategy]         - Shows or sets the current active strategy (to reset to default, use: 0)
 zone <planet_id> <zone_pos> - Shows information about a zone
 zones <planet_id>           - Shows the list of the zones of a planet
@@ -73,7 +73,6 @@ help       - Shows this help message
 homepage   - Shows the homepage URL of this application
 
 Application commands:
-debug              - Toggles exception handling by the debugger
 exit               - Exits the program
 gametime [seconds] - Shows or sets the game time in seconds (default: 110)
 pause              - Pauses the automation after completing one loop cycle
