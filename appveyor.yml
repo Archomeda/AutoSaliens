@@ -11,8 +11,8 @@ before_build:
   - dotnet restore
 
 build_script:
-  - dotnet build -f net451
-  - dotnet publish -f netcoreapp2.0
+  - msbuild /p:TargetFramework=net451 /v:minimal /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
+  - msbuild /t:Publish /p:TargetFramework=netcoreapp2.0 /v:minimal /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
 
 after_build:
   - 7z a "AutoSaliens_%APPVEYOR_BUILD_VERSION%_win.zip" "%APPVEYOR_BUILD_FOLDER%\AutoSaliens\bin\%CONFIGURATION%\net451\"
