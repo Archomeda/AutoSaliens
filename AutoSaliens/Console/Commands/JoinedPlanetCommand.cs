@@ -10,7 +10,7 @@ namespace AutoSaliens.Console.Commands
         public override async Task<string> Run(string parameters, CancellationToken cancellationToken)
         {
             if (string.IsNullOrWhiteSpace(Program.Saliens.Token))
-                return "No token has been set.";
+                return "{{warn}}No token has been set.";
 
             if (Program.Saliens.PlanetDetails == null)
                 return "No planet information available yet.";
@@ -21,14 +21,21 @@ namespace AutoSaliens.Console.Commands
             }
             catch (WebException ex)
             {
-                return $"Invalid response. {ex.Message}";
+                return $"{{err}}Invalid response. {ex.Message}";
             }
 
             var planet = Program.Saliens.JoinedPlanet;
             if (planet == null)
                 return "No planet has been joined.";
 
-            return planet.ToString();
+            if (planet.Zones == null)
+            {
+                planet = await SaliensApi.GetPlanet(parameters);
+                var index = Program.Saliens.PlanetDetails.FindIndex(p => p.Id == parameters);
+                Program.Saliens.PlanetDetails[index] = planet;
+            }
+
+            return planet.ToConsoleBlock();
         }
     }
 }

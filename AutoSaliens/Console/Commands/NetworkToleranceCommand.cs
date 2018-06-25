@@ -13,10 +13,10 @@ namespace AutoSaliens.Console.Commands
             if (string.IsNullOrWhiteSpace(parameters))
             {
                 // Show the current network tolerance
-                this.WriteConsole($"The network tolerance is currently {(Program.Saliens.EnableNetworkTolerance ? "enabled" : "disabled")}.");
+                this.WriteConsole($"The network tolerance is currently {{value}}{(Program.Saliens.EnableNetworkTolerance ? "enabled" : "disabled")}{{reset}}.");
 
-                this.WriteConsole("You can change the network tolerance by appending either enable or disable to this command: networktolerance <toggle>");
-                this.WriteConsole("where <toggle> is replaced with either enable or disable.");
+                this.WriteConsole("You can change the network tolerance by appending either enable or disable to this command: {command}networktolerance {param}<toggle>");
+                this.WriteConsole("where {param}<toggle>{reset} is replaced with either {value}enable{reset} or {value}disable{reset}.");
 
                 return "";
             }
@@ -28,7 +28,7 @@ namespace AutoSaliens.Console.Commands
                 else if (parameters == "disable")
                     Program.Settings.EnableNetworkTolerance = false;
                 else
-                    return "Invalid input.";
+                    return "{err}Invalid input.";
                 Program.Settings.Save();
                 return $"Network tolerance has been {(Program.Settings.EnableNetworkTolerance ? "enabled" : "disabled")}.";
             }

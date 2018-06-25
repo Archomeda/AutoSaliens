@@ -12,12 +12,11 @@ namespace AutoSaliens.Console.Commands
 
         public override async Task<string> Run(string parameters, CancellationToken cancellationToken)
         {
-            this.WriteConsole($"Open your browser, and go to: {url}");
-            this.WriteConsole("After the page is opened, you'll be greeted with a bunch of text.");
-            this.WriteConsole("Go to the line that starts with \"token\" and copy the text that's between the quotes after that.");
-            this.WriteConsole("Afterwards, run the command: token <your_token>");
-            this.WriteConsole("where <your_token> is replaced with your token.");
-            return "";
+            return $@"Open your browser, and go to: {{url}}{url}{{reset}}
+After the page is opened, you'll be greeted with a bunch of text.
+Go to the line that starts with {{value}}""token""{{reset}} and copy the text that's between the quotes after that." +
+"Afterwards, run the command: {command}token {param}<your_token>" +
+"where {param}<your_token>{reset} is replaced with your token.";
         }
     }
 }

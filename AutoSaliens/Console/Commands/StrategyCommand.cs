@@ -17,13 +17,15 @@ namespace AutoSaliens.Console.Commands
                 // Show the current strategy
                 var allValues = Enum.GetValues(typeof(AutomationStrategy)) as AutomationStrategy[];
                 var values = allValues.Where(v => Program.Saliens.Strategy.HasFlag(v));
-                this.WriteConsole($"The strategy is set to: {string.Join(", ", values.Select(v => v.ToString()))}.");
+                this.WriteConsole($"The strategy is set to: {{value}}{string.Join(", ", values.Select(v => v.ToString()))}{{reset}}.");
 
-                this.WriteConsole($@"You can change the strategy by appending any combination of the strategies to this command: strategy <strategy>
-where <strategy> is replaced with a list of strategies, seperated by either spaces or commas.
+                this.WriteConsole($@"You can change the strategy by appending any combination of the strategies to this command: {{command}}strategy {{param}}<strategy>{{reset}}
+where {{param}}<strategy>{{reset}} is replaced with a list of strategies, seperated by either spaces or commas.
 
-Keep in mind that some strategies are incompatible with each other. If this happens, the first in the defined list below will take priority.
-Possible strategies are: {string.Join(", ", allValues.Select(v => v.ToString()))}");
+Keep in mind that some strategies are incompatible with each other.
+If this happens, the first in the defined list below will take priority.
+Possible strategies are:
+  {string.Join($"{Environment.NewLine}  ", allValues.Select(v => $"{{value}}{v}{{reset}}"))}");
 
                 return "";
             }
@@ -48,7 +50,7 @@ Possible strategies are: {string.Join(", ", allValues.Select(v => v.ToString()))
                 }
                 catch (ArgumentException)
                 {
-                    return "Invalid input.";
+                    return "{err}Invalid input.";
                 }
             }
         }

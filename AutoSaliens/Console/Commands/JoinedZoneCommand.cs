@@ -10,7 +10,7 @@ namespace AutoSaliens.Console.Commands
         public override async Task<string> Run(string parameters, CancellationToken cancellationToken)
         {
             if (string.IsNullOrWhiteSpace(Program.Saliens.Token))
-                return "No token has been set.";
+                return "{{warn}}No token has been set.";
 
             if (Program.Saliens.PlanetDetails == null)
                 return "No planet information available yet.";
@@ -21,14 +21,14 @@ namespace AutoSaliens.Console.Commands
             }
             catch (WebException ex)
             {
-                return $"Invalid response. {ex.Message}";
+                return $"{{err}}Invalid response. {ex.Message}";
             }
 
             var zone = Program.Saliens.JoinedZone;
             if (zone == null)
                 return "No zone has been joined.";
 
-            return zone.ToString();
+            return zone.ToConsoleBlock();
         }
     }
 }

@@ -10,8 +10,7 @@ namespace AutoSaliens.Console.Commands
     {
         public override async Task<string> Run(string parameters, CancellationToken cancellationToken)
         {
-            this.WriteConsole($"You can visit the homepage at: {Program.HomepageUrl}");
-            return "";
+            return $"You can visit the homepage at {{url}}{Program.HomepageUrl}";
         }
     }
 }

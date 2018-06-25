@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using AutoSaliens.Utils;
 using Newtonsoft.Json;
 
 namespace AutoSaliens.Api.Models
@@ -23,17 +24,29 @@ namespace AutoSaliens.Api.Models
 
         public List<ClanInfo> TopClans { get; set; }
 
-        public string ToShortString() =>
-            $"Zone {this.ZonePosition}, {this.Difficulty} - {(this.Captured ? "Captured" : (this.CaptureProgress).ToString("0.00%"))}";
-
-        public override string ToString()
+        public string ToConsoleLine()
         {
-            return $@"Zone {this.ZonePosition}:
-  GameId: {this.GameId}
-  Progress: {(this.Captured ? "Captured" : (this.CaptureProgress).ToString("0.00%"))}
-  Difficulty: {this.Difficulty}
-  Type: {this.Type}
-  Top clans: {(this.TopClans != null ? string.Join(", ", this.TopClans.Select(c => c.Name)) : "None")}";
+            var difficulty = MathUtils.ScaleColor((int)this.Difficulty - 1, (int)Difficulty.High - 1, new[] { "{svlow}", "{smed}", "{svhigh}" });
+            var progress = this.CaptureProgress == 0 ? "" :
+                MathUtils.ScaleColor((int)(this.CaptureProgress * 100), 100, new[] { "{svlow}", "{slow}", "{smed}", "{shigh}", "{svhigh}" });
+
+            return $"{{zone}}Z {this.ZonePosition.ToString().PadLeft(3)}{{reset}} - " +
+                $"{difficulty}{this.Difficulty.ToString().PadLeft(6)}{{reset}} - " +
+                $"{progress}{(this.Captured ? 1 : this.CaptureProgress).ToString("0.##%").PadLeft(7)}{{reset}}";
+        }
+
+        public string ToConsoleBlock()
+        {
+            var difficulty = MathUtils.ScaleColor((int)this.Difficulty - 1, (int)Difficulty.High - 1, new[] { "{svlow}", "{smed}", "{svhigh}" });
+            var progress = this.CaptureProgress == 0 ? "" :
+                MathUtils.ScaleColor((int)(this.CaptureProgress * 100), 100, new[] { "{svlow}", "{slow}", "{smed}", "{shigh}", "{svhigh}" });
+
+            return $@"{{zone}}Zone {this.ZonePosition.ToString()}{{reset}}
+GameId: {this.GameId}
+Progress: {progress}{(this.Captured ? 1 : this.CaptureProgress).ToString("0.##%")}{{reset}}
+Difficulty: {difficulty}{this.Difficulty.ToString()}{{reset}}
+Type: {this.Type}
+Top clans: {(this.TopClans != null ? string.Join(", ", this.TopClans.Select(c => c.Name)) : "None")}";
         }
     }
 }

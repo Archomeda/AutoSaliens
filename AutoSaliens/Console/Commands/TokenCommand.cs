@@ -13,12 +13,12 @@ namespace AutoSaliens.Console.Commands
             {
                 // Show the current token
                 if (!string.IsNullOrWhiteSpace(Program.Saliens.Token))
-                    this.WriteConsole($"Your token is currently set to: {Program.Saliens.Token}.");
+                    this.WriteConsole($"Your token is currently set to: {{value}}{Program.Saliens.Token}{{reset}}.");
                 else
                     this.WriteConsole("You have currently no token set.");
 
-                this.WriteConsole("You can change the token by appending the token to this command: token <your_token>");
-                this.WriteConsole("where <your_token> is replaced with your token.");
+                this.WriteConsole("You can change the token by appending the token to this command: {command}token {param}<your_token>");
+                this.WriteConsole("where {param}<your_token>{reset} is replaced with your token.");
 
                 return "";
             }
@@ -34,7 +34,7 @@ namespace AutoSaliens.Console.Commands
                 }
                 catch (WebException ex)
                 {
-                    return $"Invalid response. {ex.Message}";
+                    return $"{{err}}Invalid response. {ex.Message}";
                 }
             }
         }

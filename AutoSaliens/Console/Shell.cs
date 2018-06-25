@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,6 +11,58 @@ namespace AutoSaliens.Console
 {
     internal static class Shell
     {
+        #region ANSI escape support for Windows
+
+        // See: https://www.jerriepelser.com/blog/using-ansi-color-codes-in-net-console-apps/
+        private const int STD_OUTPUT_HANDLE = -11;
+        private const uint ENABLE_VIRTUAL_TERMINAL_PROCESSING = 0x0004;
+        private const uint DISABLE_NEWLINE_AUTO_RETURN = 0x0008;
+
+        [DllImport("kernel32.dll")]
+        private static extern bool GetConsoleMode(IntPtr hConsoleHandle, out uint lpMode);
+
+        [DllImport("kernel32.dll")]
+        private static extern bool SetConsoleMode(IntPtr hConsoleHandle, uint dwMode);
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        private static extern IntPtr GetStdHandle(int nStdHandle);
+
+        [DllImport("kernel32.dll")]
+        public static extern uint GetLastError();
+
+        public static bool SupportAnsiColors { get; private set; } = false;
+
+        #endregion
+
+        private static readonly IReadOnlyDictionary<string, string> AnsiColors = new Dictionary<string, string>
+        {
+            { "{reset}", "\x1b[0m" },
+            { "{err}", "\x1b[31;1m" },
+            { "{warn}", "\x1b[33;1m" },
+            { "{inf}", "\x1b[38;5;39m" },
+            { "{verb}", "\x1b[38;5;242m" },
+            { "{action}", "\x1b[38;5;147m" },
+            { "{logtime}", "\x1b[38;5;242m" },
+            { "{command}\"", "\x1b[38;5;170m" },
+            { "{command}", "\x1b[38;5;170m" },
+            { "\"{/command}", "\x1b[0m" },
+            { "{param}", "\x1b[38;5;98m" },
+            { "{value}", "\x1b[38;5;85m" },
+            { "{url}", "\x1b[38;5;27m" },
+            { "{planet}", "\x1b[36;1m" },
+            { "{zone}", "\x1b[38;5;208m" },
+            { "{svlow}", "\x1b[38;5;193m" },
+            { "{slow}", "\x1b[38;5;228m" },
+            { "{smed}", "\x1b[38;5;222m" },
+            { "{shigh}", "\x1b[38;5;215m"},
+            { "{svhigh}", "\x1b[38;5;203m"},
+            { "{level}", "\x1b[35;1m" },
+            { "{oldlevel}", "\x1b[35m" },
+            { "{xp}", "\x1b[32;1m" },
+            { "{reqxp}", "\x1b[38;5;190m" },
+            { "{oldxp}", "\x1b[32m" }
+        };
+
         private static bool stopRequested = false;
         private static CancellationTokenSource cancellationTokenSource;
 
@@ -23,6 +75,27 @@ namespace AutoSaliens.Console
             Commands = new List<ICommand>(commandTypes.Select(c => (ICommand)Activator.CreateInstance(c))).AsReadOnly();
 
             SConsole.TreatControlCAsInput = true;
+
+#if NETCOREAPP2_0
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+#endif
+                try
+                {
+                    // Only Windows 10 1511 or higher support this
+                    // If it doesn't work, oh well... fall back to no colors
+                    var stdOut = GetStdHandle(STD_OUTPUT_HANDLE);
+                    GetConsoleMode(stdOut, out uint consoleMode);
+                    consoleMode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING | DISABLE_NEWLINE_AUTO_RETURN;
+                    if (SetConsoleMode(stdOut, consoleMode))
+                        SupportAnsiColors = true;
+                }
+                catch (Exception) { }
+#if NETCOREAPP2_0
+            }
+            else
+                SupportAnsiColors = true;
+#endif
         }
 
         public static IReadOnlyCollection<ICommand> Commands { get; private set; }
@@ -43,7 +116,7 @@ namespace AutoSaliens.Console
                         var key = SConsole.ReadKey(true);
                         if (key.Modifiers.HasFlag(ConsoleModifiers.Control) && (key.Key == ConsoleKey.C || key.Key == ConsoleKey.Pause))
                         {
-                            WriteLine("Stopping...");
+                            WriteLine("{verb}Stopping...");
                             await Program.Stop();
                             return;
                         }
@@ -125,7 +198,7 @@ namespace AutoSaliens.Console
                         }
                     }
                     else
-                        log = "Unknown command, use \"help\" to get the list of available commands.";
+                        log = "Unknown command, use {command}\"help\"{/command} to get the list of available commands.";
 
                     if (log != null)
                         WriteLine(FormatCommandOuput(log), false);
@@ -146,9 +219,14 @@ namespace AutoSaliens.Console
         public static void WriteLine(string format, bool includeTime, params string[] args)
         {
             if (includeTime)
-                SConsole.WriteLine($"[{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss zzz")}] {format}", args);
+                format = $"{{logtime}}[{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss zzz")}]{{reset}} {format}";
+
+            if (SupportAnsiColors)
+                format = AnsiColors.Aggregate($"{format}{{reset}}", (result, kvp) => result.Replace(kvp.Key, kvp.Value));
             else
-                SConsole.WriteLine(format, args);
+                format = AnsiColors.Aggregate(format, (result, kvp) => result.Replace(kvp.Key, ""));
+
+            SConsole.WriteLine(format, args);
         }
 
         public static void WriteLines(string[] lines) => WriteLines(lines, true);
@@ -161,8 +239,9 @@ namespace AutoSaliens.Console
 
 
         public static string FormatCommandOuput(string text) =>
-            string.Join("\n", text.Split('\n').Select(l => $"> {l}"));
+            string.Join(Environment.NewLine, text.Split(new[] { Environment.NewLine }, StringSplitOptions.None)
+                .Select(l => $"> {l}"));
 
-        public static string FormatExceptionOutput(Exception ex) => $"An error has occured: {ex.Message}\n{ex.StackTrace}";
+        public static string FormatExceptionOutput(Exception ex) => $"An error has occured: {ex.Message}{Environment.NewLine}{ex.StackTrace}";
     }
 }

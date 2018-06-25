@@ -14,7 +14,7 @@ namespace AutoSaliens.Console.Commands
 
             var planet = Program.Saliens.PlanetDetails.FirstOrDefault(p => p.Id == parameters);
             if (planet == null)
-                return "Unknown planet id.";
+                return "{err}Unknown planet id.";
 
             if (planet.Zones == null)
             {
@@ -23,7 +23,7 @@ namespace AutoSaliens.Console.Commands
                 Program.Saliens.PlanetDetails[index] = planet;
             }
 
-            return planet.ToString();
+            return planet.ToConsoleBlock();
         }
     }
 }

@@ -1,4 +1,3 @@
-using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -10,27 +9,17 @@ namespace AutoSaliens.Console.Commands
         public override async Task<string> Run(string parameters, CancellationToken cancellationToken)
         {
             if (string.IsNullOrWhiteSpace(Program.Saliens.Token))
-                return "No token has been set.";
+                return "{warn}No token has been set.";
 
-            try
-            {
-                await Program.Saliens.UpdatePlayerInfo();
-            }
-            catch (WebException ex)
-            {
-                return $"Invalid response. {ex.Message}";
-            }
+            var info = await SaliensApi.GetPlayerInfo(Program.Settings.Token);
+            Program.Saliens.PlayerInfo = info;
 
-            var info = Program.Saliens.PlayerInfo;
-
-            return $@"Level: {info.Level}
-Score: {long.Parse(info.Score).ToString("#,##0")}
-Next level score: {long.Parse(info.NextLevelScore).ToString("#,##0")}
+            return $@"Level: {{level}}{info.Level}{{reset}}
+XP: {{xp}}{long.Parse(info.Score).ToString("#,##0")}{{reset}} (required for next level: {{reqxp}}{long.Parse(info.NextLevelScore).ToString("#,##0")}{{reset}})
 Clan: {info.ClanInfo.Name}
-Active planet: {info.ActivePlanet}
+Active planet: {{planet}}{info.ActivePlanet} {{reset}}
 Time spent on planet: {info.TimeOnPlanet.ToString()}
-Active zone position: {info.ActiveZonePosition}
-Active zone game: {info.ActiveZoneGame}
+Active zone: {{zone}}{info.ActiveZonePosition} ({info.ActiveZoneGame}){{reset}}
 Time spent in zone: {info.TimeInZone.TotalSeconds} seconds";
         }
     }

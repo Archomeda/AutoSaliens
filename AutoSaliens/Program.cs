@@ -33,9 +33,9 @@ namespace AutoSaliens
         {
             Shell.WriteLine("AutoSaliens - A Saliens mini game automation tool", false);
             Shell.WriteLine("Author: Archomeda", false);
-            Shell.WriteLine($"Homepage: {HomepageUrl}", false);
+            Shell.WriteLine($"Homepage: {{url}}{HomepageUrl}", false);
             Shell.WriteLine("", false);
-            Shell.WriteLine("This console is interactive, type \"help\" to get the list of available commands.", false);
+            Shell.WriteLine("{inf}This console is interactive, type {command}\"help\"{/command}{inf} to get the list of available commands.", false);
 
             return Start();
         }
@@ -59,18 +59,18 @@ namespace AutoSaliens
                         AutomationStrategy.MostDifficultZonesFirst;
                 }
                 Shell.WriteLine("", false);
-                Shell.WriteLine("Read settings from settings.json");
+                Shell.WriteLine("{verb}Read settings from settings.json");
 
 #if !DEBUG
                 await Task.WhenAll(Shell.StartRead(), Saliens.Start());
 #else
-                Shell.WriteLine("Debug build: type \"resume\" to start automation");
+                Shell.WriteLine("{inf}Debug build: type {command}\"resume\"{/command}{inf} to start automation");
                 await Shell.StartRead();
 #endif
             }
             else
             {
-                Shell.WriteLine("It seems like that this is your first time running this application! Type \"getstarted\" to get started.", false);
+                Shell.WriteLine("{inf}It seems like that this is your first time running this application! Type {command}\"getstarted\"{/command}{inf} to get started.", false);
                 Shell.WriteLine("", false);
 
                 await Shell.StartRead();
