@@ -51,7 +51,6 @@ namespace AutoSaliens
             Shell.WriteLine("{warn}Discord presence is unavailable.");
         }
 
-
         private async void Presence_Thread()
         {
             while (!this.checkerCancelSource.IsCancellationRequested)
@@ -81,7 +80,6 @@ namespace AutoSaliens
                 this.checkerCancelSource.Token.WaitHandle.WaitOne(timeToWait);
             }
         }
-
 
 
         public Task Start()
