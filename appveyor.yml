@@ -4,6 +4,9 @@ skip_branch_with_pr: true
 
 configuration: Release
 
+cache:
+  - packages -> **\packages.config
+
 install:
   - git submodule update --init --recursive
 
