@@ -14,4 +14,8 @@
     <Folder Include="Properties\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\discord-rpc-csharp\Discord RPC\DiscordRPC.csproj" />
+  </ItemGroup>
+
 </Project>

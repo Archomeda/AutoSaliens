@@ -214,9 +214,9 @@ namespace AutoSaliens.Console
         }
 
 
-        public static void WriteLine(string format, params string[] args) => WriteLine(format, true, args);
+        public static void WriteLine(string format, params object[] args) => WriteLine(format, true, args);
 
-        public static void WriteLine(string format, bool includeTime, params string[] args)
+        public static void WriteLine(string format, bool includeTime, params object[] args)
         {
             if (includeTime)
                 format = $"{{logtime}}[{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff")}]{{reset}} {format}";

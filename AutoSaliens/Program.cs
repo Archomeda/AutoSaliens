@@ -18,6 +18,8 @@ namespace AutoSaliens
 
         public static Saliens Saliens { get; } = new Saliens();
 
+        public static DiscordPresence Presence { get; } = new DiscordPresence();
+
         public static Settings Settings { get; private set; } = new Settings();
 
 
@@ -61,6 +63,9 @@ namespace AutoSaliens
                 Shell.WriteLine("", false);
                 Shell.WriteLine("{verb}Read settings from settings.json");
 
+                Presence.Initialize();
+                Shell.WriteLine("{verb}Initialized Discord presence");
+
 #if !DEBUG
                 await Task.WhenAll(Shell.StartRead(), Saliens.Start());
 #else
@@ -70,6 +75,9 @@ namespace AutoSaliens
             }
             else
             {
+                Presence.Initialize();
+                Shell.WriteLine("{verb}Initialized Discord presence");
+
                 Shell.WriteLine("{inf}It seems like that this is your first time running this application! Type {command}\"getstarted\"{/command}{inf} to get started.", false);
                 Shell.WriteLine("", false);
 
@@ -82,6 +90,7 @@ namespace AutoSaliens
             return Task.Run(() =>
             {
                 Saliens.Stop();
+                Presence.Dispose();
                 Shell.StopRead();
             });
         }
