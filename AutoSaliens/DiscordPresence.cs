@@ -27,7 +27,7 @@ namespace AutoSaliens
 
             this.rpcClient = new DiscordRpcClient(clientId)
             {
-                Logger = new DiscordPresenceLogger() { Level = LogLevel.Info }
+                Logger = new DiscordPresenceLogger() { Level = LogLevel.Warning }
             };
             this.rpcClient.OnConnectionEstablished += this.RpcClient_OnConnectionEstablished;
             this.rpcClient.OnConnectionFailed += this.RpcClient_OnConnectionFailed;
