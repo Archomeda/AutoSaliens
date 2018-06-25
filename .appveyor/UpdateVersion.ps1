@@ -5,17 +5,17 @@ Function RegexReplaceFile($file, $id, $replace, $encoding = "ASCII") {
 
 Function SetVersion() {
     Write-Host "Set version: $env:APPVEYOR_BUILD_VERSION" -ForegroundColor "Yellow"
-    RegexReplaceFile -file "AutoSaliens\UpdateChecker.cs" -id "VERSION" -replace $env:APPVEYOR_BUILD_VERSION
+    RegexReplaceFile -file "AutoSaliens\UpdateChecker.cs" -id "VERSION" -replace "`"$env:APPVEYOR_BUILD_VERSION`""
 }
 
 Function SetBranch() {
     Write-Host "Set branch: $env:APPVEYOR_REPO_BRANCH" -ForegroundColor "Yellow"
-    RegexReplaceFile -file "AutoSaliens\UpdateChecker.cs" -id "BRANCH" -replace $env:APPVEYOR_BUILD_VERSION
+    RegexReplaceFile -file "AutoSaliens\UpdateChecker.cs" -id "BRANCH" -replace "`"$env:APPVEYOR_BUILD_VERSION`""
 }
 
 Function SetDate() {
     Write-Host "Set date: $env:APPVEYOR_REPO_COMMIT_TIMESTAMP" -ForegroundColor "Yellow"
-    RegexReplaceFile -file "AutoSaliens\UpdateChecker.cs" -id "DATE" -replace $env:APPVEYOR_REPO_COMMIT_TIMESTAMP
+    RegexReplaceFile -file "AutoSaliens\UpdateChecker.cs" -id "DATE" -replace "`"$env:APPVEYOR_REPO_COMMIT_TIMESTAMP`""
 }
 
 SetVersion
