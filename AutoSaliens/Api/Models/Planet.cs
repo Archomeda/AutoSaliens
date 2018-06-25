@@ -93,18 +93,18 @@ namespace AutoSaliens.Api.Models
                 bosses = $"{bossZones}Boss:   {bossFree.ToString().PadLeft(2)}/{bossTotal.ToString().PadLeft(2)}{{reset}}";
             }
 
-            return $@"{{planet}}{this.Id}: {this.State.Name}{{reset}}
-Started: {(this.State.ActivationTime > new DateTime(1970, 1, 1) ? this.State.ActivationTime.ToString("yyyy-MM-dd HH:mm:ss") : "Not yet")}
-Captured: {(this.State.Captured ? this.State.CaptureTime.ToString("yyyy-MM-dd HH:mm:ss") : "Not yet")}
-Progress: {progress}{(this.State.CaptureProgress).ToString("0.00%")}{{reset}}
-Difficulty: {difficulty}{this.State.Difficulty}{{reset}}
-Priority: {this.State.Priority}
-Current players: {this.State.CurrentPlayers.ToString("#,##0")}
-Total joins: {this.State.TotalJoins.ToString("#,##0")}
-Top clans: {(this.TopClans != null ? string.Join(", ", this.TopClans.Select(c => $"{c.ClanInfo.Name} ({c.NumZonesControlled})")) : "None")}
-Zones:
-  {string.Join($"{Environment.NewLine}  ", zones)}
-  {bosses}";
+            return $"{{planet}}{this.Id}: {this.State.Name}{{reset}}{Environment.NewLine}" +
+                $"Started: {(this.State.ActivationTime > new DateTime(1970, 1, 1) ? this.State.ActivationTime.ToString("yyyy-MM-dd HH:mm:ss") : "Not yet")}{Environment.NewLine}" +
+                $"Captured: {(this.State.Captured ? this.State.CaptureTime.ToString("yyyy-MM-dd HH:mm:ss") : "Not yet")}{Environment.NewLine}" +
+                $"Progress: {progress}{(this.State.CaptureProgress).ToString("0.00%")}{{reset}}{Environment.NewLine}" +
+                $"Difficulty: {difficulty}{this.State.Difficulty}{{reset}}{Environment.NewLine}" +
+                $"Priority: {this.State.Priority}{Environment.NewLine}" +
+                $"Current players: {this.State.CurrentPlayers.ToString("#,##0")}{Environment.NewLine}" +
+                $"Total joins: {this.State.TotalJoins.ToString("#,##0")}{Environment.NewLine}" +
+                $"Top clans: {(this.TopClans != null ? string.Join(", ", this.TopClans.Select(c => $"{c.ClanInfo.Name} ({c.NumZonesControlled})")) : "None")}{Environment.NewLine}" +
+                $"Zones:{Environment.NewLine}" +
+                $"  {string.Join($"{Environment.NewLine}  ", zones)}{Environment.NewLine}" +
+                $"  {bosses}";
         }
     }
 }

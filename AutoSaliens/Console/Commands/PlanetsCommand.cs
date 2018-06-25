@@ -44,11 +44,11 @@ namespace AutoSaliens.Console.Commands
                 this.WriteConsole("");
             }
 
-            return $@"To get a list of all planets, use the command: {{command}}planets {{param}}all{{reset}}
-To fully refresh the list of planets, use the command: {{command}}planets {{param}}live{{reset}}
+            return $"To get a list of all planets, use the command: {{command}}planets {{param}}all{{reset}}{Environment.NewLine}" +
+                $"To fully refresh the list of planets, use the command: {{command}}planets {{param}}live{{reset}}{Environment.NewLine}{Environment.NewLine}" +
 
-To see more information about a planet, use the command: {{command}}planet {{param}}<id>{{reset}}
-where {{param}}<id>{{reset}} is replaced with the planet id.";
+                $"To see more information about a planet, use the command: {{command}}planet {{param}}<id>{{reset}}{Environment.NewLine}" +
+                $"where {{param}}<id>{{reset}} is replaced with the planet id.";
 
             async Task PrintPlanets(IEnumerable<Planet> planets)
             {

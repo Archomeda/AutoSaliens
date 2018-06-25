@@ -28,16 +28,16 @@ namespace AutoSaliens.Console.Commands
             var active = planet.Zones.Where(z => !z.Captured);
             var captured = planet.Zones.Where(z => z.Captured);
 
-            return $@"Zones on {{planet}}planet {planet.Id} ({planet.State.Name}){{reset}}
-Captured zones:
-{string.Join(Environment.NewLine, captured.Select(z => z.ToConsoleLine()))}
+            return $"Zones on {{planet}}planet {planet.Id} ({planet.State.Name}){{reset}}{Environment.NewLine}" +
+                $"Captured zones:{Environment.NewLine}" +
+                $"{string.Join(Environment.NewLine, captured.Select(z => z.ToConsoleLine()))}{Environment.NewLine}{Environment.NewLine}" +
 
-Active zones:
-{string.Join(Environment.NewLine, active.Select(z => z.ToConsoleLine()))}
+                $"Active zones:{Environment.NewLine}" +
+                $"{string.Join(Environment.NewLine, active.Select(z => z.ToConsoleLine()))}{Environment.NewLine}{Environment.NewLine}" +
 
-To see more information about a zone, use the command: {{command}}zone {{param}}<planet_id> <zone_pos>{{reset}}
-where {{param}}<planet_id>{{reset}} is replaced with the planet id,
-and {{param}}<zone_pos>{{reset}} is replaced with the zone position";
+                $"To see more information about a zone, use the command: {{command}}zone {{param}}<planet_id> <zone_pos>{{reset}}{Environment.NewLine}" +
+                $"where {{param}}<planet_id>{{reset}} is replaced with the planet id,{Environment.NewLine}" +
+                $"and {{param}}<zone_pos>{{reset}} is replaced with the zone position";
         }
     }
 }

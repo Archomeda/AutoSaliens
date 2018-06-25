@@ -1,3 +1,4 @@
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -12,11 +13,11 @@ namespace AutoSaliens.Console.Commands
 
         public override async Task<string> Run(string parameters, CancellationToken cancellationToken)
         {
-            return $@"Open your browser, and go to: {{url}}{url}{{reset}}
-After the page is opened, you'll be greeted with a bunch of text.
-Go to the line that starts with {{value}}""token""{{reset}} and copy the text that's between the quotes after that." +
-"Afterwards, run the command: {command}token {param}<your_token>" +
-"where {param}<your_token>{reset} is replaced with your token.";
+            return $"Open your browser, and go to: {{url}}{url}{{reset}}{Environment.NewLine}" +
+                $"After the page is opened, you'll be greeted with a bunch of text.{Environment.NewLine}" +
+                $"Go to the line that starts with {{value}}\"token\"{{reset}} and copy the text that's between the quotes after that.{Environment.NewLine}" +
+                $"Afterwards, run the command: {{command}}token {{param}}<your_token>{Environment.NewLine}" +
+                $"where {{param}}<your_token>{{reset}} is replaced with your token.";
         }
     }
 }
