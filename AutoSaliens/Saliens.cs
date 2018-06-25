@@ -392,8 +392,7 @@ namespace AutoSaliens
                     Shell.WriteLine("{warn}Failed to join zone: Zone already captured");
                     this.JoinedZonePosition = null;
                 }
-                else
-                    throw;
+                throw;
             }
         }
 
@@ -426,14 +425,11 @@ namespace AutoSaliens
                         wasOutOfSync = true;
                         Shell.WriteLine($"{{warn}}Failed to submit score of {score.ToString("#,##0")}: Submitting too fast, giving it a second ({i + 1}/5)...");
                         await Task.Delay(1000);
+                        continue;
                     }
                     else if (ex.EResult == EResult.Expired || ex.EResult == EResult.NoMatch)
-                    {
                         Shell.WriteLine($"{{warn}}Failed to submit score of {score.ToString("#,##0")}: Zone already captured");
-                        break;
-                    }
-                    else
-                        throw;
+                    throw;
                 }
             }
             if (wasOutOfSync)
