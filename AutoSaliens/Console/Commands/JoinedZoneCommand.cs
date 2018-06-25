@@ -1,6 +1,7 @@
-using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+
+#pragma warning disable CS1998
 
 namespace AutoSaliens.Console.Commands
 {
@@ -14,15 +15,6 @@ namespace AutoSaliens.Console.Commands
 
             if (Program.Saliens.PlanetDetails == null)
                 return "No planet information available yet.";
-
-            try
-            {
-                await Program.Saliens.UpdatePlayerInfo();
-            }
-            catch (WebException ex)
-            {
-                return $"{{err}}Invalid response. {ex.Message}";
-            }
 
             var zone = Program.Saliens.JoinedZone;
             if (zone == null)

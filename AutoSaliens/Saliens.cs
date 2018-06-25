@@ -105,8 +105,8 @@ namespace AutoSaliens
                 try
                 {
                     await Task.WhenAll(
-                        this.UpdatePlanets(false),
-                        this.UpdatePlayerInfo()
+                        this.UpdatePlanets(false).ContinueWith(t => this.PrintActivePlanets()),
+                        this.UpdatePlayerInfo().ContinueWith(t => this.PrintPlayerInfo())
                     );
                     isInitialized = true;
                 }
@@ -229,7 +229,7 @@ namespace AutoSaliens
                         var tasks = new List<Task>();
                         if (!string.IsNullOrWhiteSpace(this.JoinedPlanetId) && this.JoinedPlanetId != "0")
                             tasks.Add(this.LeaveGame(this.JoinedPlanetId));
-                        tasks.Add(this.UpdatePlayerInfo());
+                        tasks.Add(this.UpdatePlayerInfo().ContinueWith(t => this.PrintPlayerInfo()));
                         await Task.WhenAll(tasks);
 
                         // Reset local states properly
@@ -287,8 +287,10 @@ namespace AutoSaliens
                 if (timeLeft.TotalSeconds > 10)
                 {
                     // Schedule to update some data 5 seconds before the zone is finished
-                    tasks.Add(Task.Delay(timeLeft - TimeSpan.FromSeconds(5)).ContinueWith(t =>
-                        this.UpdatePlanets(true)));
+                    tasks.Add(Task.Delay(timeLeft - TimeSpan.FromSeconds(5)).ContinueWith(async t => {
+                        await this.UpdatePlanets();
+                        this.PrintActivePlanets();
+                    }));
                 }
                 tasks.Add(Task.Delay(timeLeft));
                 await Task.WhenAll(tasks);
@@ -305,7 +307,7 @@ namespace AutoSaliens
         }
 
 
-        public async Task UpdatePlanets(bool activeOnly)
+        public async Task UpdatePlanets(bool activeOnly = true)
         {
             var newPlanets = await SaliensApi.GetPlanets(activeOnly);
             if (!activeOnly)
@@ -322,36 +324,17 @@ namespace AutoSaliens
                         planet.State.Active = false;
             }
 
-            var planetsByPriority = newPlanets.OrderBy(p => p.State.Priority);
-            var newDetails = await Task.WhenAll(planetsByPriority.Where(p => p.State.Running).Select(p => SaliensApi.GetPlanet(p.Id)));
+            // Get zones of all active planets + 1 upcoming
+            var planetsToGetZonesOf = newPlanets.OrderBy(p => p.State.Priority).Where(p => p.State.Running);
+            var lastPlanetIndex = this.PlanetDetails.ToList().FindIndex(p => p.Id == planetsToGetZonesOf.Last().Id);
+            planetsToGetZonesOf = planetsToGetZonesOf.Concat(this.PlanetDetails.Skip(lastPlanetIndex + 1).Take(1));
 
-            Shell.WriteLine("Active planets:");
+            var newDetails = await Task.WhenAll(planetsToGetZonesOf.Select(p => SaliensApi.GetPlanet(p.Id)));
             foreach (var planet in newDetails)
             {
                 // Replace the planet because this instance has more information (e.g. zones)
                 var i = this.PlanetDetails.FindIndex(p => p.Id == planet.Id);
                 this.PlanetDetails[i] = planet;
-                Shell.WriteLine(planet.ToConsoleLine());
-                if (this.JoinedPlanetId == planet.Id && this.JoinedZonePosition != null)
-                {
-                    var zone = planet.Zones.FirstOrDefault(z => z.ZonePosition == this.JoinedZonePosition);
-                    if (zone != null)
-                        Shell.WriteLine(zone.ToConsoleLine());
-                }
-            }
-
-            // Get the next future planet, if available
-            var lastPlanetIndex = this.PlanetDetails.ToList().FindIndex(p => p.Id == newDetails.Last().Id);
-            var lastPlanet = this.PlanetDetails.Skip(lastPlanetIndex + 1).FirstOrDefault();
-            if (lastPlanet != null)
-            {
-                //TODO: Merge this into the previous iteration
-                lastPlanet = await SaliensApi.GetPlanet(lastPlanet.Id);
-                var i = this.PlanetDetails.FindIndex(p => p.Id == lastPlanet.Id);
-                this.PlanetDetails[i] = lastPlanet;
-
-                Shell.WriteLine("Upcoming planets:");
-                Shell.WriteLine(lastPlanet.ToConsoleLine());
             }
         }
 
@@ -364,12 +347,6 @@ namespace AutoSaliens
 
             if (!string.IsNullOrWhiteSpace(this.PlayerInfo.ActiveZonePosition))
                 this.JoinedZoneStart = DateTime.Now - this.PlayerInfo.TimeInZone;
-
-            if (!string.IsNullOrWhiteSpace(this.PlayerInfo.ActivePlanet))
-                Shell.WriteLine($"Active planet: {{planet}}{this.PlayerInfo.ActivePlanet}{{reset}} for {{value}}{this.PlayerInfo.TimeOnPlanet.ToString()}{{reset}}");
-            if (!string.IsNullOrWhiteSpace(this.PlayerInfo.ActiveZonePosition))
-                Shell.WriteLine($"Active zone: {{zone}}{this.PlayerInfo.ActiveZonePosition}{{reset}} for {{value}}{this.PlayerInfo.TimeInZone.TotalSeconds}s{{reset}}");
-            Shell.WriteLine($"Level {{level}}{this.PlayerInfo.Level}{{reset}}: {{xp}}{long.Parse(this.PlayerInfo.Score).ToString("#,##0")}{{reset}}/{{reqxp}}{long.Parse(this.PlayerInfo.NextLevelScore).ToString("#,##0")}{{reset}}");
         }
 
         public async Task JoinPlanet(string planetId)
@@ -442,6 +419,41 @@ namespace AutoSaliens
                 this.JoinedPlanetId = null;
             else if (this.JoinedZone.GameId == gameId)
                 this.JoinedZonePosition = null;
+        }
+
+        public void PrintActivePlanets()
+        {
+            var planets = this.PlanetDetails.OrderBy(p => p.State.Priority).Where(p => p.State.Running);
+
+            Shell.WriteLine("Active planets:");
+            foreach (var planet in planets)
+            {
+                Shell.WriteLine(planet.ToConsoleLine());
+                if (this.JoinedPlanetId == planet.Id && this.JoinedZonePosition != null)
+                {
+                    var zone = planet.Zones.FirstOrDefault(z => z.ZonePosition == this.JoinedZonePosition);
+                    if (zone != null)
+                        Shell.WriteLine(zone.ToConsoleLine());
+                }
+            }
+
+            // Get the next future planet, if available
+            var lastPlanetIndex = this.PlanetDetails.ToList().FindIndex(p => p.Id == planets.Last().Id);
+            var lastPlanet = this.PlanetDetails.Skip(lastPlanetIndex + 1).FirstOrDefault();
+            if (lastPlanet != null)
+            {
+                Shell.WriteLine("Upcoming planets:");
+                Shell.WriteLine(lastPlanet.ToConsoleLine());
+            }
+        }
+
+        public void PrintPlayerInfo()
+        {
+            if (!string.IsNullOrWhiteSpace(this.PlayerInfo.ActivePlanet))
+                Shell.WriteLine($"Active planet: {{planet}}{this.PlayerInfo.ActivePlanet}{{reset}} for {{value}}{this.PlayerInfo.TimeOnPlanet.ToString()}{{reset}}");
+            if (!string.IsNullOrWhiteSpace(this.PlayerInfo.ActiveZonePosition))
+                Shell.WriteLine($"Active zone: {{zone}}{this.PlayerInfo.ActiveZonePosition}{{reset}} for {{value}}{this.PlayerInfo.TimeInZone.TotalSeconds}s{{reset}}");
+            Shell.WriteLine($"Level {{level}}{this.PlayerInfo.Level}{{reset}}: {{xp}}{long.Parse(this.PlayerInfo.Score).ToString("#,##0")}{{reset}}/{{reqxp}}{long.Parse(this.PlayerInfo.NextLevelScore).ToString("#,##0")}{{reset}}");
         }
 
 
