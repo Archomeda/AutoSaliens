@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using AutoSaliens.Utils;
@@ -41,12 +42,12 @@ namespace AutoSaliens.Api.Models
             var progress = this.CaptureProgress == 0 ? "" :
                 MathUtils.ScaleColor((int)(this.CaptureProgress * 100), 100, new[] { "{svlow}", "{slow}", "{smed}", "{shigh}", "{svhigh}" });
 
-            return $@"{{zone}}Zone {this.ZonePosition.ToString()}{{reset}}
-GameId: {this.GameId}
-Progress: {progress}{(this.Captured ? 1 : this.CaptureProgress).ToString("0.##%")}{{reset}}
-Difficulty: {difficulty}{this.Difficulty.ToString()}{{reset}}
-Type: {this.Type}
-Top clans: {(this.TopClans != null ? string.Join(", ", this.TopClans.Select(c => c.Name)) : "None")}";
+            return $"{{zone}}Zone {this.ZonePosition.ToString()}{{reset}}{Environment.NewLine}" +
+                $"GameId: {this.GameId}{Environment.NewLine}" +
+                $"Progress: {progress}{(this.Captured ? 1 : this.CaptureProgress).ToString("0.##%")}{{reset}}{Environment.NewLine}" +
+                $"Difficulty: {difficulty}{this.Difficulty.ToString()}{{reset}}{Environment.NewLine}" +
+                $"Type: {this.Type}{Environment.NewLine}" +
+                $"Top clans: {(this.TopClans != null ? string.Join(", ", this.TopClans.Select(c => c.Name)) : "None")}";
         }
     }
 }
