@@ -230,6 +230,7 @@ namespace AutoSaliens
                         if (!string.IsNullOrWhiteSpace(this.JoinedPlanetId) && this.JoinedPlanetId != "0")
                             tasks.Add(this.LeaveGame(this.JoinedPlanetId));
                         tasks.Add(this.UpdatePlayerInfo().ContinueWith(t => this.PrintPlayerInfo()));
+                        tasks.Add(this.UpdatePlanets().ContinueWith(t => this.PrintActivePlanets()));
                         await Task.WhenAll(tasks);
 
                         // Reset local states properly

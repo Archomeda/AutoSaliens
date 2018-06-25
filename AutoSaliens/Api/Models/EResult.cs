@@ -6,6 +6,7 @@ namespace AutoSaliens.Api.Models
         Invalid = 0,
         OK = 1,
         Fail = 2,
+        InvalidParam = 8,
         Busy = 10,
         InvalidState = 11,
         AccessDenied = 15,
