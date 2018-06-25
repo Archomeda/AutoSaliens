@@ -399,6 +399,7 @@ namespace AutoSaliens
 
         public async Task ReportScore(int score)
         {
+            bool wasOutOfSync = false;
             for (int i = 0; ; i++)
             {
                 try
@@ -422,6 +423,7 @@ namespace AutoSaliens
                 {
                     if (ex.EResult == EResult.TimeIsOutOfSync && i < 5)
                     {
+                        wasOutOfSync = true;
                         Shell.WriteLine($"{{warn}}Failed to submit score of {score.ToString("#,##0")}: Submitting too fast, giving it a second ({i + 1}/5)...");
                         await Task.Delay(1000);
                     }
@@ -434,6 +436,9 @@ namespace AutoSaliens
                         throw;
                 }
             }
+            if (wasOutOfSync)
+                // Gradually decrease the delay until we no longer get issues on future requests
+                this.ReportScoreNetworkDelay -= TimeSpan.FromMilliseconds(10);
         }
 
         public async Task LeaveGame(string gameId)
