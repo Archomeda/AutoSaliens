@@ -31,7 +31,7 @@ namespace AutoSaliens
 
         static Program()
         {
-            updateCheckerTimer.Elapsed += UpdateCheckerTimer_Elapsed;
+            updateCheckerTimer.Elapsed += async (s, e) => await CheckForUpdates();
             JsonConvert.DefaultSettings = () => new JsonSerializerSettings
             {
                 ContractResolver = new SnakeCasePropertyNamesContractResolver()
@@ -46,12 +46,12 @@ namespace AutoSaliens
             if (!string.IsNullOrWhiteSpace(UpdateChecker.AppVersion))
             {
                 if (!string.IsNullOrWhiteSpace(UpdateChecker.AppBranch))
-                    Shell.WriteLine($"Version: {{value}}{UpdateChecker.AppVersion} (not on master branch)");
+                    Shell.WriteLine($"Version: {{value}}{UpdateChecker.AppVersion}{{reset}} (not on master branch)", false);
                 else
-                    Shell.WriteLine($"Version: {{value}}{UpdateChecker.AppVersion}");
+                    Shell.WriteLine($"Version: {{value}}{UpdateChecker.AppVersion}", false);
             }
             if (!string.IsNullOrWhiteSpace(UpdateChecker.AppDate))
-                Shell.WriteLine($"Date: {{value}}{UpdateChecker.AppDate}");
+                Shell.WriteLine($"Date: {{value}}{UpdateChecker.AppDate}", false);
             Shell.WriteLine("", false);
             Shell.WriteLine("{inf}This console is interactive, type {command}\"help\"{/command}{inf} to get the list of available commands.", false);
 
@@ -82,10 +82,10 @@ namespace AutoSaliens
                 updateCheckerTimer.Start();
 
 #if !DEBUG
-                await Task.WhenAll(Shell.StartRead(), Saliens.Start());
+                await Task.WhenAll(CheckForUpdates(), Shell.StartRead(), Saliens.Start());
 #else
                 Shell.WriteLine("{inf}Debug build: type {command}\"resume\"{/command}{inf} to start automation");
-                await Shell.StartRead();
+                await Task.WhenAll(CheckForUpdates(), Shell.StartRead());
 #endif
             }
             else
@@ -107,7 +107,7 @@ namespace AutoSaliens
             });
         }
 
-        private static async void UpdateCheckerTimer_Elapsed(object sender, ElapsedEventArgs e)
+        private static async Task CheckForUpdates()
         {
             if (UpdateChecker.AppBranch != "master" && !HasUpdateBranch)
                 HasUpdateBranch = await UpdateChecker.HasUpdateForBranch();
