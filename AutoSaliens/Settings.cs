@@ -6,8 +6,6 @@ namespace AutoSaliens
 {
     internal class Settings
     {
-        public bool Debug { get; set; }
-
         public bool EnableNetworkTolerance { get; set; } = true;
 
         public int GameTime { get; set; } = 110;

@@ -193,8 +193,6 @@ namespace AutoSaliens.Console
                         catch (Exception ex)
                         {
                             log = FormatExceptionOutput(ex);
-                            if (Program.Debug)
-                                throw;
                         }
                     }
                     else

@@ -15,12 +15,6 @@ namespace AutoSaliens
         private static readonly Timer updateCheckerTimer = new Timer(10 * 60 * 1000);
 
 
-#if DEBUG
-        public static bool Debug { get; set; } = true;
-#else
-        public static bool Debug { get; set; } = false;
-#endif
-
         public static bool HasUpdate { get; private set; } = false;
 
         public static bool HasUpdateBranch { get; private set; } = false;
@@ -67,7 +61,6 @@ namespace AutoSaliens
             {
                 var settingsJson = File.ReadAllText("settings.json");
                 Settings = JsonConvert.DeserializeObject<Settings>(settingsJson);
-                Debug = Settings.Debug;
                 if (Settings.GameTime < 1)
                     Settings.GameTime = 110;
                 if (Settings.Strategy == 0)
