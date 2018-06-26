@@ -14,7 +14,7 @@ namespace AutoSaliens
     {
         public const string HomepageUrl = "https://github.com/Archomeda/AutoSaliens";
 
-        private static readonly Timer updateCheckerTimer = new Timer(10 * 60 * 1000);
+        private static readonly Timer updateCheckerTimer = new Timer(60 * 60 * 1000);
 
 
         public static bool HasUpdate { get; private set; } = false;
@@ -124,6 +124,9 @@ namespace AutoSaliens
 
         private static async Task CheckForUpdates()
         {
+            if (HasUpdate && HasUpdateBranch)
+                return;
+
             if (UpdateChecker.AppBranch != "stable" && !HasUpdateBranch)
                 HasUpdateBranch = await UpdateChecker.HasUpdateForBranch();
             if (!HasUpdate)
@@ -134,12 +137,12 @@ namespace AutoSaliens
             else if (UpdateChecker.AppBranch != "stable")
             {
                 if (HasUpdateBranch)
-                    Shell.WriteLine($"{{inf}}An update is available for your branch {{value}}{UpdateChecker.AppBranch}{{inf}}");
+                    Shell.WriteLine($"{{inf}}An update is available for your branch {{value}}{UpdateChecker.AppBranch}");
                 if (HasUpdate)
                     Shell.WriteLine($"{{inf}}An update is available for the {{value}}stable{{inf}} branch. Check if it's worth going back from the {{value}}{UpdateChecker.AppBranch}{{inf}} branch");
             }
             if (HasUpdate || HasUpdateBranch)
-                    Shell.WriteLine($"{{inf}}Visit the homepage at {{url}}{HomepageUrl}");
+                Shell.WriteLine($"{{inf}}Visit the homepage at {{url}}{HomepageUrl}");
         }
     }
 }

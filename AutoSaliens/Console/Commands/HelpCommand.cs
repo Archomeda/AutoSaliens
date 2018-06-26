@@ -34,6 +34,7 @@ namespace AutoSaliens.Console.Commands
                 $"{{command}}homepage{{reset}}   - Shows the homepage URL of this application{Environment.NewLine}{Environment.NewLine}" +
 
                 $"Application commands:{Environment.NewLine}" +
+                $"{{command}}checkupdate{{reset}}        - Checks if an update was available during the last check{Environment.NewLine}" +
                 $"{{command}}exit{{reset}}               - Exits the program{Environment.NewLine}" +
                 $"{{command}}gametime {{param}}[seconds]{{reset}} - Shows or sets the game time in seconds (default: 110){Environment.NewLine}" +
                 $"{{command}}pause{{reset}}              - Pauses the automation after completing one loop cycle{Environment.NewLine}" +
