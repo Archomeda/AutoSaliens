@@ -21,7 +21,7 @@ namespace AutoSaliens.Api.Models
 
         public bool Captured { get; set; }
 
-        public float CaptureProgress { get; set; }
+        public double CaptureProgress { get; set; }
 
         public List<ClanInfo> TopClans { get; set; }
 

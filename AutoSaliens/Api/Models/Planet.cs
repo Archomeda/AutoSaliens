@@ -33,24 +33,24 @@ namespace AutoSaliens.Api.Models
             var zones = new[] { Difficulty.Low, Difficulty.Medium, Difficulty.High }.Select(d =>
             {
                 if (this.Zones == null)
-                    return $"Z{d.ToString().Substring(0, 1)}  ?/ ?";
+                    return $"Z{d.ToString().Substring(0, 1)}     ?/ ?";
 
                 var total = this.Zones.Count(z => z.Difficulty == d);
-                var free = this.Zones.Count(z => z.Difficulty == d && !z.Captured);
+                var fraction = this.Zones.Where(z => z.Difficulty == d && !z.Captured).Sum(z => 1 - z.CaptureProgress);
                 var color = !this.State.Running ? "" :
-                   MathUtils.ScaleColor(total - free, total, new[] { "{svlow}", "{slow}", "{smed}", "{shigh}", "{svhigh}" });
-                return $"{color}Z{d.ToString().Substring(0, 1)} {free.ToString().PadLeft(2)}/{total.ToString().PadLeft(2)}{{reset}}";
+                   MathUtils.ScaleColor(total - fraction, total, new[] { "{svlow}", "{slow}", "{smed}", "{shigh}", "{svhigh}" });
+                return $"{color}Z{d.ToString().Substring(0, 1)} {fraction.ToString("0.##").PadLeft(5)}/{total.ToString().PadLeft(2)}{{reset}}";
             });
             string bosses;
             if (this.Zones == null)
-                bosses = "ZB  ?/ ?";
+                bosses = "ZB     ?/ ?";
             else
             {
                 var bossTotal = this.Zones.Count(z => z.Type == ZoneType.Boss);
-                var bossFree = this.Zones.Count(z => z.Type == ZoneType.Boss && !z.Captured);
+                var bossFraction = this.Zones.Where(z => z.Type == ZoneType.Boss && !z.Captured).Sum(z => 1 - z.CaptureProgress);
                 var bossZones = !this.State.Running ? "" :
-                    MathUtils.ScaleColor(bossTotal - bossFree, bossTotal, new[] { "{svlow}", "{slow}", "{smed}", "{shigh}", "{svhigh}" });
-                bosses = $"{bossZones}ZB {bossFree.ToString().PadLeft(2)}/{bossTotal.ToString().PadLeft(2)}{{reset}}";
+                    MathUtils.ScaleColor(bossTotal - bossFraction, bossTotal, new[] { "{svlow}", "{slow}", "{smed}", "{shigh}", "{svhigh}" });
+                bosses = $"{bossZones}ZB {bossFraction.ToString("0.##").PadLeft(5)}/{bossTotal.ToString().PadLeft(2)}{{reset}}";
             }
 
             return $"{{planet}}P {this.Id.PadLeft(3)}{{reset}} - " +
@@ -74,9 +74,10 @@ namespace AutoSaliens.Api.Models
 
                 var total = this.Zones.Count(z => z.Difficulty == d);
                 var free = this.Zones.Count(z => z.Difficulty == d && !z.Captured);
+                var fraction = this.Zones.Where(z => z.Difficulty == d && !z.Captured).Sum(z => 1 - z.CaptureProgress);
                 var color = !this.State.Running ? "" :
                     MathUtils.ScaleColor(total - free, total, new[] { "{svlow}", "{slow}", "{smed}", "{shigh}", "{svhigh}" });
-                return $"{color}{($"{d.ToString()}:").PadRight(7)} {free.ToString().PadLeft(2)}/{total.ToString().PadLeft(2)}{{reset}}";
+                return $"{color}{($"{d.ToString()}:").PadRight(7)} {free.ToString().PadLeft(2)}/{total.ToString().PadLeft(2)} ({fraction.ToString("0.##")}){{reset}}";
             });
             string bosses;
             if (this.Zones == null)
@@ -85,9 +86,10 @@ namespace AutoSaliens.Api.Models
             {
                 var bossTotal = this.Zones.Count(z => z.Type == ZoneType.Boss);
                 var bossFree = this.Zones.Count(z => z.Type == ZoneType.Boss && !z.Captured);
+                var bossFraction = this.Zones.Where(z => z.Type == ZoneType.Boss && !z.Captured).Sum(z => 1 - z.CaptureProgress);
                 var bossZones = !this.State.Running ? "" :
                     MathUtils.ScaleColor(bossTotal - bossFree, bossTotal, new[] { "{svlow}", "{slow}", "{smed}", "{shigh}", "{svhigh}" });
-                bosses = $"{bossZones}Boss:   {bossFree.ToString().PadLeft(2)}/{bossTotal.ToString().PadLeft(2)}{{reset}}";
+                bosses = $"{bossZones}Boss:   {bossFree.ToString().PadLeft(2)}/{bossTotal.ToString().PadLeft(2)} ({bossFraction.ToString("0.##")}){{reset}}";
             }
 
             return $"{{planet}}{this.Id}: {this.State.Name}{{reset}}{Environment.NewLine}" +
@@ -99,8 +101,8 @@ namespace AutoSaliens.Api.Models
                 $"Current players: {this.State.CurrentPlayers.ToString("#,##0")}{Environment.NewLine}" +
                 $"Total joins: {this.State.TotalJoins.ToString("#,##0")}{Environment.NewLine}" +
                 $"Top clans: {(this.TopClans != null ? string.Join(", ", this.TopClans.Select(c => $"{c.ClanInfo.Name} ({c.NumZonesControlled})")) : "None")}{Environment.NewLine}" +
-                $"Zones:{Environment.NewLine}" +
-                $"  {string.Join($"{Environment.NewLine}  ", zones)}{Environment.NewLine}" +
+                $"Zones:" +
+                $"{string.Join("", zones.Select(z => $"{Environment.NewLine}  {z}"))}{Environment.NewLine}" +
                 $"  {bosses}";
         }
     }
