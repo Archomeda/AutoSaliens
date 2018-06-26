@@ -18,7 +18,7 @@ namespace AutoSaliens.Console.Commands
             else if (UpdateChecker.AppBranch != "stable")
             {
                 if (!string.IsNullOrWhiteSpace(Program.UpdateVersionBranch))
-                    this.WriteConsole($"An update is available for your branch {{value}}{UpdateChecker.AppBranch}");
+                    this.WriteConsole($"An update is available for your branch {{value}}{UpdateChecker.AppBranch}{{reset}}: {{value}}{Program.UpdateVersionBranch}");
                 if (!string.IsNullOrWhiteSpace(Program.UpdateVersion))
                     this.WriteConsole($"An update is available for the {{value}}stable{{reset}} branch: {{value}}{Program.UpdateVersion}{{inf}}. Check if it's worth going back from the {{value}}{UpdateChecker.AppBranch}{{reset}} branch");
             }
