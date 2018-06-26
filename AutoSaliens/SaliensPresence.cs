@@ -19,8 +19,6 @@ namespace AutoSaliens
 
         public bool Active { get; private set; }
 
-        public bool Started { get; private set; }
-
         public bool CheckPeriodically
         {
             get => this.checkerThread != null;
@@ -38,6 +36,13 @@ namespace AutoSaliens
                 }
             }
         }
+
+        public long LastXp { get; private set; }
+
+        public DateTime MeasureStartTime { get; private set; }
+
+        public bool Started { get; private set; }
+
 
         private void Presence_OnEnable(object sender, EventArgs e)
         {
@@ -111,21 +116,43 @@ namespace AutoSaliens
             if (this.presence == null)
                 return;
 
+            bool hasActivePlanet = !string.IsNullOrWhiteSpace(playerInfo.ActivePlanet);
+            bool hasActiveZone = !string.IsNullOrWhiteSpace(playerInfo.ActiveZonePosition);
+
             string details = $"Level {playerInfo.Level}";
             if (long.TryParse(playerInfo.Score, out long xp))
                 details += $" - {xp.ToString("#,##0", CultureInfo.InvariantCulture)} XP";
 
             string state = "Inactive";
-            if (!string.IsNullOrWhiteSpace(playerInfo.ActivePlanet) && !string.IsNullOrWhiteSpace(playerInfo.ActiveZonePosition))
+            if (hasActivePlanet && hasActiveZone)
                 state = $"Planet {playerInfo.ActivePlanet} - Zone {playerInfo.ActiveZonePosition}";
-            else if (!string.IsNullOrWhiteSpace(playerInfo.ActivePlanet) && string.IsNullOrWhiteSpace(playerInfo.ActiveZonePosition))
+            else if (hasActivePlanet && !hasActiveZone)
                 state = $"Planet {playerInfo.ActivePlanet}";
 
             Timestamps time = null;
-            if (!string.IsNullOrWhiteSpace(playerInfo.ActiveZonePosition))
-                time = new Timestamps { Start = (DateTime.Now - playerInfo.TimeInZone).ToUniversalTime() };
-            else if (!string.IsNullOrWhiteSpace(playerInfo.ActivePlanet))
-                time = new Timestamps { Start = (DateTime.Now - playerInfo.TimeOnPlanet).ToUniversalTime() };
+            if (this.LastXp > 0 && hasActivePlanet && hasActiveZone && xp > this.LastXp &&
+                long.TryParse(playerInfo.NextLevelScore, out long nextLevelXp))
+            {
+                // We can predict when the next level up happens
+                int diffXp = (int)(xp - this.LastXp);
+                TimeSpan diffTime = DateTime.Now - this.MeasureStartTime - playerInfo.TimeInZone;
+                TimeSpan eta = TimeSpan.FromSeconds(diffTime.TotalSeconds * ((nextLevelXp - xp) / diffXp));
+                DateTime predictedLevelUpDate = DateTime.Now + eta - playerInfo.TimeInZone;
+
+                time = new Timestamps { End = predictedLevelUpDate.ToUniversalTime() };
+            }
+            else
+            {
+                // Fall back to regular elapsed time
+                if (!string.IsNullOrWhiteSpace(playerInfo.ActiveZonePosition))
+                    time = new Timestamps { Start = (DateTime.Now - playerInfo.TimeInZone).ToUniversalTime() };
+                else if (!string.IsNullOrWhiteSpace(playerInfo.ActivePlanet))
+                    time = new Timestamps { Start = (DateTime.Now - playerInfo.TimeOnPlanet).ToUniversalTime() };
+            }
+
+            if (hasActivePlanet && hasActiveZone)
+                this.MeasureStartTime = DateTime.Now - playerInfo.TimeInZone;
+            this.LastXp = xp;
 
             this.presence.SetPresence(new RichPresence
             {
