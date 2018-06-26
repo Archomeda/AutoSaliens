@@ -17,9 +17,9 @@ namespace AutoSaliens
         private static readonly Timer updateCheckerTimer = new Timer(60 * 60 * 1000);
 
 
-        public static bool HasUpdate { get; private set; } = false;
+        public static string UpdateVersion { get; private set; }
 
-        public static bool HasUpdateBranch { get; private set; } = false;
+        public static string UpdateVersionBranch { get; private set; }
 
         static Program()
         {
@@ -124,24 +124,24 @@ namespace AutoSaliens
 
         private static async Task CheckForUpdates()
         {
-            if (HasUpdate && HasUpdateBranch)
+            if (!string.IsNullOrWhiteSpace(UpdateVersion) && !string.IsNullOrWhiteSpace(UpdateVersionBranch))
                 return;
 
-            if (UpdateChecker.AppBranch != "stable" && !HasUpdateBranch)
-                HasUpdateBranch = await UpdateChecker.HasUpdateForBranch();
-            if (!HasUpdate)
-                HasUpdate = await UpdateChecker.HasUpdateForStable();
+            if (UpdateChecker.AppBranch != "stable" && string.IsNullOrWhiteSpace(UpdateVersionBranch))
+                UpdateVersionBranch = await UpdateChecker.GetUpdateForBranch();
+            if (string.IsNullOrWhiteSpace(UpdateVersion))
+                UpdateVersion = await UpdateChecker.GetUpdateForStable();
 
-            if (HasUpdate && UpdateChecker.AppBranch == "stable")
-                Shell.WriteLine($"{{inf}}An update is available");
+            if (!string.IsNullOrWhiteSpace(UpdateVersion) && UpdateChecker.AppBranch == "stable")
+                Shell.WriteLine($"{{inf}}An update is available: {{value}}{UpdateVersion}");
             else if (UpdateChecker.AppBranch != "stable")
             {
-                if (HasUpdateBranch)
-                    Shell.WriteLine($"{{inf}}An update is available for your branch {{value}}{UpdateChecker.AppBranch}");
-                if (HasUpdate)
-                    Shell.WriteLine($"{{inf}}An update is available for the {{value}}stable{{inf}} branch. Check if it's worth going back from the {{value}}{UpdateChecker.AppBranch}{{inf}} branch");
+                if (!string.IsNullOrWhiteSpace(UpdateVersionBranch))
+                    Shell.WriteLine($"{{inf}}An update is available for your branch {{value}}{UpdateChecker.AppBranch}{{inf}}: {{value}}{UpdateVersionBranch}");
+                if (!string.IsNullOrWhiteSpace(UpdateVersion))
+                    Shell.WriteLine($"{{inf}}An update is available for the {{value}}stable{{inf}} branch: {{value}}{UpdateVersion}{{inf}}. Check if it's worth going back from the {{value}}{UpdateChecker.AppBranch}{{inf}} branch");
             }
-            if (HasUpdate || HasUpdateBranch)
+            if (!string.IsNullOrWhiteSpace(UpdateVersion) || !string.IsNullOrWhiteSpace(UpdateVersionBranch))
                 Shell.WriteLine($"{{inf}}Visit the homepage at {{url}}{HomepageUrl}");
         }
     }

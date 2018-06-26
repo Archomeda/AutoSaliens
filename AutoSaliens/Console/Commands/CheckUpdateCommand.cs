@@ -10,19 +10,19 @@ namespace AutoSaliens.Console.Commands
     {
         public override async Task<string> Run(string parameters, CancellationToken cancellationToken)
         {
-            if (!Program.HasUpdate && !Program.HasUpdateBranch)
+            if (string.IsNullOrWhiteSpace(Program.UpdateVersion) && string.IsNullOrWhiteSpace(Program.UpdateVersionBranch))
                 return "No update was available during the last check.";
 
-            if (Program.HasUpdate && UpdateChecker.AppBranch == "stable")
-                this.WriteConsole($"An update is available.");
+            if (!string.IsNullOrWhiteSpace(Program.UpdateVersion) && UpdateChecker.AppBranch == "stable")
+                this.WriteConsole($"An update is available: {{value}}{Program.UpdateVersion}{{reset}}: {{value}}{Program.UpdateVersionBranch}");
             else if (UpdateChecker.AppBranch != "stable")
             {
-                if (Program.HasUpdateBranch)
-                    this.WriteConsole($"An update is available for your branch {{value}}{UpdateChecker.AppBranch}.");
-                if (Program.HasUpdate)
-                    this.WriteConsole($"An update is available for the {{value}}stable{{reset}} branch. Check if it's worth going back from the {{value}}{UpdateChecker.AppBranch}{{reset}} branch.");
+                if (!string.IsNullOrWhiteSpace(Program.UpdateVersionBranch))
+                    this.WriteConsole($"An update is available for your branch {{value}}{UpdateChecker.AppBranch}");
+                if (!string.IsNullOrWhiteSpace(Program.UpdateVersion))
+                    this.WriteConsole($"An update is available for the {{value}}stable{{reset}} branch: {{value}}{Program.UpdateVersion}{{inf}}. Check if it's worth going back from the {{value}}{UpdateChecker.AppBranch}{{reset}} branch");
             }
-            if (Program.HasUpdate || Program.HasUpdateBranch)
+            if (!string.IsNullOrWhiteSpace(Program.UpdateVersion) || !string.IsNullOrWhiteSpace(Program.UpdateVersionBranch))
                 this.WriteConsole($"Visit the homepage at {{url}}{Program.HomepageUrl}");
             return "";
         }
