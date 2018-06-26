@@ -17,10 +17,6 @@ namespace AutoSaliens
         private static readonly Timer updateCheckerTimer = new Timer(60 * 60 * 1000);
 
 
-        public static string UpdateVersion { get; private set; }
-
-        public static string UpdateVersionBranch { get; private set; }
-
         static Program()
         {
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
@@ -124,25 +120,25 @@ namespace AutoSaliens
 
         private static async Task CheckForUpdates()
         {
-            if (!string.IsNullOrWhiteSpace(UpdateVersion) && !string.IsNullOrWhiteSpace(UpdateVersionBranch))
+            var newUpdates = await UpdateChecker.CheckForNewUpdates();
+            if (!newUpdates)
                 return;
 
-            if (UpdateChecker.AppBranch != "stable" && string.IsNullOrWhiteSpace(UpdateVersionBranch))
-                UpdateVersionBranch = await UpdateChecker.GetUpdateForBranch();
-            if (string.IsNullOrWhiteSpace(UpdateVersion))
-                UpdateVersion = await UpdateChecker.GetUpdateForStable();
-
-            if (!string.IsNullOrWhiteSpace(UpdateVersion) && UpdateChecker.AppBranch == "stable")
-                Shell.WriteLine($"{{inf}}An update is available: {{value}}{UpdateVersion}");
-            else if (UpdateChecker.AppBranch != "stable")
+            if (UpdateChecker.AppBranch == "stable")
             {
-                if (!string.IsNullOrWhiteSpace(UpdateVersionBranch))
-                    Shell.WriteLine($"{{inf}}An update is available for your branch {{value}}{UpdateChecker.AppBranch}{{inf}}: {{value}}{UpdateVersionBranch}");
-                if (!string.IsNullOrWhiteSpace(UpdateVersion))
-                    Shell.WriteLine($"{{inf}}An update is available for the {{value}}stable{{inf}} branch: {{value}}{UpdateVersion}{{inf}}. Check if it's worth going back from the {{value}}{UpdateChecker.AppBranch}{{inf}} branch");
+#pragma warning disable CS0162 // Unreachable code detected: This code will run on AppVeyor builds
+                if (UpdateChecker.HasUpdate && UpdateChecker.AppBranch == "stable")
+                    Shell.WriteLine($"{{inf}}An update is available: {{value}}{UpdateChecker.UpdateVersion}");
+#pragma warning restore CS0162 // Unreachable code detected
             }
-            if (!string.IsNullOrWhiteSpace(UpdateVersion) || !string.IsNullOrWhiteSpace(UpdateVersionBranch))
-                Shell.WriteLine($"{{inf}}Visit the homepage at {{url}}{HomepageUrl}");
+            else
+            {
+                if (UpdateChecker.HasUpdateBranch)
+                    Shell.WriteLine($"{{inf}}An update is available for your branch {{value}}{UpdateChecker.AppBranch}{{inf}}: {{value}}{UpdateChecker.UpdateVersionBranch}");
+                if (UpdateChecker.HasUpdate)
+                    Shell.WriteLine($"{{inf}}An update is available for the {{value}}stable{{inf}} branch: {{value}}{UpdateChecker.UpdateVersion}{{inf}}. Check if it's worth going back from the {{value}}{UpdateChecker.AppBranch}{{inf}} branch");
+            }
+            Shell.WriteLine($"{{inf}}Visit the homepage at {{url}}{HomepageUrl}");
         }
     }
 }

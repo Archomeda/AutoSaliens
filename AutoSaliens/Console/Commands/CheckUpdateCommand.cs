@@ -10,20 +10,24 @@ namespace AutoSaliens.Console.Commands
     {
         public override async Task<string> Run(string parameters, CancellationToken cancellationToken)
         {
-            if (string.IsNullOrWhiteSpace(Program.UpdateVersion) && string.IsNullOrWhiteSpace(Program.UpdateVersionBranch))
+            if (!UpdateChecker.HasUpdate && !UpdateChecker.HasUpdateBranch)
                 return "No update was available during the last check.";
 
-            if (!string.IsNullOrWhiteSpace(Program.UpdateVersion) && UpdateChecker.AppBranch == "stable")
-                this.WriteConsole($"An update is available: {{value}}{Program.UpdateVersion}{{reset}}: {{value}}{Program.UpdateVersionBranch}");
-            else if (UpdateChecker.AppBranch != "stable")
+            if (UpdateChecker.AppBranch == "stable")
             {
-                if (!string.IsNullOrWhiteSpace(Program.UpdateVersionBranch))
-                    this.WriteConsole($"An update is available for your branch {{value}}{UpdateChecker.AppBranch}{{reset}}: {{value}}{Program.UpdateVersionBranch}");
-                if (!string.IsNullOrWhiteSpace(Program.UpdateVersion))
-                    this.WriteConsole($"An update is available for the {{value}}stable{{reset}} branch: {{value}}{Program.UpdateVersion}{{inf}}. Check if it's worth going back from the {{value}}{UpdateChecker.AppBranch}{{reset}} branch");
+#pragma warning disable CS0162 // Unreachable code detected: This code will run on AppVeyor builds
+                if (UpdateChecker.HasUpdate && UpdateChecker.AppBranch == "stable")
+                    this.WriteConsole($"An update is available: {{value}}{UpdateChecker.UpdateVersion}.");
+#pragma warning restore CS0162 // Unreachable code detected
             }
-            if (!string.IsNullOrWhiteSpace(Program.UpdateVersion) || !string.IsNullOrWhiteSpace(Program.UpdateVersionBranch))
-                this.WriteConsole($"Visit the homepage at {{url}}{Program.HomepageUrl}");
+            else
+            {
+                if (UpdateChecker.HasUpdateBranch)
+                    this.WriteConsole($"An update is available for your branch {{value}}{UpdateChecker.AppBranch}{{reset}}: {{value}}{UpdateChecker.UpdateVersionBranch}.");
+                if (UpdateChecker.HasUpdate)
+                    this.WriteConsole($"An update is available for the {{value}}stable{{reset}} branch: {{value}}{UpdateChecker.UpdateVersion}{{reset}}. Check if it's worth going back from the {{value}}{UpdateChecker.AppBranch}{{inf}} branch.");
+            }
+            this.WriteConsole($"Visit the homepage at {{url}}{Program.HomepageUrl}");
             return "";
         }
     }
