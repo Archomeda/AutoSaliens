@@ -23,9 +23,9 @@ namespace AutoSaliens.Console.Commands
             else
             {
                 if (UpdateChecker.HasUpdateBranch)
-                    this.WriteConsole($"An update is available for your branch {{value}}{UpdateChecker.AppBranch}{{reset}}: {{value}}{UpdateChecker.UpdateVersionBranch}.");
+                    this.WriteConsole($"An update is available for your branch {{value}}{UpdateChecker.AppBranch}{{reset}}: {{value}}{UpdateChecker.UpdateVersionBranch}{{reset}}.");
                 if (UpdateChecker.HasUpdate)
-                    this.WriteConsole($"An update is available for the {{value}}stable{{reset}} branch: {{value}}{UpdateChecker.UpdateVersion}{{reset}}. Check if it's worth going back from the {{value}}{UpdateChecker.AppBranch}{{inf}} branch.");
+                    this.WriteConsole($"An update is available for the {{value}}stable{{reset}} branch: {{value}}{UpdateChecker.UpdateVersion}{{reset}}. Check if it's worth going back from the {{value}}{UpdateChecker.AppBranch}{{reset}} branch.");
             }
             this.WriteConsole($"Visit the homepage at {{url}}{Program.HomepageUrl}");
             return "";
