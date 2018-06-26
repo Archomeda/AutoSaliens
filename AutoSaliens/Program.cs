@@ -46,7 +46,7 @@ namespace AutoSaliens
             Shell.WriteLine($"Homepage: {{url}}{HomepageUrl}", false);
             if (!string.IsNullOrWhiteSpace(UpdateChecker.AppVersion))
             {
-                if (!string.IsNullOrWhiteSpace(UpdateChecker.AppBranch))
+                if (!string.IsNullOrWhiteSpace(UpdateChecker.AppBranch) && UpdateChecker.AppBranch != "stable")
                     Shell.WriteLine($"Version: {{value}}{UpdateChecker.AppVersion}{{reset}} (not on stable branch)", false);
                 else
                     Shell.WriteLine($"Version: {{value}}{UpdateChecker.AppVersion}", false);
