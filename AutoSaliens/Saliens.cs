@@ -157,10 +157,21 @@ namespace AutoSaliens
                         }
                         else
                         {
+                            // As of 26th June, the planet difficulty is always low, so let's skip it for now
                             if (this.Strategy.HasFlag(AutomationStrategy.MostDifficultPlanetsFirst))
-                                planets = planets.ThenByDescending(p => (int)p.State.Difficulty).ThenByDescending(p => p.Zones.Where(z => !z.Captured).Max(z => (int)z.Difficulty));
+                            {
+                                planets = planets
+                                    //.ThenByDescending(p => (int)p.State.Difficulty)
+                                    .ThenByDescending(p => p.MaxFreeZonesDifficulty)
+                                    .ThenByDescending(p => p.AverageFreeZonesDifficulty);
+                            }
                             else if (this.Strategy.HasFlag(AutomationStrategy.LeastDifficultPlanetsFirst))
-                                planets = planets.ThenBy(p => (int)p.State.Difficulty).ThenBy(p => p.Zones.Where(z => !z.Captured).Max(z => (int)z.Difficulty));
+                            {
+                                planets = planets
+                                    //.ThenBy(p => (int)p.State.Difficulty)
+                                    .ThenBy(p => p.MaxFreeZonesDifficulty)
+                                    .ThenBy(p => p.AverageFreeZonesDifficulty);
+                            }
                             if (this.Strategy.HasFlag(AutomationStrategy.MostCompletedPlanetsFirst))
                                 planets = planets.ThenByDescending(p => p.State.CaptureProgress);
                             else if (this.Strategy.HasFlag(AutomationStrategy.LeastCompletedPlanetsFirst))
@@ -195,9 +206,9 @@ namespace AutoSaliens
                     Zone zone = null;
                     var zones = this.JoinedPlanet.Zones.Where(z => !z.Captured).OrderBy(z => 0);
                     if (this.Strategy.HasFlag(AutomationStrategy.MostDifficultZonesFirst))
-                        zones = zones.ThenByDescending(z => (int)z.Difficulty);
+                        zones = zones.ThenByDescending(z => z.Difficulty);
                     else if (this.Strategy.HasFlag(AutomationStrategy.LeastDifficultZonesFirst))
-                        zones = zones.ThenBy(z => (int)z.Difficulty);
+                        zones = zones.ThenBy(z => z.Difficulty);
                     if (this.Strategy.HasFlag(AutomationStrategy.MostCompletedZonesFirst))
                         zones = zones.ThenByDescending(z => z.CaptureProgress);
                     else if (this.Strategy.HasFlag(AutomationStrategy.LeastCompletedZonesFirst))

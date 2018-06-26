@@ -17,6 +17,14 @@ namespace AutoSaliens.Api.Models
 
         public List<Zone> Zones { get; set; }
 
+
+        public Difficulty MaxFreeZonesDifficulty =>
+            this.Zones?.Where(z => !z.Captured).Max(z => z.Difficulty) ?? Difficulty.Low;
+
+        public double AverageFreeZonesDifficulty =>
+            this.Zones?.Where(z => !z.Captured).Average(z => (int)z.Difficulty) ?? 1;
+
+
         public string ToConsoleLine()
         {
             var difficulty = MathUtils.ScaleColor((int)this.State.Difficulty - 1, (int)Difficulty.High - 1, new[] { "{svlow}", "{smed}", "{svhigh}" });
