@@ -1,6 +1,6 @@
 # AutoSaliens
-[![](https://ci.appveyor.com/api/projects/status/78eoqoe0cn4muu9g/branch/master?svg=true&passingText=master%20-%20OK&failingText=master%20-%20failure&pendingText=master%20-%20-pending)](https://ci.appveyor.com/project/Archomeda/AutoSaliens/branch/master)
-[![](https://ci.appveyor.com/api/projects/status/78eoqoe0cn4muu9g/branch/stable?svg=true&passingText=stable%20-%20OK&failingText=stable%20-%20failure&pendingText=stable%20-%20-pending)](https://ci.appveyor.com/project/Archomeda/AutoSaliens/branch/stable)
+[![](https://ci.appveyor.com/api/projects/status/78eoqoe0cn4muu9g/branch/master?svg=true&passingText=master%20-%20OK&failingText=master%20-%20failure&pendingText=master%20-%20pending)](https://ci.appveyor.com/project/Archomeda/AutoSaliens/branch/master)
+[![](https://ci.appveyor.com/api/projects/status/78eoqoe0cn4muu9g/branch/stable?svg=true&passingText=stable%20-%20OK&failingText=stable%20-%20failure&pendingText=stable%20-%20pending)](https://ci.appveyor.com/project/Archomeda/AutoSaliens/branch/stable)
 *Automating the Steam Summer Sale 2018 game with overkill.*
 
 **Note:** This is a hobby project, so expect bugs. Want to have them fixed? Please report an issue or submit a pull request.
