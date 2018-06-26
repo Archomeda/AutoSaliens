@@ -34,13 +34,14 @@ namespace AutoSaliens.Console.Commands
                 $"{{command}}homepage{{reset}}   - Shows the homepage URL of this application{Environment.NewLine}{Environment.NewLine}" +
 
                 $"Application commands:{Environment.NewLine}" +
-                $"{{command}}checkupdate{{reset}}        - Checks if an update was available during the last check{Environment.NewLine}" +
-                $"{{command}}exit{{reset}}               - Exits the program{Environment.NewLine}" +
-                $"{{command}}gametime {{param}}[seconds]{{reset}} - Shows or sets the game time in seconds (default: 110){Environment.NewLine}" +
-                $"{{command}}pause{{reset}}              - Pauses the automation after completing one loop cycle{Environment.NewLine}" +
-                $"{{command}}presence {{param}}[toggle]{{reset}}  - Shows or sets whether Discord presence is enabled or not{Environment.NewLine}" +
-                $"{{command}}resume{{reset}}              - Starts/Resumes the automation{Environment.NewLine}" +
-                $"{{command}}token {{param}}[token]{{reset}}      - Shows or sets the token";
+                $"{{command}}checkupdate{{reset}}            - Checks if an update was available during the last check{Environment.NewLine}" +
+                $"{{command}}exit{{reset}}                   - Exits the program{Environment.NewLine}" +
+                $"{{command}}gametime {{param}}[seconds]{{reset}}     - Shows or sets the game time in seconds (default: 110){Environment.NewLine}" +
+                $"{{command}}pause{{reset}}                  - Pauses the automation after completing one loop cycle{Environment.NewLine}" +
+                $"{{command}}presence {{param}}[toggle]{{reset}}      - Shows or sets whether Discord presence is enabled or not{Environment.NewLine}" +
+                $"{{command}}presencetime {{param}}[option]{{reset}}  - Shows or sets the Discord presence time type{Environment.NewLine}" +
+                $"{{command}}resume{{reset}}                  - Starts/Resumes the automation{Environment.NewLine}" +
+                $"{{command}}token {{param}}[token]{{reset}}          - Shows or sets the token";
         }
     }
 }

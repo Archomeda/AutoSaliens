@@ -31,7 +31,7 @@ namespace AutoSaliens.Console.Commands
             }
             else
             {
-                // Set the game time
+                // Set the strategy
                 string[] strategies = parameters.Split(new[] { ' ', ',' }, StringSplitOptions.RemoveEmptyEntries);
                 try
                 {
@@ -46,7 +46,7 @@ namespace AutoSaliens.Console.Commands
                             AutomationStrategy.TopDown;
                     Program.Settings.Strategy = strategy;
                     Program.Settings.Save();
-                    return "Your game time has been saved.";
+                    return "Your strategy has been saved.";
                 }
                 catch (ArgumentException)
                 {

@@ -79,13 +79,14 @@ help       - Shows this help message
 homepage   - Shows the homepage URL of this application
 
 Application commands:
-checkupdate        - Checks if an update was available during the last check
-exit               - Exits the program
-gametime [seconds] - Shows or sets the game time in seconds (default: 110)
-pause              - Pauses the automation after completing one loop cycle
-presence [toggle]  - Shows or sets whether Discord presence is enabled or not
-resume             - Starts/Resumes the automation
-token [token]      - Shows or sets the token
+checkupdate            - Checks if an update was available during the last check
+exit                   - Exits the program
+gametime [seconds]     - Shows or sets the game time in seconds (default: 110)
+pause                  - Pauses the automation after completing one loop cycle
+presence [toggle]      - Shows or sets whether Discord presence is enabled or not
+presencetime [option]  - Shows or sets the Discord presence time type
+resume                 - Starts/Resumes the automation
+token [token]          - Shows or sets the token
 ```
 
 ## Compiling

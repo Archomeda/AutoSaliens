@@ -130,7 +130,8 @@ namespace AutoSaliens
                 state = $"Planet {playerInfo.ActivePlanet}";
 
             Timestamps time = null;
-            if (this.LastXp > 0 && hasActivePlanet && hasActiveZone && xp > this.LastXp &&
+            if (Program.Settings.DiscordPresenceTimeType == PresenceTimeType.NextLevelEstimation &&
+                this.LastXp > 0 && hasActivePlanet && hasActiveZone && xp > this.LastXp &&
                 long.TryParse(playerInfo.NextLevelScore, out long nextLevelXp))
             {
                 // We can predict when the next level up happens

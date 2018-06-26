@@ -10,6 +10,8 @@ namespace AutoSaliens
 
         public bool EnableDiscordPresence { get; set; } = false;
 
+        public PresenceTimeType DiscordPresenceTimeType { get; set; } = PresenceTimeType.TimeElapsed;
+
         public bool EnableNetworkTolerance { get; set; } = true;
 
         public int GameTime { get; set; } = 110;

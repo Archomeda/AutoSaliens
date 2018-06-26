@@ -12,7 +12,7 @@ namespace AutoSaliens.Console.Commands
         {
             if (string.IsNullOrWhiteSpace(parameters))
             {
-                // Show the current network tolerance
+                // Show the current Discord presence setting
                 this.WriteConsole($"The Discord presence is currently {{value}}{(Program.Settings.EnableDiscordPresence ? "enabled" : "disabled")}{{reset}}.");
 
                 this.WriteConsole("You can change the Discord presence by appending either enable or disable to this command: {command}presence {param}<toggle>");
@@ -22,7 +22,7 @@ namespace AutoSaliens.Console.Commands
             }
             else
             {
-                // Set the game time
+                // Set the Discord presence
                 if (parameters == "enable")
                 {
                     Program.Settings.EnableDiscordPresence = true;
