@@ -1,5 +1,7 @@
 using System.IO;
+using System.Net;
 using System.Threading.Tasks;
+using System.Timers;
 using AutoSaliens.Api.Converters;
 using AutoSaliens.Console;
 using Newtonsoft.Json;
@@ -10,11 +12,18 @@ namespace AutoSaliens
     {
         public const string HomepageUrl = "https://github.com/Archomeda/AutoSaliens";
 
+        private static readonly Timer updateCheckerTimer = new Timer(10 * 60 * 1000);
+
+
 #if DEBUG
         public static bool Debug { get; set; } = true;
 #else
         public static bool Debug { get; set; } = false;
 #endif
+
+        public static bool HasUpdate { get; private set; } = false;
+
+        public static bool HasUpdateBranch { get; private set; } = false;
 
         public static Saliens Saliens { get; } = new Saliens();
 
@@ -23,10 +32,13 @@ namespace AutoSaliens
 
         static Program()
         {
+            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
             JsonConvert.DefaultSettings = () => new JsonSerializerSettings
             {
                 ContractResolver = new SnakeCasePropertyNamesContractResolver()
             };
+
+            updateCheckerTimer.Elapsed += async (s, e) => await CheckForUpdates();
         }
 
         public static Task Main(string[] args)
@@ -34,6 +46,15 @@ namespace AutoSaliens
             Shell.WriteLine("AutoSaliens - A Saliens mini game automation tool", false);
             Shell.WriteLine("Author: Archomeda", false);
             Shell.WriteLine($"Homepage: {{url}}{HomepageUrl}", false);
+            if (!string.IsNullOrWhiteSpace(UpdateChecker.AppVersion))
+            {
+                if (!string.IsNullOrWhiteSpace(UpdateChecker.AppBranch))
+                    Shell.WriteLine($"Version: {{value}}{UpdateChecker.AppVersion}{{reset}} (not on master branch)", false);
+                else
+                    Shell.WriteLine($"Version: {{value}}{UpdateChecker.AppVersion}", false);
+            }
+            if (!string.IsNullOrWhiteSpace(UpdateChecker.AppDate))
+                Shell.WriteLine($"Date: {{value}}{UpdateChecker.AppDate}", false);
             Shell.WriteLine("", false);
             Shell.WriteLine("{inf}This console is interactive, type {command}\"help\"{/command}{inf} to get the list of available commands.", false);
 
@@ -61,11 +82,13 @@ namespace AutoSaliens
                 Shell.WriteLine("", false);
                 Shell.WriteLine("{verb}Read settings from settings.json");
 
+                updateCheckerTimer.Start();
+
 #if !DEBUG
-                await Task.WhenAll(Shell.StartRead(), Saliens.Start());
+                await Task.WhenAll(CheckForUpdates(), Shell.StartRead(), Saliens.Start());
 #else
                 Shell.WriteLine("{inf}Debug build: type {command}\"resume\"{/command}{inf} to start automation");
-                await Shell.StartRead();
+                await Task.WhenAll(CheckForUpdates(), Shell.StartRead());
 #endif
             }
             else
@@ -81,9 +104,30 @@ namespace AutoSaliens
         {
             return Task.Run(() =>
             {
+                updateCheckerTimer.Stop();
                 Saliens.Stop();
                 Shell.StopRead();
             });
+        }
+
+        private static async Task CheckForUpdates()
+        {
+            if (UpdateChecker.AppBranch != "master" && !HasUpdateBranch)
+                HasUpdateBranch = await UpdateChecker.HasUpdateForBranch();
+            if (!HasUpdate)
+                HasUpdate = await UpdateChecker.HasUpdateForMaster();
+
+            if (HasUpdate && UpdateChecker.AppBranch == "master")
+                Shell.WriteLine($"{{inf}}An update is available");
+            else if (UpdateChecker.AppBranch != "master")
+            {
+                if (HasUpdateBranch)
+                    Shell.WriteLine($"{{inf}}An update is available for your branch {{value}}{UpdateChecker.AppBranch}{{inf}}");
+                if (HasUpdate)
+                    Shell.WriteLine($"{{inf}}An update is available for the {{value}}master{{inf}} branch. Check if it's worth going back from the {{value}}{UpdateChecker.AppBranch}{{inf}} branch");
+            }
+            if (HasUpdate || HasUpdateBranch)
+                    Shell.WriteLine($"{{inf}}Visit the homepage at {{url}}{HomepageUrl}");
         }
     }
 }

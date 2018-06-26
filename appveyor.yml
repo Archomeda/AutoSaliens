@@ -6,6 +6,7 @@ configuration: Release
 
 before_build:
   - dotnet restore
+  - ps: .appveyor\UpdateVersion.ps1
 
 build_script:
   - dotnet build -f net451
