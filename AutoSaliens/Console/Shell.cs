@@ -108,6 +108,7 @@ namespace AutoSaliens.Console
                 {
                     // Implement our own reader since Console.ReadLine sucks in async and breaks our CTRL+C interrupt
                     var buf = new StringBuilder();
+                    SConsole.Write(">");
                     int pos = 0;
                     while (true)
                     {
@@ -235,8 +236,7 @@ namespace AutoSaliens.Console
 
 
         public static string FormatCommandOuput(string text) =>
-            string.Join(Environment.NewLine, text.Split(new[] { Environment.NewLine }, StringSplitOptions.None)
-                .Select(l => $"> {l}"));
+            string.Join(Environment.NewLine, text.Split(new[] { Environment.NewLine }, StringSplitOptions.None));
 
         public static string FormatExceptionOutput(Exception ex) => $"An error has occured: {ex.Message}{Environment.NewLine}{ex.StackTrace}";
     }
