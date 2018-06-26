@@ -17,9 +17,9 @@ namespace AutoSaliens
             return HasUpdateFor(AppBranch);
         }
 
-        public static Task<bool> HasUpdateForMaster()
+        public static Task<bool> HasUpdateForStable()
         {
-            return HasUpdateFor("master");
+            return HasUpdateFor("stable");
         }
 
         private static async Task<bool> HasUpdateFor(string branch)

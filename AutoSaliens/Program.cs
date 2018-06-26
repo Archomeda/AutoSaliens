@@ -49,7 +49,7 @@ namespace AutoSaliens
             if (!string.IsNullOrWhiteSpace(UpdateChecker.AppVersion))
             {
                 if (!string.IsNullOrWhiteSpace(UpdateChecker.AppBranch))
-                    Shell.WriteLine($"Version: {{value}}{UpdateChecker.AppVersion}{{reset}} (not on master branch)", false);
+                    Shell.WriteLine($"Version: {{value}}{UpdateChecker.AppVersion}{{reset}} (not on stable branch)", false);
                 else
                     Shell.WriteLine($"Version: {{value}}{UpdateChecker.AppVersion}", false);
             }
@@ -112,19 +112,19 @@ namespace AutoSaliens
 
         private static async Task CheckForUpdates()
         {
-            if (UpdateChecker.AppBranch != "master" && !HasUpdateBranch)
+            if (UpdateChecker.AppBranch != "stable" && !HasUpdateBranch)
                 HasUpdateBranch = await UpdateChecker.HasUpdateForBranch();
             if (!HasUpdate)
-                HasUpdate = await UpdateChecker.HasUpdateForMaster();
+                HasUpdate = await UpdateChecker.HasUpdateForStable();
 
-            if (HasUpdate && UpdateChecker.AppBranch == "master")
+            if (HasUpdate && UpdateChecker.AppBranch == "stable")
                 Shell.WriteLine($"{{inf}}An update is available");
-            else if (UpdateChecker.AppBranch != "master")
+            else if (UpdateChecker.AppBranch != "stable")
             {
                 if (HasUpdateBranch)
                     Shell.WriteLine($"{{inf}}An update is available for your branch {{value}}{UpdateChecker.AppBranch}{{inf}}");
                 if (HasUpdate)
-                    Shell.WriteLine($"{{inf}}An update is available for the {{value}}master{{inf}} branch. Check if it's worth going back from the {{value}}{UpdateChecker.AppBranch}{{inf}} branch");
+                    Shell.WriteLine($"{{inf}}An update is available for the {{value}}stable{{inf}} branch. Check if it's worth going back from the {{value}}{UpdateChecker.AppBranch}{{inf}} branch");
             }
             if (HasUpdate || HasUpdateBranch)
                     Shell.WriteLine($"{{inf}}Visit the homepage at {{url}}{HomepageUrl}");
