@@ -215,7 +215,7 @@ namespace AutoSaliens.Console
         public static void WriteLine(string format, bool includeTime, params object[] args)
         {
             if (includeTime)
-                format = $"{{logtime}}[{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff")}]{{reset}} {format}";
+                format = $"{{logtime}}[{DateTime.Now.ToString("dd HH:mm:ss.fff")}]{{reset}} {format}";
 
             if (SupportAnsiColors)
                 format = AnsiColors.Aggregate($"{format}{{reset}}", (result, kvp) => result.Replace(kvp.Key, kvp.Value));
