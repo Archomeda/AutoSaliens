@@ -64,6 +64,10 @@ namespace AutoSaliens.Console
         private static bool stopRequested = false;
         private static CancellationTokenSource cancellationTokenSource;
 
+        private static StringBuilder inputBuffer = new StringBuilder();
+        private static bool readingInput = false;
+        private static object consoleLock = new object();
+
         static Shell()
         {
             var commandType = typeof(ICommand);
@@ -107,8 +111,8 @@ namespace AutoSaliens.Console
                 while (!stopRequested)
                 {
                     // Implement our own reader since Console.ReadLine sucks in async and breaks our CTRL+C interrupt
-                    var buf = new StringBuilder();
                     SConsole.Write(">");
+                    readingInput = true;
                     int pos = 0;
                     while (true)
                     {
@@ -123,51 +127,79 @@ namespace AutoSaliens.Console
                         {
                             if (pos > 0)
                             {
-                                buf.Remove(pos - 1, 1);
-                                SConsole.Write("\b \b");
+                                inputBuffer.Remove(pos - 1, 1);
+                                lock (consoleLock)
+                                    SConsole.Write("\b \b");
                                 pos--;
                             }
                         }
                         else if (key.Key == ConsoleKey.Delete)
                         {
-                            if (pos < buf.Length - 1)
+                            if (pos < inputBuffer.Length)
                             {
-                                buf.Remove(pos, 1);
-                                SConsole.Write(buf.ToString().Substring(pos) + " " + new string('\b', buf.Length - pos + 1));
+                                inputBuffer.Remove(pos, 1);
+                                lock (consoleLock)
+                                    SConsole.Write(inputBuffer.ToString().Substring(pos) + " " + new string('\b', inputBuffer.Length - pos + 1));
                             }
                         }
                         else if (key.Key == ConsoleKey.LeftArrow)
                         {
                             if (pos > 0)
                             {
-                                SConsole.Write("\b");
+                                lock (consoleLock)
+                                    SConsole.Write("\b");
                                 pos--;
                             }
                         }
                         else if (key.Key == ConsoleKey.RightArrow)
                         {
-                            if (pos < buf.Length - 1)
+                            if (pos < inputBuffer.Length)
                             {
-                                SConsole.Write(buf[pos]);
+                                lock (consoleLock)
+                                    SConsole.Write(inputBuffer[pos]);
                                 pos++;
+                            }
+                        }
+                        else if (key.Key == ConsoleKey.Home)
+                        {
+                            if (pos > 0)
+                            {
+                                lock (consoleLock)
+                                    SConsole.Write(new string('\b', pos));
+                                pos = 0;
+                            }
+                        }
+                        else if (key.Key == ConsoleKey.End)
+                        {
+                            if (pos < inputBuffer.Length)
+                            {
+                                lock (consoleLock)
+                                    SConsole.Write(inputBuffer.ToString().Substring(pos));
+                                pos = inputBuffer.Length;
                             }
                         }
                         else if (key.Key == ConsoleKey.Enter)
                         {
-                            SConsole.WriteLine();
+                            lock (consoleLock)
+                                SConsole.WriteLine();
                             break;
                         }
                         else if (key.KeyChar != 0)
                         {
-                            buf.Insert(pos, key.KeyChar);
+                            inputBuffer.Insert(pos, key.KeyChar);
                             pos++;
-                            SConsole.Write(key.KeyChar);
-                            if (pos < buf.Length)
-                                SConsole.Write(buf.ToString().Substring(pos) + new string('\b', buf.Length - pos));
+                            lock (consoleLock)
+                            {
+                                SConsole.Write(key.KeyChar);
+                                if (pos < inputBuffer.Length)
+                                    SConsole.Write(inputBuffer.ToString().Substring(pos) + new string('\b', inputBuffer.Length - pos));
+                            }
                         }
                     }
+                    readingInput = false;
 
-                    var line = buf.ToString().Trim();
+                    var line = inputBuffer.ToString().Trim();
+                    inputBuffer.Clear();
                     if (string.IsNullOrWhiteSpace(line))
                         continue;
 
@@ -223,12 +255,23 @@ namespace AutoSaliens.Console
             else
                 format = AnsiColors.Aggregate(format, (result, kvp) => result.Replace(kvp.Key, ""));
 
-            SConsole.WriteLine(format, args);
+            lock (consoleLock)
+            {
+                if (readingInput)
+                {
+                    var backspaces = new string('\b', inputBuffer.Length + 1);
+                    var wipe = new string(' ', inputBuffer.Length + 1);
+                    SConsole.Write(backspaces);
+                    SConsole.Write(wipe);
+                    SConsole.Write(backspaces);
+                }
+                SConsole.WriteLine(format, args);
+                if (readingInput)
+                    SConsole.Write($">{inputBuffer}");
+            }
         }
 
-        public static void WriteLines(string[] lines) => WriteLines(lines, true);
-
-        public static void WriteLines(string[] lines, bool includeTime)
+        public static void WriteLines(string[] lines, bool includeTime = true)
         {
             foreach (var line in lines)
                 WriteLine(line, includeTime);

@@ -23,8 +23,6 @@ namespace AutoSaliens.Console
         public abstract Task<string> Run(string parameters, CancellationToken cancellationToken);
 
         protected void WriteConsole(string format, params string[] args) =>
-            Shell.WriteLine(string.Join(Environment.NewLine, format
-                .Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries)
-                .Select(l => $"> {l}")), false, args);
+            Shell.WriteLine(format, false, args);
     }
 }
