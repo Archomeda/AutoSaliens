@@ -12,6 +12,7 @@ install:
 
 before_build:
   - nuget restore
+  - ps: .appveyor\UpdateVersion.ps1
 
 build_script:
   - msbuild /p:TargetFramework=net451 /v:minimal /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"

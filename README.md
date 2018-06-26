@@ -1,5 +1,6 @@
 # AutoSaliens
-[![](https://ci.appveyor.com/api/projects/status/78eoqoe0cn4muu9g/branch/master?svg=true)](https://ci.appveyor.com/project/Archomeda/AutoSaliens/branch/master)
+[![](https://ci.appveyor.com/api/projects/status/78eoqoe0cn4muu9g/branch/master?svg=true&passingText=master%20-%20OK&failingText=master%20-%20failure&pendingText=master%20-%20pending)](https://ci.appveyor.com/project/Archomeda/AutoSaliens/branch/master)
+[![](https://ci.appveyor.com/api/projects/status/78eoqoe0cn4muu9g/branch/stable?svg=true&passingText=stable%20-%20OK&failingText=stable%20-%20failure&pendingText=stable%20-%20pending)](https://ci.appveyor.com/project/Archomeda/AutoSaliens/branch/stable)
 *Automating the Steam Summer Sale 2018 game with overkill.*
 
 **Note:** This is a hobby project, so expect bugs. Want to have them fixed? Please report an issue or submit a pull request.
@@ -40,14 +41,14 @@ The default strategy is: MostDifficultPlanetsFirst, MostCompletedPlanetsFirst, M
 ## How to use
 ### Windows
 1. [Download and install .NET Framework](https://www.microsoft.com/net/download/dotnet-framework-runtime) if you don't have it already (4.5.1 is required)
-2. [Download the latest Windows build from AppVeyor](https://ci.appveyor.com/project/Archomeda/AutoSaliens/branch/master/artifacts)
+2. [Download the latest Windows build from AppVeyor](https://ci.appveyor.com/project/Archomeda/AutoSaliens/branch/stable/artifacts)
 3. Extract the archive to a separate folder
 4. Run AutoSaliens.exe
 5. Follow instructions in the console
 
 ### Other operating systems
 1. Download and install .NET Core Runtime if you don't have it already (2.0 is required): [Linux](https://docs.microsoft.com/en-us/dotnet/core/linux-prerequisites?tabs=netcore2x), [macOS](https://docs.microsoft.com/en-us/dotnet/core/macos-prerequisites?tabs=netcore2x)
-2. [Download the latest Portable build from AppVeyor](https://ci.appveyor.com/project/Archomeda/AutoSaliens/branch/master/artifacts)
+2. [Download the latest Portable build from AppVeyor](https://ci.appveyor.com/project/Archomeda/AutoSaliens/branch/stable/artifacts)
 3. Extract the archive to a separate folder
 4. Run `dotnet AutoSaliens.dll`
 5. Follow instructions in the console
