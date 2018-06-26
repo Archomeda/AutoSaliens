@@ -17,17 +17,6 @@ namespace AutoSaliens.Api.Models
 
         public List<Zone> Zones { get; set; }
 
-        public string[] ZonesToDifficulityCapturedCountString(bool includeCaptured = true)
-        {
-            return this.Zones == null ? new string[0] : this.Zones
-                .GroupBy(z => z.Difficulty)
-                .ToDictionary(g => g.Key, g => g.ToList())
-                .OrderBy(kvp => kvp.Key)
-                .Where(kvp => includeCaptured || (!includeCaptured && kvp.Value.Count(z => z.Captured) < kvp.Value.Count))
-                .Select(kvp => $"{kvp.Key}: {kvp.Value.Count - kvp.Value.Count(z => z.Captured)}/{kvp.Value.Count} free")
-                .ToArray();
-        }
-
         public string ToConsoleLine()
         {
             var difficulty = MathUtils.ScaleColor((int)this.State.Difficulty - 1, (int)Difficulty.High - 1, new[] { "{svlow}", "{smed}", "{svhigh}" });
