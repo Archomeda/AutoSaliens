@@ -55,7 +55,13 @@ namespace AutoSaliens
             while (!this.stopRequested && this.Available)
             {
                 if (this.rpcClient != null && this.rpcClient.IsInitialized && !this.rpcClient.Disposed)
-                    this.rpcClient.Invoke();
+                {
+                    try
+                    {
+                        this.rpcClient.Invoke();
+                    }
+                    catch (Exception) { }
+                }
                 Thread.Sleep(10);
             }
             this.rpcClient.Dispose();
