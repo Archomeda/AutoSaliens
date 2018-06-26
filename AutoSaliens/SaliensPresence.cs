@@ -138,12 +138,17 @@ namespace AutoSaliens
                 int diffXp = (int)(xp - this.LastXp);
                 TimeSpan diffTime = DateTime.Now - this.MeasureStartTime - playerInfo.TimeInZone;
                 TimeSpan eta = TimeSpan.FromSeconds(diffTime.TotalSeconds * ((nextLevelXp - xp) / diffXp));
-                DateTime predictedLevelUpDate = DateTime.Now + eta - playerInfo.TimeInZone;
+                if (eta < TimeSpan.FromDays(1))
+                {
+                    // Discord doesn't show days
+                    DateTime predictedLevelUpDate = DateTime.Now + eta - playerInfo.TimeInZone;
 
-                time = new Timestamps { End = predictedLevelUpDate.ToUniversalTime() };
+                    time = new Timestamps { End = predictedLevelUpDate.ToUniversalTime() };
+                }
             }
-            else
-            {
+
+            if (time == null)
+            { 
                 // Fall back to regular elapsed time
                 if (!string.IsNullOrWhiteSpace(playerInfo.ActiveZonePosition))
                     time = new Timestamps { Start = (DateTime.Now - playerInfo.TimeInZone).ToUniversalTime() };
