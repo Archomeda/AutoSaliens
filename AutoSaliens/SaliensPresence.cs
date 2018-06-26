@@ -146,7 +146,8 @@ namespace AutoSaliens
                 }
             }
 
-            if (Program.Settings.DiscordPresenceTimeType == PresenceTimeType.TimePlanetElapsed && hasActivePlanet)
+            if ((Program.Settings.DiscordPresenceTimeType == PresenceTimeType.TimePlanetElapsed && hasActivePlanet) ||
+                hasActivePlanet && !hasActiveZone)
                 time = new Timestamps { Start = (DateTime.Now - playerInfo.TimeOnPlanet).ToUniversalTime() };
 
             // Fall back to regular elapsed time if we still lack a time
