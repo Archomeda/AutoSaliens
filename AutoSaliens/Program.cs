@@ -66,11 +66,11 @@ namespace AutoSaliens
                 if (Settings.Strategy == 0)
                 {
                      Settings.Strategy =
-                        AutomationStrategy.TopDown |
-                        AutomationStrategy.MostCompletedPlanetsFirst |
-                        AutomationStrategy.MostCompletedZonesFirst |
                         AutomationStrategy.MostDifficultPlanetsFirst |
-                        AutomationStrategy.MostDifficultZonesFirst;
+                        AutomationStrategy.MostCompletedPlanetsFirst |
+                        AutomationStrategy.MostDifficultZonesFirst |
+                        AutomationStrategy.LeastCompletedZonesFirst |
+                        AutomationStrategy.TopDown;
                 }
                 Shell.WriteLine("", false);
                 Shell.WriteLine("{verb}Read settings from settings.json");

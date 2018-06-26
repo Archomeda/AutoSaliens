@@ -20,7 +20,7 @@ namespace AutoSaliens
             AutomationStrategy.MostDifficultPlanetsFirst |
             AutomationStrategy.MostCompletedPlanetsFirst |
             AutomationStrategy.MostDifficultZonesFirst |
-            AutomationStrategy.MostCompletedZonesFirst |
+            AutomationStrategy.LeastCompletedZonesFirst |
             AutomationStrategy.TopDown;
 
         public string Token { get; set; }
