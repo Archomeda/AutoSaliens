@@ -15,7 +15,8 @@ This application automates the mini game, just like most other tools do. But let
 - Automation:
   - Automatically joins planets and zones based on a configurable strategy
   - Supports overriding the joining planet, in case you want to spend as much time as possible there
-  - Configurable game time, which is by default 120 seconds (keep in mind that setting this too low might cause failures)
+  - Configurable game time, which is by default 110 seconds (keep in mind that setting this too low might cause failures)
+  - Adjusts the game time slightly based on network latency
 - Discord:
   - Supports Discord Rich Presence (automation is not required)
 
