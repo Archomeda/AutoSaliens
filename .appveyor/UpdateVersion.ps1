@@ -10,7 +10,7 @@ Function SetVersion() {
 
 Function SetBranch() {
     Write-Host "Set branch: $env:APPVEYOR_REPO_BRANCH" -ForegroundColor "Yellow"
-    RegexReplaceFile -file "AutoSaliens\UpdateChecker.cs" -id "BRANCH" -replace "`"$env:APPVEYOR_BUILD_VERSION`""
+    RegexReplaceFile -file "AutoSaliens\UpdateChecker.cs" -id "BRANCH" -replace "`"$env:APPVEYOR_REPO_BRANCH`""
 }
 
 Function SetDate() {
