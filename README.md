@@ -83,7 +83,7 @@ exit               - Exits the program
 gametime [seconds] - Shows or sets the game time in seconds (default: 110)
 pause              - Pauses the automation after completing one loop cycle
 presence [toggle]  - Shows or sets whether Discord presence is enabled or not
-resume             - Resumes the automation
+resume             - Starts/Resumes the automation
 token [token]      - Shows or sets the token
 ```
 

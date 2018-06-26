@@ -11,6 +11,8 @@ namespace AutoSaliens.Console.Commands
             if (Program.Saliens.AutomationActive)
                 return "Automation is already running.";
 
+            Program.Settings.EnableBot = true;
+            Program.Settings.Save();
             await Program.Saliens.Start();
 
             // Deactivate checking periodically

@@ -13,6 +13,8 @@ namespace AutoSaliens.Console.Commands
             if (!Program.Saliens.AutomationActive)
                 return "Automation has been paused already.";
 
+            Program.Settings.EnableBot = false;
+            Program.Settings.Save();
             Program.Saliens.Stop();
 
             // Activate checking periodically

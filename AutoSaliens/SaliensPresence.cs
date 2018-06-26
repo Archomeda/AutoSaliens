@@ -102,12 +102,15 @@ namespace AutoSaliens
             if (!this.Started)
                 return;
 
-            this.presence.Dispose();
+            this.presence?.Dispose();
             this.Started = false;
         }
 
         public void SetSaliensPlayerState(PlayerInfoResponse playerInfo)
         {
+            if (this.presence == null)
+                return;
+
             string details = $"Level {playerInfo.Level}";
             if (long.TryParse(playerInfo.Score, out long xp))
                 details += $" - {xp.ToString("#,##0", CultureInfo.InvariantCulture)} XP";
@@ -139,7 +142,7 @@ namespace AutoSaliens
         public void Dispose()
         {
             this.checkerCancelSource.Dispose();
-            this.presence.Dispose();
+            this.presence?.Dispose();
         }
     }
 }
