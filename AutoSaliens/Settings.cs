@@ -6,6 +6,10 @@ namespace AutoSaliens
 {
     internal class Settings
     {
+        public bool EnableBot { get; set; } = false;
+
+        public bool EnableDiscordPresence { get; set; } = false;
+
         public bool EnableNetworkTolerance { get; set; } = true;
 
         public int GameTime { get; set; } = 110;

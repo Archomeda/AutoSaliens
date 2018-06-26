@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Threading.Tasks;
@@ -19,11 +21,6 @@ namespace AutoSaliens
 
         public static bool HasUpdateBranch { get; private set; } = false;
 
-        public static Saliens Saliens { get; } = new Saliens();
-
-        public static Settings Settings { get; private set; } = new Settings();
-
-
         static Program()
         {
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
@@ -34,6 +31,13 @@ namespace AutoSaliens
 
             updateCheckerTimer.Elapsed += async (s, e) => await CheckForUpdates();
         }
+
+        public static SaliensPresence Presence { get; } = new SaliensPresence();
+
+        public static Saliens Saliens { get; } = new Saliens();
+
+        public static Settings Settings { get; private set; } = new Settings();
+
 
         public static Task Main(string[] args)
         {
@@ -50,7 +54,7 @@ namespace AutoSaliens
             if (!string.IsNullOrWhiteSpace(UpdateChecker.AppDate))
                 Shell.WriteLine($"Date: {{value}}{UpdateChecker.AppDate}", false);
             Shell.WriteLine("", false);
-            Shell.WriteLine("{inf}This console is interactive, type {command}\"help\"{/command}{inf} to get the list of available commands.", false);
+            Shell.WriteLine("{inf}This console is interactive, type {command}help{inf} to get the list of available commands.", false);
 
             return Start();
         }
@@ -76,17 +80,31 @@ namespace AutoSaliens
                 Shell.WriteLine("{verb}Read settings from settings.json");
 
                 updateCheckerTimer.Start();
+                var tasks = new List<Task>() { CheckForUpdates() };
 
+                if (Settings.EnableDiscordPresence)
+                {
+                    Shell.WriteLine("{verb}Initializing Discord presence...");
+                    tasks.Add(Presence.Start());
+                    if (!Settings.EnableBot)
+                        Presence.CheckPeriodically = true;
+                }
 #if !DEBUG
-                await Task.WhenAll(CheckForUpdates(), Shell.StartRead(), Saliens.Start());
+                if (Settings.EnableBot)
+                {
+                    Shell.WriteLine("{verb}Initializing bot...");
+                    tasks.Add(Saliens.Start());
+                }
 #else
-                Shell.WriteLine("{inf}Debug build: type {command}\"resume\"{/command}{inf} to start automation");
-                await Task.WhenAll(CheckForUpdates(), Shell.StartRead());
+                Shell.WriteLine("{inf}Debug build: type {command}resume{inf} to start automation");
 #endif
+                tasks.Add(Shell.StartRead());
+
+                await Task.WhenAll(tasks);
             }
             else
             {
-                Shell.WriteLine("{inf}It seems like that this is your first time running this application! Type {command}\"getstarted\"{/command}{inf} to get started.", false);
+                Shell.WriteLine("{inf}It seems like that this is your first time running this application! Type {command}getstarted{inf} to get started.", false);
                 Shell.WriteLine("", false);
 
                 await Shell.StartRead();
@@ -99,6 +117,7 @@ namespace AutoSaliens
             {
                 updateCheckerTimer.Stop();
                 Saliens.Stop();
+                Presence.Stop();
                 Shell.StopRead();
             });
         }

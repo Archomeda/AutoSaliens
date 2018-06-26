@@ -348,12 +348,16 @@ namespace AutoSaliens
 
             if (!string.IsNullOrWhiteSpace(this.PlayerInfo.ActiveZonePosition))
                 this.JoinedZoneStart = DateTime.Now - this.PlayerInfo.TimeInZone;
+
+            Program.Presence.SetSaliensPlayerState(this.PlayerInfo);
         }
 
         public async Task JoinPlanet(string planetId)
         {
             await SaliensApi.JoinPlanet(this.Token, planetId);
             this.JoinedPlanetId = planetId;
+
+            Program.Presence.SetSaliensPlayerState(this.PlayerInfo);
         }
 
         public async Task JoinZone(int zonePosition)
@@ -363,6 +367,9 @@ namespace AutoSaliens
                 await SaliensApi.JoinZone(this.Token, zonePosition);
                 this.JoinedZonePosition = zonePosition;
                 this.JoinedZoneStart = DateTime.Now;
+                this.PlayerInfo.TimeInZone = new TimeSpan();
+
+                Program.Presence.SetSaliensPlayerState(this.PlayerInfo);
             }
             catch (SaliensApiException ex)
             {
@@ -370,6 +377,7 @@ namespace AutoSaliens
                 {
                     Shell.WriteLine("{warn}Failed to join zone: Zone already captured");
                     this.JoinedZonePosition = null;
+                    Program.Presence.SetSaliensPlayerState(this.PlayerInfo);
                 }
                 throw;
             }
@@ -420,6 +428,8 @@ namespace AutoSaliens
                 this.JoinedPlanetId = null;
             else if (this.JoinedZone.GameId == gameId)
                 this.JoinedZonePosition = null;
+
+            Program.Presence.SetSaliensPlayerState(this.PlayerInfo);
         }
 
         public void PrintActivePlanets()

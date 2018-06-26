@@ -43,9 +43,7 @@ namespace AutoSaliens.Console
             { "{verb}", "\x1b[38;5;242m" },
             { "{action}", "\x1b[38;5;147m" },
             { "{logtime}", "\x1b[38;5;242m" },
-            { "{command}\"", "\x1b[38;5;170m" },
             { "{command}", "\x1b[38;5;170m" },
-            { "\"{/command}", "\x1b[0m" },
             { "{param}", "\x1b[38;5;98m" },
             { "{value}", "\x1b[38;5;85m" },
             { "{url}", "\x1b[38;5;27m" },
@@ -196,7 +194,7 @@ namespace AutoSaliens.Console
                         }
                     }
                     else
-                        log = "Unknown command, use {command}\"help\"{/command} to get the list of available commands.";
+                        log = "Unknown command, use {command}help{reset} to get the list of available commands.";
 
                     if (log != null)
                         WriteLine(FormatCommandOuput(log), false);
@@ -212,9 +210,9 @@ namespace AutoSaliens.Console
         }
 
 
-        public static void WriteLine(string format, params string[] args) => WriteLine(format, true, args);
+        public static void WriteLine(string format, params object[] args) => WriteLine(format, true, args);
 
-        public static void WriteLine(string format, bool includeTime, params string[] args)
+        public static void WriteLine(string format, bool includeTime, params object[] args)
         {
             if (includeTime)
                 format = $"{{logtime}}[{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff")}]{{reset}} {format}";

@@ -11,9 +11,13 @@ This tool is simply way too overkill for such a small mini game. However, I thou
 ### Features
 This application automates the mini game, just like most other tools do. But let's list all the features:
 - Interactive console with various commands that can show the game status or change the settings
-- Automatically joins planets and zones based on a configurable strategy
-- Supports overriding the joining planet, in case you want to spend as much time as possible there
-- Configurable game time, which is by default 120 seconds (keep in mind that setting this too low might cause failures)
+- Can automate the mini game and supports updating Discord Rich Presence
+- Automation:
+  - Automatically joins planets and zones based on a configurable strategy
+  - Supports overriding the joining planet, in case you want to spend as much time as possible there
+  - Configurable game time, which is by default 120 seconds (keep in mind that setting this too low might cause failures)
+- Discord:
+  - Supports Discord Rich Presence (automation is not required)
 
 ### Strategy
 There's a couple of strategies that you can use. You can manipulate the strategy with the `strategy` command. Without parameters, this command will return the current used strategy. In order to set the strategy, use the names below *(it's case sensitive!)*. You can use multiple names, just be sure to separate them with a comma or a space.
@@ -77,6 +81,7 @@ Application commands:
 exit               - Exits the program
 gametime [seconds] - Shows or sets the game time in seconds (default: 110)
 pause              - Pauses the automation after completing one loop cycle
+presence [toggle]  - Shows or sets whether Discord presence is enabled or not
 resume             - Resumes the automation
 token [token]      - Shows or sets the token
 ```

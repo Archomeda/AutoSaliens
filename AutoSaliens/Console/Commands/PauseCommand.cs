@@ -14,6 +14,11 @@ namespace AutoSaliens.Console.Commands
                 return "Automation has been paused already.";
 
             Program.Saliens.Stop();
+
+            // Activate checking periodically
+            if (Program.Settings.EnableDiscordPresence)
+                Program.Presence.CheckPeriodically = true;
+
             return "Automation has been paused. Use the command resume to unpause.";
         }
     }

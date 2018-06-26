@@ -37,7 +37,7 @@ namespace AutoSaliens.Console.Commands
                 $"{{command}}exit{{reset}}               - Exits the program{Environment.NewLine}" +
                 $"{{command}}gametime {{param}}[seconds]{{reset}} - Shows or sets the game time in seconds (default: 110){Environment.NewLine}" +
                 $"{{command}}pause{{reset}}              - Pauses the automation after completing one loop cycle{Environment.NewLine}" +
-                $"{{command}}resume{{reset}}             - Resumes the automation{Environment.NewLine}" +
+                $"{{command}}presence {{param}}[toggle]{{reset}}  - Shows or sets whether Discord presence is enabled or not{Environment.NewLine}" +
                 $"{{command}}token {{param}}[token]{{reset}}      - Shows or sets the token";
         }
     }
