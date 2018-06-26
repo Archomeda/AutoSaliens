@@ -61,6 +61,12 @@ namespace AutoSaliens
             {
                 var settingsJson = File.ReadAllText("settings.json");
                 Settings = JsonConvert.DeserializeObject<Settings>(settingsJson);
+
+#if DEBUG
+                Settings.EnableBot = false;
+                Settings.EnableDiscordPresence = false;
+#endif
+
                 if (Settings.GameTime < 1)
                     Settings.GameTime = 110;
                 if (Settings.Strategy == 0)
@@ -87,16 +93,16 @@ namespace AutoSaliens
                     if (!Settings.EnableBot)
                         Presence.CheckPeriodically = true;
                 }
-#if !DEBUG
                 if (Settings.EnableBot)
                 {
                     Shell.WriteLine("{verb}Initializing bot...");
                     tasks.Add(Saliens.Start());
                 }
-#else
-                Shell.WriteLine("{inf}Debug build: type {command}resume{inf} to start automation");
-#endif
                 tasks.Add(Shell.StartRead());
+
+#if DEBUG
+                Shell.WriteLine("{inf}Debug build: type {command}resume{inf} to start automation or {command}presence {param}enable{inf} to start Discord presence");
+#endif
 
                 await Task.WhenAll(tasks);
             }
