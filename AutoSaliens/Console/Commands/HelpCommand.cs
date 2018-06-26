@@ -40,7 +40,7 @@ namespace AutoSaliens.Console.Commands
                 $"{{command}}pause{{reset}}                  - Pauses the automation after completing one loop cycle{Environment.NewLine}" +
                 $"{{command}}presence {{param}}[toggle]{{reset}}      - Shows or sets whether Discord presence is enabled or not{Environment.NewLine}" +
                 $"{{command}}presencetime {{param}}[option]{{reset}}  - Shows or sets the Discord presence time type{Environment.NewLine}" +
-                $"{{command}}resume{{reset}}                  - Starts/Resumes the automation{Environment.NewLine}" +
+                $"{{command}}resume{{reset}}                 - Starts/Resumes the automation{Environment.NewLine}" +
                 $"{{command}}token {{param}}[token]{{reset}}          - Shows or sets the token";
         }
     }
