@@ -66,7 +66,7 @@ namespace AutoSaliens.Console
 
         private static StringBuilder inputBuffer = new StringBuilder();
         private static bool readingInput = false;
-        private static object consoleLock = new object();
+        private static readonly object consoleLock = new object();
 
         static Shell()
         {
