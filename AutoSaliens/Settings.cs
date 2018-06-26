@@ -10,7 +10,7 @@ namespace AutoSaliens
 
         public bool EnableDiscordPresence { get; set; } = false;
 
-        public PresenceTimeType DiscordPresenceTimeType { get; set; } = PresenceTimeType.TimeElapsed;
+        public PresenceTimeType DiscordPresenceTimeType { get; set; } = PresenceTimeType.TimeZoneElapsed;
 
         public bool EnableNetworkTolerance { get; set; } = true;
 

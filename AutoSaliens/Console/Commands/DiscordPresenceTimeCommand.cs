@@ -31,7 +31,7 @@ namespace AutoSaliens.Console.Commands
                 {
                     var presenceType = (PresenceTimeType)Enum.Parse(typeof(PresenceTimeType), parameters);
                     if (presenceType == 0)
-                        presenceType = PresenceTimeType.TimeElapsed;
+                        presenceType = PresenceTimeType.TimeZoneElapsed;
                     Program.Settings.DiscordPresenceTimeType = presenceType;
                     Program.Settings.Save();
                     return "Your Discord presence time type has been saved.";

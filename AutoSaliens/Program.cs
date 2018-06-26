@@ -73,7 +73,7 @@ namespace AutoSaliens
                         AutomationStrategy.TopDown;
                 }
                 if (Settings.DiscordPresenceTimeType == 0)
-                    Settings.DiscordPresenceTimeType = PresenceTimeType.TimeElapsed;
+                    Settings.DiscordPresenceTimeType = PresenceTimeType.TimeZoneElapsed;
                 Shell.WriteLine("", false);
                 Shell.WriteLine("{verb}Read settings from settings.json");
 

@@ -140,21 +140,18 @@ namespace AutoSaliens
                 TimeSpan eta = TimeSpan.FromSeconds(diffTime.TotalSeconds * ((nextLevelXp - xp) / diffXp));
                 if (eta < TimeSpan.FromDays(1))
                 {
-                    // Discord doesn't show days
+                    // Only show when it's less than a day: Discord doesn't show days
                     DateTime predictedLevelUpDate = DateTime.Now + eta - playerInfo.TimeInZone;
-
                     time = new Timestamps { End = predictedLevelUpDate.ToUniversalTime() };
                 }
             }
 
-            if (time == null)
-            { 
-                // Fall back to regular elapsed time
-                if (!string.IsNullOrWhiteSpace(playerInfo.ActiveZonePosition))
-                    time = new Timestamps { Start = (DateTime.Now - playerInfo.TimeInZone).ToUniversalTime() };
-                else if (!string.IsNullOrWhiteSpace(playerInfo.ActivePlanet))
-                    time = new Timestamps { Start = (DateTime.Now - playerInfo.TimeOnPlanet).ToUniversalTime() };
-            }
+            if (Program.Settings.DiscordPresenceTimeType == PresenceTimeType.TimePlanetElapsed && hasActivePlanet)
+                time = new Timestamps { Start = (DateTime.Now - playerInfo.TimeOnPlanet).ToUniversalTime() };
+
+            // Fall back to regular elapsed time if we still lack a time
+            if (time == null && hasActivePlanet && hasActiveZone)
+                time = new Timestamps { Start = (DateTime.Now - playerInfo.TimeInZone).ToUniversalTime() };
 
             if (hasActivePlanet && hasActiveZone)
                 this.MeasureStartTime = DateTime.Now - playerInfo.TimeInZone;
