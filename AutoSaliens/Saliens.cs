@@ -163,14 +163,14 @@ namespace AutoSaliens
                                 planets = planets
                                     //.ThenByDescending(p => (int)p.State.Difficulty)
                                     .ThenByDescending(p => p.MaxFreeZonesDifficulty)
-                                    .ThenByDescending(p => p.AverageFreeZonesDifficulty);
+                                    .ThenByDescending(p => p.WeightedAverageFreeZonesDifficulty);
                             }
                             else if (this.Strategy.HasFlag(AutomationStrategy.LeastDifficultPlanetsFirst))
                             {
                                 planets = planets
                                     //.ThenBy(p => (int)p.State.Difficulty)
                                     .ThenBy(p => p.MaxFreeZonesDifficulty)
-                                    .ThenBy(p => p.AverageFreeZonesDifficulty);
+                                    .ThenBy(p => p.WeightedAverageFreeZonesDifficulty);
                             }
                             if (this.Strategy.HasFlag(AutomationStrategy.MostCompletedPlanetsFirst))
                                 planets = planets.ThenByDescending(p => p.State.CaptureProgress);

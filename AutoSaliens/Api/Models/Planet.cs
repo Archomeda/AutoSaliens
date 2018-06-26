@@ -21,8 +21,8 @@ namespace AutoSaliens.Api.Models
         public Difficulty MaxFreeZonesDifficulty =>
             this.Zones?.Where(z => !z.Captured).Max(z => z.Difficulty) ?? Difficulty.Low;
 
-        public double AverageFreeZonesDifficulty =>
-            this.Zones?.Where(z => !z.Captured).Average(z => (int)z.Difficulty) ?? 1;
+        public double WeightedAverageFreeZonesDifficulty =>
+            this.Zones?.Where(z => !z.Captured).Average(z => (int)z.Difficulty * (1 - z.CaptureProgress)) ?? 1;
 
 
         public string ToConsoleLine()
