@@ -46,7 +46,7 @@ namespace AutoSaliens
         public static async Task<PlayerInfoResponse> GetPlayerInfo(string accessToken)
         {
             var response = await GetPlayerInfoUrl.SetQueryParam("access_token", accessToken)
-                .PostAndRecieveAsync<ApiResponse<PlayerInfoResponse>>();
+                .PostAndReceiveAsync<ApiResponse<PlayerInfoResponse>>();
 
             if (response?.Response == null)
                 throw new SaliensApiException();
@@ -65,7 +65,7 @@ namespace AutoSaliens
         {
             var response = await JoinZoneUrl.SetQueryParam("access_token", accessToken)
                 .SetQueryParam("zone_position", zonePosition)
-                .PostAndRecieveAsync<ApiResponse<JoinZoneResponse>>();
+                .PostAndReceiveAsync<ApiResponse<JoinZoneResponse>>();
             if (response?.Response?.ZoneInfo == null)
                 throw new SaliensApiException();
             return response.Response.ZoneInfo;
@@ -76,7 +76,7 @@ namespace AutoSaliens
         {
             var response = await ReportScoreUrl.SetQueryParam("access_token", accessToken)
                 .SetQueryParam("score", score)
-                .PostAndRecieveAsync<ApiResponse<ReportScoreResponse>>();
+                .PostAndReceiveAsync<ApiResponse<ReportScoreResponse>>();
 
             if(response?.Response == null)
                 throw new SaliensApiException();
@@ -88,7 +88,7 @@ namespace AutoSaliens
             // Always an empty response? Well then...
         }
 
-        private static async Task<T> PostAndRecieveAsync<T>(this Url url)
+        private static async Task<T> PostAndReceiveAsync<T>(this Url url)
         {
             var res = await url.PostStringAsync(string.Empty);
             var eResult = res.Headers.GetValues("x-eresult").FirstOrDefault();
