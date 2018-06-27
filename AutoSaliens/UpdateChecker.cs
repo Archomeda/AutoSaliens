@@ -1,6 +1,7 @@
 using System;
-using System.Net;
 using System.Threading.Tasks;
+using Flurl;
+using Flurl.Http;
 using Newtonsoft.Json.Linq;
 
 namespace AutoSaliens
@@ -43,14 +44,12 @@ namespace AutoSaliens
                 return null;
 
             var appDate = DateTime.Parse(AppDate);
-            var uri = new Uri(AppVeyorApiUrl + $"?recordsNumber=50&branch={branch}");
-            using (var webClient = new WebClient())
-            {
-                webClient.Headers.Add("User-Agent", "AutoSaliens/1.0 (https://github.com/Archomeda/AutoAliens)");
-                webClient.Headers.Add(HttpRequestHeader.Accept, "application/json");
+            var url = AppVeyorApiUrl.SetQueryParam("recordsNumber", 50)
+                .SetQueryParam("branch", branch)
+                .WithHeader("Accept", "application/json");
                 try
                 {
-                    var json = await webClient.DownloadStringTaskAsync(uri);
+                    var json = await url.GetStringAsync();
                     var builds = JObject.Parse(json)["builds"].AsJEnumerable();
                     foreach (JObject build in builds)
                     {
@@ -63,7 +62,6 @@ namespace AutoSaliens
                             return build["version"].Value<string>();
                     }
                 } catch (Exception) { }
-            }
             return null;
         }
     }

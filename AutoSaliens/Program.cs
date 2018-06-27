@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
@@ -6,6 +5,7 @@ using System.Threading.Tasks;
 using System.Timers;
 using AutoSaliens.Api.Converters;
 using AutoSaliens.Console;
+using Flurl.Http;
 using Newtonsoft.Json;
 
 namespace AutoSaliens
@@ -24,8 +24,12 @@ namespace AutoSaliens
             {
                 ContractResolver = new SnakeCasePropertyNamesContractResolver()
             };
-
             updateCheckerTimer.Elapsed += async (s, e) => await CheckForUpdates();
+            //setup default headers sent with every request
+            FlurlHttp.Configure(x=>
+            {
+                x.BeforeCall = call => call.FlurlRequest.WithHeader("User-Agent","AutoSaliens/1.0 (https://github.com/Archomeda/AutoAliens)");
+            });
         }
 
         public static SaliensPresence Presence { get; } = new SaliensPresence();

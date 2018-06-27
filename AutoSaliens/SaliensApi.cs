@@ -1,9 +1,9 @@
-using System;
 using System.Collections.Generic;
-using System.Net;
-using System.Threading;
+using System.Linq;
 using System.Threading.Tasks;
 using AutoSaliens.Api.Models;
+using Flurl;
+using Flurl.Http;
 using Newtonsoft.Json;
 
 namespace AutoSaliens
@@ -25,9 +25,9 @@ namespace AutoSaliens
 
         public static async Task<List<Planet>> GetPlanets(bool activeOnly = false)
         {
-            var uri = new Uri(GetPlanetsUrl + (activeOnly ? "&active_only=1" : ""));
-            var response = await GetJson<ApiResponse<PlanetsResponse>>(uri);
-            if (response?.Response?.Planets == null)
+            var url = Url.Combine(GetPlanetsUrl, activeOnly ? "&active_only=1" : "");
+            var response = await url.GetJsonAsync<ApiResponse<PlanetsResponse>>();
+            if(response?.Response?.Planets == null)
                 throw new SaliensApiException();
 
             return response.Response.Planets;
@@ -35,8 +35,8 @@ namespace AutoSaliens
 
         public static async Task<Planet> GetPlanet(string id)
         {
-            var uri = new Uri(GetPlanetUrl + $"&id={id}");
-            var response = await GetJson<ApiResponse<PlanetsResponse>>(uri);
+            var response =  await GetPlanetUrl.SetQueryParam("id", id)
+                .GetJsonAsync<ApiResponse<PlanetsResponse>>();
             if (response?.Response?.Planets == null || response.Response.Planets.Count < 1 || response.Response.Planets[0] == null)
                 throw new SaliensApiException();
 
@@ -45,8 +45,9 @@ namespace AutoSaliens
 
         public static async Task<PlayerInfoResponse> GetPlayerInfo(string accessToken)
         {
-            var uri = new Uri(GetPlayerInfoUrl + $"?access_token={accessToken}");
-            var response = await PostJson<ApiResponse<PlayerInfoResponse>>(uri);
+            var response = await GetPlayerInfoUrl.SetQueryParam("access_token", accessToken)
+                .PostAndRecieveAsync<ApiResponse<PlayerInfoResponse>>();
+
             if (response?.Response == null)
                 throw new SaliensApiException();
 
@@ -55,68 +56,48 @@ namespace AutoSaliens
 
         public static async Task JoinPlanet(string accessToken, string planetId)
         {
-            var uri = new Uri(JoinPlanetUrl + $"?access_token={accessToken}&id={planetId}");
-            await PostJson<ApiResponse<object>>(uri);
+            await JoinPlanetUrl.SetQueryParam("access_token", accessToken)
+                .SetQueryParam("id", planetId)
+                .PostJsonAsync(null);
         }
 
         public static async Task<Zone> JoinZone(string accessToken, int zonePosition)
         {
-            var uri = new Uri(JoinZoneUrl + $"?access_token={accessToken}&zone_position={zonePosition}");
-            var response = await PostJson<ApiResponse<JoinZoneResponse>>(uri);
+            var response = await JoinZoneUrl.SetQueryParam("access_token", accessToken)
+                .SetQueryParam("zone_position", zonePosition)
+                .PostAndRecieveAsync<ApiResponse<JoinZoneResponse>>();
             if (response?.Response?.ZoneInfo == null)
                 throw new SaliensApiException();
-
             return response.Response.ZoneInfo;
+           
         }
 
         public static async Task<ReportScoreResponse> ReportScore(string accessToken, int score)
         {
-            var uri = new Uri(ReportScoreUrl + $"?access_token={accessToken}&score={score}");
-            var response = await PostJson<ApiResponse<ReportScoreResponse>>(uri);
-            if (response?.Response == null)
-                throw new SaliensApiException();
+            var response = await ReportScoreUrl.SetQueryParam("access_token", accessToken)
+                .SetQueryParam("score", score)
+                .PostAndRecieveAsync<ApiResponse<ReportScoreResponse>>();
 
+            if(response?.Response == null)
+                throw new SaliensApiException();
             return response.Response;
         }
-
         public static async Task LeaveGame(string accessToken, string gameId)
         {
-            var uri = new Uri(LeaveGameUrl + $"?access_token={accessToken}&gameid={gameId}");
-            await PostJson<ApiResponse<object>>(uri);
+            await LeaveGameUrl.SetQueryParam("access_token", accessToken).SetQueryParam("gameid", gameId).PostStringAsync(string.Empty);
             // Always an empty response? Well then...
         }
 
-
-        private static async Task<T> GetJson<T>(Uri uri)
+        private static async Task<T> PostAndRecieveAsync<T>(this Url url)
         {
-            using (var webClient = new WebClient())
+            var res = await url.PostStringAsync(string.Empty);
+            var eResult = res.Headers.GetValues("x-eresult").FirstOrDefault();
+            if (!string.IsNullOrWhiteSpace(eResult) && eResult != "1")
             {
-                webClient.Headers.Add("User-Agent", "AutoSaliens/1.0 (https://github.com/Archomeda/AutoAliens)");
-                var json = await webClient.DownloadStringTaskAsync(uri);
-                var eResult = webClient.ResponseHeaders["x-eresult"].ToString();
-                if (!string.IsNullOrWhiteSpace(eResult) && eResult != "1")
-                {
-                    var message = webClient.ResponseHeaders["x-error_message"]?.ToString();
-                    throw SaliensApiException.FromString(eResult, message);
-                }
-                return JsonConvert.DeserializeObject<T>(json);
+                var message = res.Headers.GetValues("x-error_message").FirstOrDefault();
+                throw SaliensApiException.FromString(eResult, message);
             }
-        }
-
-        private static async Task<T> PostJson<T>(Uri uri)
-        {
-            using (var webClient = new WebClient())
-            {
-                webClient.Headers.Add("User-Agent", "AutoSaliens/1.0 (https://github.com/Archomeda/AutoAliens)");
-                var json = await webClient.UploadStringTaskAsync(uri, "");
-                var eResult = webClient.ResponseHeaders["x-eresult"].ToString();
-                if (!string.IsNullOrWhiteSpace(eResult) && eResult != "1")
-                {
-                    var message = webClient.ResponseHeaders["x-error_message"]?.ToString();
-                    throw SaliensApiException.FromString(eResult, message);
-                }
-                return JsonConvert.DeserializeObject<T>(json);
-            }
+            return JsonConvert.DeserializeObject<T>(await res.Content.ReadAsStringAsync());
         }
     }
 }
