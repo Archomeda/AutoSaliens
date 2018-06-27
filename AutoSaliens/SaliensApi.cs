@@ -58,7 +58,7 @@ namespace AutoSaliens
         {
             await JoinPlanetUrl.SetQueryParam("access_token", accessToken)
                 .SetQueryParam("id", planetId)
-                .PostJsonAsync(null);
+                .PostStringAsync(string.Empty);
         }
 
         public static async Task<Zone> JoinZone(string accessToken, int zonePosition)
