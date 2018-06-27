@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using AutoSaliens.Presence;
 
 #pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
 
