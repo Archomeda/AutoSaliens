@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using AutoSaliens.Api.Models;
 using AutoSaliens.Console;
+using AutoSaliens.Presence;
 using Timer = System.Timers.Timer;
 
 namespace AutoSaliens
@@ -42,6 +43,10 @@ namespace AutoSaliens
         public AutomationStrategy Strategy => Program.Settings.Strategy;
 
         public string Token => Program.Settings.Token;
+
+
+        //TODO: This needs to be somewhere else when refactoring this
+        public BotUpdateTrigger PresenceUpdateTrigger { get; set; }
 
 
         public List<Planet> PlanetDetails { get; set; }
@@ -321,7 +326,7 @@ namespace AutoSaliens
 
         public async Task UpdatePlanets(bool activeOnly = true)
         {
-            var newPlanets = await SaliensApi.GetPlanets(activeOnly);
+            var newPlanets = await SaliensApi.GetPlanetsAsync(activeOnly);
             if (!activeOnly)
             {
                 // Only bother updating when it's the full list,
@@ -341,7 +346,7 @@ namespace AutoSaliens
             var lastPlanetIndex = this.PlanetDetails.ToList().FindIndex(p => p.Id == planetsToGetZonesOf.Last().Id);
             planetsToGetZonesOf = planetsToGetZonesOf.Concat(this.PlanetDetails.Skip(lastPlanetIndex + 1).Take(1));
 
-            var newDetails = await Task.WhenAll(planetsToGetZonesOf.Select(p => SaliensApi.GetPlanet(p.Id)));
+            var newDetails = await Task.WhenAll(planetsToGetZonesOf.Select(p => SaliensApi.GetPlanetAsync(p.Id)));
             foreach (var planet in newDetails)
             {
                 // Replace the planet because this instance has more information (e.g. zones)
@@ -355,32 +360,32 @@ namespace AutoSaliens
             if (string.IsNullOrEmpty(this.Token))
                 return;
 
-            this.PlayerInfo = await SaliensApi.GetPlayerInfo(this.Token);
+            this.PlayerInfo = await SaliensApi.GetPlayerInfoAsync(this.Token);
 
             if (!string.IsNullOrWhiteSpace(this.PlayerInfo.ActiveZonePosition))
                 this.JoinedZoneStart = DateTime.Now - this.PlayerInfo.TimeInZone;
 
-            Program.Presence.SetSaliensPlayerState(this.PlayerInfo);
+            this.PresenceUpdateTrigger?.SetSaliensPlayerState(this.PlayerInfo);
         }
 
         public async Task JoinPlanet(string planetId)
         {
-            await SaliensApi.JoinPlanet(this.Token, planetId);
+            await SaliensApi.JoinPlanetAsync(this.Token, planetId);
             this.JoinedPlanetId = planetId;
 
-            Program.Presence.SetSaliensPlayerState(this.PlayerInfo);
+            this.PresenceUpdateTrigger?.SetSaliensPlayerState(this.PlayerInfo);
         }
 
         public async Task JoinZone(int zonePosition)
         {
             try
             {
-                await SaliensApi.JoinZone(this.Token, zonePosition);
+                await SaliensApi.JoinZoneAsync(this.Token, zonePosition);
                 this.JoinedZonePosition = zonePosition;
                 this.JoinedZoneStart = DateTime.Now;
                 this.PlayerInfo.TimeInZone = new TimeSpan();
 
-                Program.Presence.SetSaliensPlayerState(this.PlayerInfo);
+                this.PresenceUpdateTrigger?.SetSaliensPlayerState(this.PlayerInfo);
             }
             catch (SaliensApiException ex)
             {
@@ -388,7 +393,7 @@ namespace AutoSaliens
                 {
                     Shell.WriteLine("{warn}Failed to join zone: Zone already captured");
                     this.JoinedZonePosition = null;
-                    Program.Presence.SetSaliensPlayerState(this.PlayerInfo);
+                    this.PresenceUpdateTrigger?.SetSaliensPlayerState(this.PlayerInfo);
                 }
                 throw;
             }
@@ -402,7 +407,7 @@ namespace AutoSaliens
                 {
                     var stopwatch = new Stopwatch();
                     stopwatch.Start();
-                    var response = await SaliensApi.ReportScore(this.Token, score);
+                    var response = await SaliensApi.ReportScoreAsync(this.Token, score);
                     stopwatch.Stop();
                     // Only change the network delay if the last delay was lower
                     // Don't want to be too eager for an occasional spike
@@ -434,13 +439,13 @@ namespace AutoSaliens
 
         public async Task LeaveGame(string gameId)
         {
-            await SaliensApi.LeaveGame(this.Token, gameId);
+            await SaliensApi.LeaveGameAsync(this.Token, gameId);
             if (this.JoinedPlanetId == gameId)
                 this.JoinedPlanetId = null;
             else if (this.JoinedZone.GameId == gameId)
                 this.JoinedZonePosition = null;
 
-            Program.Presence.SetSaliensPlayerState(this.PlayerInfo);
+            this.PresenceUpdateTrigger?.SetSaliensPlayerState(this.PlayerInfo);
         }
 
         public void PrintActivePlanets()

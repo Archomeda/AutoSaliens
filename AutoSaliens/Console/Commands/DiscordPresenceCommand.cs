@@ -1,7 +1,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-#pragma warning disable CS1998
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
 
 namespace AutoSaliens.Console.Commands
 {
@@ -24,24 +24,11 @@ namespace AutoSaliens.Console.Commands
             {
                 // Set the Discord presence
                 if (parameters == "enable")
-                {
-                    Program.Settings.EnableDiscordPresence = true;
-                    if (!Program.Presence.Started)
-                        await Program.Presence.Start();
-                }
+                    Program.Settings.EnableDiscordPresence.Value = true;
                 else if (parameters == "disable")
-                {
-                    Program.Settings.EnableDiscordPresence = false;
-                    if (Program.Presence.Started)
-                        Program.Presence.Stop();
-                }
+                    Program.Settings.EnableDiscordPresence.Value = false;
                 else
                     return "{err}Invalid input.";
-                Program.Settings.Save();
-
-                // Activate checking periodically when automation isn't active
-                if (Program.Settings.EnableDiscordPresence)
-                    Program.Presence.CheckPeriodically = !Program.Saliens.AutomationActive;
 
                 return $"Discord presence has been {(Program.Settings.EnableDiscordPresence ? "enabled" : "disabled")}.";
             }

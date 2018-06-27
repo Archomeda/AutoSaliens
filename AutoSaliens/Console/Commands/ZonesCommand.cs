@@ -21,7 +21,7 @@ namespace AutoSaliens.Console.Commands
             {
                 // Zones not available yet, request them manually
                 var index = Program.Saliens.PlanetDetails.FindIndex(p => p.Id == planet.Id);
-                planet = await SaliensApi.GetPlanet(planet.Id);
+                planet = await SaliensApi.GetPlanetAsync(planet.Id);
                 Program.Saliens.PlanetDetails[index] = planet;
             }
 

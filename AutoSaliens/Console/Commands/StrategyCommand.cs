@@ -3,7 +3,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-#pragma warning disable CS1998
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
 
 namespace AutoSaliens.Console.Commands
 {
@@ -44,8 +44,7 @@ namespace AutoSaliens.Console.Commands
                             AutomationStrategy.MostDifficultZonesFirst |
                             AutomationStrategy.MostCompletedZonesFirst |
                             AutomationStrategy.TopDown;
-                    Program.Settings.Strategy = strategy;
-                    Program.Settings.Save();
+                    Program.Settings.Strategy.Value = strategy;
                     return "Your strategy has been saved.";
                 }
                 catch (ArgumentException)

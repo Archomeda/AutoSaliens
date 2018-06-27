@@ -27,9 +27,8 @@ namespace AutoSaliens.Console.Commands
                 // Set the token
                 try
                 {
-                    Program.Saliens.PlayerInfo = await SaliensApi.GetPlayerInfo(parameters);
-                    Program.Settings.Token = parameters;
-                    Program.Settings.Save();
+                    Program.Saliens.PlayerInfo = await SaliensApi.GetPlayerInfoAsync(parameters);
+                    Program.Settings.Token.Value = parameters;
                     return "Your token has been saved.";
                 }
                 catch (WebException ex)

@@ -1,7 +1,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-#pragma warning disable CS1998
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
 
 namespace AutoSaliens.Console.Commands
 {
@@ -24,12 +24,11 @@ namespace AutoSaliens.Console.Commands
             {
                 // Set the game time
                 if (parameters == "enable")
-                    Program.Settings.EnableNetworkTolerance = true;
+                    Program.Settings.EnableNetworkTolerance.Value = true;
                 else if (parameters == "disable")
-                    Program.Settings.EnableNetworkTolerance = false;
+                    Program.Settings.EnableNetworkTolerance.Value = false;
                 else
                     return "{err}Invalid input.";
-                Program.Settings.Save();
                 return $"Network tolerance has been {(Program.Settings.EnableNetworkTolerance ? "enabled" : "disabled")}.";
             }
         }

@@ -2,7 +2,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-#pragma warning disable CS1998
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
 
 namespace AutoSaliens.Console.Commands
 {
@@ -29,8 +29,7 @@ namespace AutoSaliens.Console.Commands
                 // Set the overridden planet id
                 if (Program.Saliens.PlanetDetails.FirstOrDefault(p => p.Id == parameters) == null)
                     return "{err}Invalid planet id. Check the planets for ids.";
-                Program.Settings.OverridePlanetId = parameters;
-                Program.Settings.Save();
+                Program.Settings.OverridePlanetId.Value = parameters;
                 return "Your planet id override has been saved.";
             }
         }

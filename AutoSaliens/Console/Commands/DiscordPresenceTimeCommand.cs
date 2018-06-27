@@ -3,7 +3,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-#pragma warning disable CS1998
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
 
 namespace AutoSaliens.Console.Commands
 {
@@ -15,7 +15,7 @@ namespace AutoSaliens.Console.Commands
             if (string.IsNullOrWhiteSpace(parameters))
             {
                 // Show the current Discord presence time type
-                var allValues = Enum.GetValues(typeof(PresenceTimeType)) as PresenceTimeType[];
+                var allValues = Enum.GetValues(typeof(PresenceFormatterType)) as PresenceFormatterType[];
                 this.WriteConsole($"The Discord presence time type is currently {{value}}{(Program.Settings.DiscordPresenceTimeType.ToString())}{{reset}}.");
 
                 this.WriteConsole("You can change the Discord presence time type by appending an option this command: {command}presencetime {param}<option>");
@@ -29,11 +29,10 @@ namespace AutoSaliens.Console.Commands
                 // Set the Discord presence time type
                 try
                 {
-                    var presenceType = (PresenceTimeType)Enum.Parse(typeof(PresenceTimeType), parameters);
+                    var presenceType = (PresenceFormatterType)Enum.Parse(typeof(PresenceFormatterType), parameters);
                     if (presenceType == 0)
-                        presenceType = PresenceTimeType.TimeZoneElapsed;
-                    Program.Settings.DiscordPresenceTimeType = presenceType;
-                    Program.Settings.Save();
+                        presenceType = PresenceFormatterType.TimeZoneElapsed;
+                    Program.Settings.DiscordPresenceTimeType.Value = presenceType;
                     return "Your Discord presence time type has been saved.";
                 }
                 catch (ArgumentException)

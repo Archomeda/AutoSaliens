@@ -5,7 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using AutoSaliens.Api.Models;
 
-#pragma warning disable CS1998
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
 
 namespace AutoSaliens.Console.Commands
 {
@@ -52,7 +52,7 @@ namespace AutoSaliens.Console.Commands
 
             async Task PrintPlanets(IEnumerable<Planet> planets)
             {
-                var tasks = planets.Select(p => parameters == "live" || p.Zones == null ? SaliensApi.GetPlanet(p.Id) : Task.FromResult(p));
+                var tasks = planets.Select(p => parameters == "live" || p.Zones == null ? SaliensApi.GetPlanetAsync(p.Id) : Task.FromResult(p));
                 foreach (var task in tasks)
                 {
                     var planet = await task;

@@ -1,7 +1,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-#pragma warning disable CS1998
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
 
 namespace AutoSaliens.Console.Commands
 {
@@ -28,8 +28,7 @@ namespace AutoSaliens.Console.Commands
                 if (time < 1)
                     return "Integer needs to be greater than 0.";
 
-                Program.Settings.GameTime = time;
-                Program.Settings.Save();
+                Program.Settings.GameTime.Value = time;
                 return "Your game time has been saved.";
             }
         }

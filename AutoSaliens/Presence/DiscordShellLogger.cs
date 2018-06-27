@@ -1,10 +1,9 @@
-using System;
 using AutoSaliens.Console;
 using DiscordRPC.Logging;
 
-namespace AutoSaliens
+namespace AutoSaliens.Presence
 {
-    internal class DiscordPresenceLogger : ILogger
+    internal class DiscordShellLogger : ILogger
     {
         public LogLevel Level { get; set; }
 

@@ -12,7 +12,7 @@ namespace AutoSaliens.Console.Commands
             if (string.IsNullOrWhiteSpace(Program.Saliens.Token))
                 return "{warn}No token has been set.";
 
-            var info = await SaliensApi.GetPlayerInfo(Program.Settings.Token);
+            var info = await SaliensApi.GetPlayerInfoAsync(Program.Settings.Token);
             Program.Saliens.PlayerInfo = info;
 
             return $"Level: {{level}}{info.Level}{{reset}}{Environment.NewLine}" +

@@ -1,6 +1,6 @@
-namespace AutoSaliens
+namespace AutoSaliens.Presence
 {
-    internal enum PresenceTimeType
+    internal enum PresenceFormatterType
     {
         TimeZoneElapsed,
         NextLevelEstimation,
