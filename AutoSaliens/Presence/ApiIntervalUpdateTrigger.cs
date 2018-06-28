@@ -47,6 +47,7 @@ namespace AutoSaliens.Presence
                 try
                 {
                     var playerInfo = SaliensApi.GetPlayerInfo(this.ApiToken);
+                    this.presence.Logger?.LogMessage($"Updating Discord presence with {playerInfo.Score} XP");
                     this.presence.SetSaliensPlayerState(playerInfo);
                     if (!string.IsNullOrWhiteSpace(playerInfo.ActiveZonePosition))
                     {

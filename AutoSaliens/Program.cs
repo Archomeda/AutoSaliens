@@ -126,6 +126,7 @@ namespace AutoSaliens
                 ContractResolver = new SnakeCasePropertyNamesContractResolver()
             };
             updateCheckerTimer.Elapsed += async (s, e) => await CheckForUpdates();
+            presence.Logger = new ConsoleLogger();
 
 
             if (File.Exists("settings.json"))
