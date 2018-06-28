@@ -7,21 +7,33 @@ namespace AutoSaliens.Console.Commands
     [CommandVerb("zone")]
     internal class ZoneCommand : CommandBase
     {
-        public override async Task<string> Run(string parameters, CancellationToken cancellationToken)
+        public override async Task RunAsync(string parameters, CancellationToken cancellationToken)
         {
             var split = parameters.Split(' ');
             if (split.Length != 2)
-                return "{err}Invalid amount of parameters.";
+            {
+                this.Logger?.LogCommandOutput("{err}Invalid amount of parameters.");
+                return;
+            }
 
             if (Program.Saliens.PlanetDetails == null)
-                return "No planet information available yet.";
+            {
+                this.Logger?.LogCommandOutput("No planet information available yet.");
+                return;
+            }
 
             var planet = Program.Saliens.PlanetDetails.FirstOrDefault(p => p.Id == split[0]);
             if (planet == null)
-                return "{err}Unknown planet id.";
+            {
+                this.Logger?.LogCommandOutput("{err}Unknown planet id.");
+                return;
+            }
 
             if (!int.TryParse(split[1], out int zonePos))
-                return "{err}Invalid zone position.";
+            {
+                this.Logger?.LogCommandOutput("{err}Invalid zone position.");
+                return;
+            }
 
             if (planet.Zones == null || planet.Zones.Count == 0)
             {
@@ -32,9 +44,12 @@ namespace AutoSaliens.Console.Commands
 
             var zone = planet.Zones.FirstOrDefault(z => z.ZonePosition == zonePos);
             if (zone == null)
-                return "{err}Unknown zone position.";
+            {
+                this.Logger?.LogCommandOutput("{err}Unknown zone position.");
+                return;
+            }
 
-            return zone.ToConsoleBlock();
+            this.Logger?.LogCommandOutput(zone.ToConsoleBlock());
         }
     }
 }

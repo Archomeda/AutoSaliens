@@ -5,32 +5,33 @@ using System.Threading.Tasks;
 
 namespace AutoSaliens.Console.Commands
 {
-    [CommandVerb("networktolerance")]
-    internal class NetworkToleranceCommand : CommandBase
+    [CommandVerb("bot")]
+    internal class BotCommand : CommandBase
     {
         public override async Task RunAsync(string parameters, CancellationToken cancellationToken)
         {
             if (string.IsNullOrWhiteSpace(parameters))
             {
-                // Show the current network tolerance
-                this.Logger?.LogCommandOutput($"The network tolerance is currently {{value}}{(Program.Saliens.EnableNetworkTolerance ? "enabled" : "disabled")}{{reset}}.");
+                // Show the current Discord presence setting
+                this.Logger?.LogCommandOutput($"The bot is currently {{value}}{(Program.Settings.EnableDiscordPresence ? "enabled" : "disabled")}{{reset}}.");
 
-                this.Logger?.LogCommandOutput("You can change the network tolerance by appending either enable or disable to this command: {command}networktolerance {param}<toggle>");
+                this.Logger?.LogCommandOutput("You can change the bot by appending either enable or disable to this command: {command}bot {param}<toggle>");
                 this.Logger?.LogCommandOutput("where {param}<toggle>{reset} is replaced with either {value}enable{reset} or {value}disable{reset}.");
             }
             else
             {
-                // Set the game time
+                // Set the Discord presence
                 if (parameters == "enable")
-                    Program.Settings.EnableNetworkTolerance.Value = true;
+                    Program.Settings.EnableBot.Value = true;
                 else if (parameters == "disable")
-                    Program.Settings.EnableNetworkTolerance.Value = false;
+                    Program.Settings.EnableBot.Value = false;
                 else
                 {
                     this.Logger?.LogCommandOutput("{err}Invalid input.");
                     return;
                 }
-                this.Logger?.LogCommandOutput($"Network tolerance has been {(Program.Settings.EnableNetworkTolerance ? "enabled" : "disabled")}.");
+
+                this.Logger?.LogCommandOutput($"Bot has been {(Program.Settings.EnableDiscordPresence ? "enabled" : "disabled")}.");
             }
         }
     }

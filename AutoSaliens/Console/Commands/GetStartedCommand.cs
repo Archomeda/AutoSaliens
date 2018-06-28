@@ -9,9 +9,9 @@ namespace AutoSaliens.Console.Commands
     [CommandVerb("getstarted")]
     internal class GetStartedCommand : CommandBase
     {
-        public override async Task<string> Run(string parameters, CancellationToken cancellationToken)
+        public override async Task RunAsync(string parameters, CancellationToken cancellationToken)
         {
-            return $"Welcome! This application supports two modes: Automation and Discord Presence.{Environment.NewLine}{Environment.NewLine}" +
+            this.Logger?.LogCommandOutput($"Welcome! This application supports two modes: Automation and Discord Presence.{Environment.NewLine}{Environment.NewLine}" +
 
                 $"To enable automation:{Environment.NewLine}" +
                 $"1. Set your Saliens token (for more information, run the command: {{command}}gettoken{{reset}}){Environment.NewLine}" +
@@ -23,7 +23,7 @@ namespace AutoSaliens.Console.Commands
                 $"2. Run the command: {{command}}presence{{reset}} {{param}}enable{{reset}}{Environment.NewLine}" +
                 $"3. Discord presence should now be working{Environment.NewLine}{Environment.NewLine}" +
 
-                $"You can use both modes. Just follow all the steps and you're set!";
+                $"You can use both modes. Just follow all the steps and you're set!");
         }
     }
 }

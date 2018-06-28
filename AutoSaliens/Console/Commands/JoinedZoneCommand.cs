@@ -8,19 +8,28 @@ namespace AutoSaliens.Console.Commands
     [CommandVerb("joinedzone")]
     internal class JoinedZoneCommand : CommandBase
     {
-        public override async Task<string> Run(string parameters, CancellationToken cancellationToken)
+        public override async Task RunAsync(string parameters, CancellationToken cancellationToken)
         {
             if (string.IsNullOrWhiteSpace(Program.Saliens.Token))
-                return "{{warn}}No token has been set.";
+            {
+                this.Logger?.LogCommandOutput("{{warn}}No token has been set.");
+                return;
+            }
 
             if (Program.Saliens.PlanetDetails == null)
-                return "No planet information available yet.";
+            {
+                this.Logger?.LogCommandOutput("No planet information available yet.");
+                return;
+            }
 
             var zone = Program.Saliens.JoinedZone;
             if (zone == null)
-                return "No zone has been joined.";
+            {
+                this.Logger?.LogCommandOutput("No zone has been joined.");
+                return;
+            }
 
-            return zone.ToConsoleBlock();
+            this.Logger?.LogCommandOutput(zone.ToConsoleBlock());
         }
     }
 }

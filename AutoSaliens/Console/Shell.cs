@@ -77,7 +77,12 @@ namespace AutoSaliens.Console
             var commandTypes = AppDomain.CurrentDomain.GetAssemblies()
                 .SelectMany(a => a.GetTypes())
                 .Where(t => commandType.IsAssignableFrom(t) && t.IsClass && !t.IsAbstract);
-            Commands = new List<ICommand>(commandTypes.Select(c => (ICommand)Activator.CreateInstance(c))).AsReadOnly();
+            Commands = new List<ICommand>(commandTypes.Select(c =>
+            {
+                var command = (ICommand)Activator.CreateInstance(c);
+                command.Logger = logger;
+                return command;
+            })).AsReadOnly();
 
             SConsole.TreatControlCAsInput = true;
 
@@ -123,7 +128,7 @@ namespace AutoSaliens.Console
                         if (key.Modifiers.HasFlag(ConsoleModifiers.Control) && (key.Key == ConsoleKey.C || key.Key == ConsoleKey.Pause))
                         {
                             logger.LogMessage("{verb}Stopping...");
-                            await Program.Stop();
+                            Program.Exit();
                             return;
                         }
                         else if (key.Key == ConsoleKey.Backspace)
@@ -213,11 +218,7 @@ namespace AutoSaliens.Console
                     {
                         try
                         {
-                            string result = await command.Run(line.Substring(verb.Length).Trim(), cancellationTokenSource.Token);
-                            if (!string.IsNullOrWhiteSpace(result))
-                                logger.LogCommandOutput(result);
-                            else if (result == null)
-                                logger.LogCommandOutput("The command has finished");
+                            await command.RunAsync(line.Substring(verb.Length).Trim(), cancellationTokenSource.Token);
                         }
                         catch (OperationCanceledException)
                         {

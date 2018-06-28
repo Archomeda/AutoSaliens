@@ -12,13 +12,19 @@ namespace AutoSaliens.Console.Commands
     [CommandVerb("planets")]
     internal class PlanetsCommand : CommandBase
     {
-        public override async Task<string> Run(string parameters, CancellationToken cancellationToken)
+        public override async Task RunAsync(string parameters, CancellationToken cancellationToken)
         {
             if (!string.IsNullOrWhiteSpace(parameters) && parameters != "all" && parameters != "live")
-                return "{err}Invalid parameter.";
+            {
+                this.Logger?.LogCommandOutput("{err}Invalid parameter.");
+                return;
+            }
 
             if (Program.Saliens.PlanetDetails == null)
-                return "No planet information available yet.";
+            {
+                this.Logger?.LogCommandOutput("No planet information available yet.");
+                return;
+            }
 
             var planetDetails = Program.Saliens.PlanetDetails.OrderBy(p => p.State.Priority);
 
@@ -27,28 +33,28 @@ namespace AutoSaliens.Console.Commands
             if (parameters == "all" || parameters == "live")
             {
                 var captured = planetDetails.Where(p => p.State.Captured);
-                this.WriteConsole("Captured planets:");
+                this.Logger?.LogCommandOutput("Captured planets:");
                 await PrintPlanets(captured);
-                this.WriteConsole("");
-                this.WriteConsole("Upcoming planets:");
+                this.Logger?.LogCommandOutput("");
+                this.Logger?.LogCommandOutput("Upcoming planets:");
                 await PrintPlanets(future);
-                this.WriteConsole("");
+                this.Logger?.LogCommandOutput("");
             }
-            this.WriteConsole("Active planets:");
+            this.Logger?.LogCommandOutput("Active planets:");
             await PrintPlanets(active);
-            this.WriteConsole("");
+            this.Logger?.LogCommandOutput("");
             if (string.IsNullOrWhiteSpace(parameters))
             {
-                this.WriteConsole("Upcoming planets:");
+                this.Logger?.LogCommandOutput("Upcoming planets:");
                 await PrintPlanets(future.Take(1));
-                this.WriteConsole("");
+                this.Logger?.LogCommandOutput("");
             }
 
-            return $"To get a list of all planets, use the command: {{command}}planets {{param}}all{{reset}}{Environment.NewLine}" +
+            this.Logger?.LogCommandOutput($"To get a list of all planets, use the command: {{command}}planets {{param}}all{{reset}}{Environment.NewLine}" +
                 $"To fully refresh the list of planets, use the command: {{command}}planets {{param}}live{{reset}}{Environment.NewLine}{Environment.NewLine}" +
 
                 $"To see more information about a planet, use the command: {{command}}planet {{param}}<id>{{reset}}{Environment.NewLine}" +
-                $"where {{param}}<id>{{reset}} is replaced with the planet id.";
+                $"where {{param}}<id>{{reset}} is replaced with the planet id.");
 
             async Task PrintPlanets(IEnumerable<Planet> planets)
             {
@@ -58,7 +64,7 @@ namespace AutoSaliens.Console.Commands
                     var planet = await task;
                     var i = Program.Saliens.PlanetDetails.FindIndex(p => p.Id == planet.Id);
                     Program.Saliens.PlanetDetails[i] = planet;
-                    this.WriteConsole(planet.ToConsoleLine());
+                    this.Logger?.LogCommandOutput(planet.ToConsoleLine());
                 }
             }
         }

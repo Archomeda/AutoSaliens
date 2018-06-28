@@ -9,28 +9,29 @@ namespace AutoSaliens.Console.Commands
     [CommandVerb("overrideplanetid")]
     internal class OverridePlanetIdCommand : CommandBase
     {
-        public override async Task<string> Run(string parameters, CancellationToken cancellationToken)
+        public override async Task RunAsync(string parameters, CancellationToken cancellationToken)
         {
             if (string.IsNullOrWhiteSpace(parameters))
             {
                 // Show the current overridden planet id
                 if (!string.IsNullOrWhiteSpace(Program.Saliens.OverridePlanetId))
-                    this.WriteConsole($"The planet id is currently overridden to: {{value}}{Program.Saliens.OverridePlanetId}");
+                    this.Logger?.LogCommandOutput($"The planet id is currently overridden to: {{value}}{Program.Saliens.OverridePlanetId}");
                 else
-                    this.WriteConsole("You have currently no planet id override set.");
+                    this.Logger?.LogCommandOutput("You have currently no planet id override set.");
 
-                this.WriteConsole("You can override the planet id by appending the planet id to this command: {command}overrideplanetid {param}<id>");
-                this.WriteConsole("where {param}<id> is replaced with the planet id.");
-
-                return "";
+                this.Logger?.LogCommandOutput("You can override the planet id by appending the planet id to this command: {command}overrideplanetid {param}<id>");
+                this.Logger?.LogCommandOutput("where {param}<id> is replaced with the planet id.");
             }
             else
             {
                 // Set the overridden planet id
                 if (Program.Saliens.PlanetDetails.FirstOrDefault(p => p.Id == parameters) == null)
-                    return "{err}Invalid planet id. Check the planets for ids.";
-                Program.Settings.OverridePlanetId.Value = parameters;
-                return "Your planet id override has been saved.";
+                    this.Logger?.LogCommandOutput("{err}Invalid planet id. Check the planets for ids.");
+                else
+                {
+                    Program.Settings.OverridePlanetId.Value = parameters;
+                    this.Logger?.LogCommandOutput("Your planet id override has been saved.");
+                }
             }
         }
     }

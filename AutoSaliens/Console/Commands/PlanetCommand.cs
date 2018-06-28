@@ -7,14 +7,20 @@ namespace AutoSaliens.Console.Commands
     [CommandVerb("planet")]
     internal class PlanetCommand : CommandBase
     {
-        public override async Task<string> Run(string parameters, CancellationToken cancellationToken)
+        public override async Task RunAsync(string parameters, CancellationToken cancellationToken)
         {
             if (Program.Saliens.PlanetDetails == null)
-                return "No planet information available yet.";
+            {
+                this.Logger?.LogCommandOutput("No planet information available yet.");
+                return;
+            }
 
             var planet = Program.Saliens.PlanetDetails.FirstOrDefault(p => p.Id == parameters);
             if (planet == null)
-                return "{err}Unknown planet id.";
+            {
+                this.Logger?.LogCommandOutput("{err}Unknown planet id.");
+                return;
+            }
 
             if (planet.Zones == null)
             {
@@ -23,7 +29,7 @@ namespace AutoSaliens.Console.Commands
                 Program.Saliens.PlanetDetails[index] = planet;
             }
 
-            return planet.ToConsoleBlock();
+            this.Logger?.LogCommandOutput(planet.ToConsoleBlock());
         }
     }
 }

@@ -8,14 +8,10 @@ namespace AutoSaliens.Console.Commands
     [CommandVerb("pause")]
     internal class PauseCommand : CommandBase
     {
-        public override async Task<string> Run(string parameters, CancellationToken cancellationToken)
+        public override async Task RunAsync(string parameters, CancellationToken cancellationToken)
         {
-            if (!Program.Saliens.AutomationActive)
-                return "Automation has been paused already.";
-
-            Program.Settings.EnableBot.Value = false;
-
-            return "Automation has been paused. Use the command resume to unpause.";
+            this.Logger?.LogCommandOutput("Halting tasks...");
+            Program.Stop();
         }
     }
 }

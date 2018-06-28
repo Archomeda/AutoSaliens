@@ -21,6 +21,8 @@ namespace AutoSaliens
 
         public static ILogger Logger { get; } = new ConsoleLogger();
 
+        public static bool Paused { get; private set; } = true;
+
         public static Saliens Saliens { get; } = new Saliens();
 
         public static Settings Settings { get; private set; }
@@ -33,6 +35,9 @@ namespace AutoSaliens
 
         private static void EnableBot_Changed(object sender, PropertyChangedEventArgs<bool> e)
         {
+            if (Paused)
+                return;
+
             if (Settings.EnableDiscordPresence)
                 SetDiscordPresence(e.NewValue ? PresenceActivationType.EnabledWithBot : PresenceActivationType.EnabledPresenceOnly);
 
@@ -44,6 +49,9 @@ namespace AutoSaliens
 
         private static void EnableDiscordPresence_Changed(object sender, PropertyChangedEventArgs<bool> e)
         {
+            if (Paused)
+                return;
+
             if (e.NewValue)
                 SetDiscordPresence(Settings.EnableBot ? PresenceActivationType.EnabledWithBot : PresenceActivationType.EnabledPresenceOnly);
             else
@@ -108,7 +116,7 @@ namespace AutoSaliens
         }
 
 
-        public static Task Main(string[] args)
+        public static async Task Main(string[] args)
         {
             Shell.WriteLine("AutoSaliens - A Saliens mini game automation tool", false);
             Shell.WriteLine("Author: Archomeda", false);
@@ -140,11 +148,6 @@ namespace AutoSaliens
                 var settingsJson = File.ReadAllText("settings.json");
                 Settings = JsonConvert.DeserializeObject<Settings>(settingsJson);
 
-#if DEBUG
-                Settings.EnableBot.Value = false;
-                Settings.EnableDiscordPresence.Value = false;
-#endif
-
                 if (Settings.GameTime < 1)
                     Settings.GameTime.Value = 110;
                 if (Settings.Strategy == (AutomationStrategy)0)
@@ -165,20 +168,26 @@ namespace AutoSaliens
                 Shell.WriteLine("", false);
             }
 
-#if DEBUG
-            Shell.WriteLine("{inf}Debug build: type {command}resume{inf} to start automation or {command}presence {param}enable{inf} to start Discord presence");
-#endif
-
             Settings.EnableBot.Changed += EnableBot_Changed;
             Settings.EnableDiscordPresence.Changed += EnableDiscordPresence_Changed;
             Settings.DiscordPresenceTimeType.Changed += DiscordPresenceTimeType_Changed;
             Settings.Token.Changed += Token_Changed;
 
-            return Start();
+#if DEBUG
+            Shell.WriteLine("{inf}Debug build: type {command}resume{inf} to resume tasks");
+#else
+            await Start();
+#endif
+
+            await Shell.StartRead();
         }
 
-        public static Task Start()
+        public static async Task Start()
         {
+            if (!Paused)
+                return;
+            Paused = false;
+
             updateCheckerTimer.Start();
             var tasks = new List<Task>() { CheckForUpdates() };
 
@@ -193,21 +202,25 @@ namespace AutoSaliens
                 Shell.WriteLine("{verb}Initializing Discord presence...");
                 SetDiscordPresence(Settings.EnableBot ? PresenceActivationType.EnabledWithBot : PresenceActivationType.EnabledPresenceOnly);
             }
-
-            tasks.Add(Shell.StartRead());
-            return Task.WhenAll(tasks);
+            await Task.WhenAll(tasks);
         }
 
-        public static Task Stop()
+        public static void Stop()
         {
-            return Task.Run(() =>
-            {
-                updateCheckerTimer.Stop();
-                Saliens.Stop();
-                presence.Stop();
-                (presence.UpdateTrigger as ApiIntervalUpdateTrigger)?.Stop();
-                Shell.StopRead();
-            });
+            if (Paused)
+                return;
+            Paused = true;
+
+            updateCheckerTimer.Stop();
+            Saliens.Stop();
+            presence.Stop();
+            (presence.UpdateTrigger as ApiIntervalUpdateTrigger)?.Stop();
+        }
+
+        public static void Exit()
+        {
+            Stop();
+            Shell.StopRead();
         }
 
         private static async Task CheckForUpdates()

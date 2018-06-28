@@ -8,14 +8,19 @@ namespace AutoSaliens.Console.Commands
     [CommandVerb("zones")]
     internal class ZonesCommand : CommandBase
     {
-        public override async Task<string> Run(string parameters, CancellationToken cancellationToken)
+        public override async Task RunAsync(string parameters, CancellationToken cancellationToken)
         {
             if (Program.Saliens.PlanetDetails == null)
-                return "No planet information available yet.";
+            {
+                this.Logger?.LogCommandOutput("No planet information available yet.");
+            }
 
             var planet = Program.Saliens.PlanetDetails.FirstOrDefault(p => p.Id == parameters);
             if (planet == null)
-                return "{err}Unknown planet id.";
+            {
+                this.Logger?.LogCommandOutput("{err}Unknown planet id.");
+                return;
+            }
 
             if (planet.Zones == null || planet.Zones.Count == 0)
             {
@@ -28,7 +33,7 @@ namespace AutoSaliens.Console.Commands
             var active = planet.Zones.Where(z => !z.Captured);
             var captured = planet.Zones.Where(z => z.Captured);
 
-            return $"Zones on {{planet}}planet {planet.Id} ({planet.State.Name}){{reset}}{Environment.NewLine}" +
+            this.Logger?.LogCommandOutput($"Zones on {{planet}}planet {planet.Id} ({planet.State.Name}){{reset}}{Environment.NewLine}" +
                 $"Captured zones:{Environment.NewLine}" +
                 $"{string.Join(Environment.NewLine, captured.Select(z => z.ToConsoleLine()))}{Environment.NewLine}{Environment.NewLine}" +
 
@@ -37,7 +42,7 @@ namespace AutoSaliens.Console.Commands
 
                 $"To see more information about a zone, use the command: {{command}}zone {{param}}<planet_id> <zone_pos>{{reset}}{Environment.NewLine}" +
                 $"where {{param}}<planet_id>{{reset}} is replaced with the planet id,{Environment.NewLine}" +
-                $"and {{param}}<zone_pos>{{reset}} is replaced with the zone position";
+                $"and {{param}}<zone_pos>{{reset}} is replaced with the zone position");
         }
     }
 }
