@@ -1,6 +1,6 @@
-using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using Flurl.Http;
 
 namespace AutoSaliens.Console.Commands
 {
@@ -32,7 +32,7 @@ namespace AutoSaliens.Console.Commands
                     Program.Settings.Save();
                     return "Your token has been saved.";
                 }
-                catch (WebException ex)
+                catch (FlurlHttpException ex)
                 {
                     return $"{{err}}Invalid response. {ex.Message}";
                 }
