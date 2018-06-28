@@ -15,6 +15,8 @@ namespace AutoSaliens.Presence
 
         bool IsPresenceActive { get; }
 
+        ILogger Logger { get; set; }
+
         IPresenceUpdateTrigger UpdateTrigger { get; set; }
 
 

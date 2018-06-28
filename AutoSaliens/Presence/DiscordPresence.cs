@@ -47,6 +47,8 @@ namespace AutoSaliens.Presence
 
         public virtual bool IsPresenceActive { get; private set; }
 
+        public virtual ILogger Logger { get; set; }
+
         public virtual IPresenceUpdateTrigger UpdateTrigger
         {
             get => this.updateTrigger;
@@ -68,7 +70,11 @@ namespace AutoSaliens.Presence
 
             this.rpcClient = new DiscordRpcClient(clientId)
             {
-                Logger = new DiscordShellLogger() { Level = LogLevel.Warning }
+                Logger = new DiscordShellLogger()
+                {
+                    Level = LogLevel.Warning,
+                    Logger = this.Logger
+                }
             };
             this.rpcClient.OnConnectionEstablished += this.RpcClient_OnConnectionEstablished;
             this.rpcClient.OnConnectionFailed += this.RpcClient_OnConnectionFailed;

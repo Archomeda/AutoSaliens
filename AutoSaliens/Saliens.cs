@@ -118,8 +118,8 @@ namespace AutoSaliens
                 catch (OperationCanceledException) { }
                 catch (Exception ex)
                 {
-                    Shell.WriteLine(Shell.FormatExceptionOutput(ex));
-                    Shell.WriteLine($"{{verb}}Attempting to restart in 10 seconds...");
+                    Program.Logger.LogException(ex);
+                    Program.Logger.LogMessage($"{{verb}}Attempting to restart in 10 seconds...");
                     try { await Task.Delay(TimeSpan.FromSeconds(10), this.cancellationTokenSource.Token); }
                     catch (Exception) { }
                 }
@@ -196,14 +196,14 @@ namespace AutoSaliens
                         var planetName = this.JoinedPlanet.State.Name;
                         var planetId = this.JoinedPlanetId;
                         if (this.JoinedPlanet.State.Captured)
-                            Shell.WriteLine($"{{planet}}{planet.Id} ({planetName}){{action}} has been fully captured, leaving planet...");
+                            Program.Logger.LogMessage($"{{planet}}{planet.Id} ({planetName}){{action}} has been fully captured, leaving planet...");
                         await this.LeaveGame(this.JoinedPlanetId);
                     }
 
                     // Fly to the new planet when it's different
                     if (planet.Id != this.JoinedPlanetId)
                     {
-                        Shell.WriteLine($"{{action}}Joining planet {{planet}}{planet.Id} ({planet.State.Name}){{action}}...");
+                        Program.Logger.LogMessage($"{{action}}Joining planet {{planet}}{planet.Id} ({planet.State.Name}){{action}}...");
                         await this.JoinPlanet(planet.Id);
                     }
 
@@ -226,14 +226,14 @@ namespace AutoSaliens
                     zone = zones.First();
 
                     // Join the zone
-                    Shell.WriteLine($"{{action}}Joining {{zone}}zone {zone.ZonePosition}{{action}}...");
-                    Shell.WriteLine(zone.ToConsoleLine());
+                    Program.Logger.LogMessage($"{{action}}Joining {{zone}}zone {zone.ZonePosition}{{action}}...");
+                    Program.Logger.LogMessage(zone.ToConsoleLine());
                     await this.JoinZone(zone.ZonePosition);
                 }
                 catch (OperationCanceledException) { }
                 catch (Exception ex)
                 {
-                    Shell.WriteLine(Shell.FormatExceptionOutput(ex));
+                    Program.Logger.LogException(ex);
 
                     try
                     {
@@ -255,7 +255,7 @@ namespace AutoSaliens
                     }
                     catch (Exception ex2)
                     {
-                        Shell.WriteLine(Shell.FormatExceptionOutput(ex2));
+                        Program.Logger.LogException(ex2);
                     }
 
                     try { await Task.Delay(TimeSpan.FromSeconds(10), this.cancellationTokenSource.Token); }
@@ -273,7 +273,7 @@ namespace AutoSaliens
             }
             catch (Exception ex)
             {
-                Shell.WriteLine(Shell.FormatExceptionOutput(ex));
+                Program.Logger.LogException(ex);
             }
         }
 
@@ -285,7 +285,7 @@ namespace AutoSaliens
             }
             catch (Exception ex)
             {
-                Shell.WriteLine(Shell.FormatExceptionOutput(ex));
+                Program.Logger.LogException(ex);
             }
         }
 
@@ -299,7 +299,7 @@ namespace AutoSaliens
             var timeLeft = targetTime - DateTime.Now;
             if (timeLeft.TotalSeconds > 0)
             {
-                Shell.WriteLine($"{{action}}Waiting for zone to finish in {{value}}{timeLeft.TotalSeconds.ToString("#.###")} seconds{{action}} (at {{value}}{targetTime.ToString("HH:mm:ss.fff")}{{action}})...");
+                Program.Logger.LogMessage($"{{action}}Waiting for zone to finish in {{value}}{timeLeft.TotalSeconds.ToString("#.###")} seconds{{action}} (at {{value}}{targetTime.ToString("HH:mm:ss.fff")}{{action}})...");
                 var tasks = new List<Task>();
                 if (timeLeft.TotalSeconds > 10)
                 {
@@ -391,7 +391,7 @@ namespace AutoSaliens
             {
                 if (ex.EResult == EResult.Expired || ex.EResult == EResult.NoMatch)
                 {
-                    Shell.WriteLine("{warn}Failed to join zone: Zone already captured");
+                    Program.Logger.LogMessage("{warn}Failed to join zone: Zone already captured");
                     this.JoinedZonePosition = null;
                     this.PresenceUpdateTrigger?.SetSaliensPlayerState(this.PlayerInfo);
                 }
@@ -415,9 +415,9 @@ namespace AutoSaliens
                         this.ReportScoreNetworkDelay = stopwatch.Elapsed;
 
                     if (!string.IsNullOrWhiteSpace(response.NewScore))
-                        Shell.WriteLine($"XP: {{oldxp}}{long.Parse(response.OldScore).ToString("#,##0")}{{reset}} -> {{xp}}{long.Parse(response.NewScore).ToString("#,##0")}{{reset}} (next level at {{reqxp}}{long.Parse(response.NextLevelScore).ToString("#,##0")}{{reset}})");
+                        Program.Logger.LogMessage($"XP: {{oldxp}}{long.Parse(response.OldScore).ToString("#,##0")}{{reset}} -> {{xp}}{long.Parse(response.NewScore).ToString("#,##0")}{{reset}} (next level at {{reqxp}}{long.Parse(response.NextLevelScore).ToString("#,##0")}{{reset}})");
                     if (response.NewLevel != response.OldLevel)
-                        Shell.WriteLine($"New level: {{oldlevel}}{response.OldLevel}{{reset}} -> {{level}}{response.NewLevel}{{reset}}");
+                        Program.Logger.LogMessage($"New level: {{oldlevel}}{response.OldLevel}{{reset}} -> {{level}}{response.NewLevel}{{reset}}");
                     break;
                 }
                 catch (SaliensApiException ex)
@@ -426,12 +426,12 @@ namespace AutoSaliens
                     {
                         // Gradually decrease the delay until we no longer get issues on future requests
                         this.ReportScoreNetworkDelay -= TimeSpan.FromMilliseconds(10);
-                        Shell.WriteLine($"{{warn}}Failed to submit score of {score.ToString("#,##0")}: Submitting too fast, giving it a second ({i + 1}/5)...");
+                        Program.Logger.LogMessage($"{{warn}}Failed to submit score of {score.ToString("#,##0")}: Submitting too fast, giving it a second ({i + 1}/5)...");
                         await Task.Delay(1000);
                         continue;
                     }
                     else if (ex.EResult == EResult.Expired || ex.EResult == EResult.NoMatch)
-                        Shell.WriteLine($"{{warn}}Failed to submit score of {score.ToString("#,##0")}: Zone already captured");
+                        Program.Logger.LogMessage($"{{warn}}Failed to submit score of {score.ToString("#,##0")}: Zone already captured");
                     throw;
                 }
             }
@@ -452,15 +452,15 @@ namespace AutoSaliens
         {
             var planets = this.PlanetDetails.OrderBy(p => p.State.Priority).Where(p => p.State.Running);
 
-            Shell.WriteLine("Active planets:");
+            Program.Logger.LogMessage("Active planets:");
             foreach (var planet in planets)
             {
-                Shell.WriteLine(planet.ToConsoleLine());
+                Program.Logger.LogMessage(planet.ToConsoleLine());
                 if (this.JoinedPlanetId == planet.Id && this.JoinedZonePosition != null)
                 {
                     var zone = planet.Zones.FirstOrDefault(z => z.ZonePosition == this.JoinedZonePosition);
                     if (zone != null)
-                        Shell.WriteLine(zone.ToConsoleLine());
+                        Program.Logger.LogMessage(zone.ToConsoleLine());
                 }
             }
 
@@ -469,18 +469,18 @@ namespace AutoSaliens
             var lastPlanet = this.PlanetDetails.Skip(lastPlanetIndex + 1).FirstOrDefault();
             if (lastPlanet != null)
             {
-                Shell.WriteLine("Upcoming planets:");
-                Shell.WriteLine(lastPlanet.ToConsoleLine());
+                Program.Logger.LogMessage("Upcoming planets:");
+                Program.Logger.LogMessage(lastPlanet.ToConsoleLine());
             }
         }
 
         public void PrintPlayerInfo()
         {
             if (!string.IsNullOrWhiteSpace(this.PlayerInfo.ActivePlanet))
-                Shell.WriteLine($"Active planet: {{planet}}{this.PlayerInfo.ActivePlanet}{{reset}} for {{value}}{this.PlayerInfo.TimeOnPlanet.ToString()}{{reset}}");
+                Program.Logger.LogMessage($"Active planet: {{planet}}{this.PlayerInfo.ActivePlanet}{{reset}} for {{value}}{this.PlayerInfo.TimeOnPlanet.ToString()}{{reset}}");
             if (!string.IsNullOrWhiteSpace(this.PlayerInfo.ActiveZonePosition))
-                Shell.WriteLine($"Active zone: {{zone}}{this.PlayerInfo.ActiveZonePosition}{{reset}} for {{value}}{this.PlayerInfo.TimeInZone.TotalSeconds}s{{reset}}");
-            Shell.WriteLine($"Level {{level}}{this.PlayerInfo.Level}{{reset}}: {{xp}}{long.Parse(this.PlayerInfo.Score).ToString("#,##0")}{{reset}}/{{reqxp}}{long.Parse(this.PlayerInfo.NextLevelScore).ToString("#,##0")}{{reset}}");
+                Program.Logger.LogMessage($"Active zone: {{zone}}{this.PlayerInfo.ActiveZonePosition}{{reset}} for {{value}}{this.PlayerInfo.TimeInZone.TotalSeconds}s{{reset}}");
+            Program.Logger.LogMessage($"Level {{level}}{this.PlayerInfo.Level}{{reset}}: {{xp}}{long.Parse(this.PlayerInfo.Score).ToString("#,##0")}{{reset}}/{{reqxp}}{long.Parse(this.PlayerInfo.NextLevelScore).ToString("#,##0")}{{reset}}");
         }
 
 

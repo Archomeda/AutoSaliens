@@ -68,6 +68,9 @@ namespace AutoSaliens.Console
         private static bool readingInput = false;
         private static readonly object consoleLock = new object();
 
+        private static ConsoleLogger logger = new ConsoleLogger();
+
+
         static Shell()
         {
             var commandType = typeof(ICommand);
@@ -119,7 +122,7 @@ namespace AutoSaliens.Console
                         var key = SConsole.ReadKey(true);
                         if (key.Modifiers.HasFlag(ConsoleModifiers.Control) && (key.Key == ConsoleKey.C || key.Key == ConsoleKey.Pause))
                         {
-                            WriteLine("{verb}Stopping...");
+                            logger.LogMessage("{verb}Stopping...");
                             await Program.Stop();
                             return;
                         }
@@ -206,16 +209,15 @@ namespace AutoSaliens.Console
                     var verb = line.Split(new[] { ' ' }, 2)[0];
                     var command = Commands.FirstOrDefault(c => c.Verb == verb);
 
-                    string log = null;
                     if (command != null)
                     {
                         try
                         {
                             string result = await command.Run(line.Substring(verb.Length).Trim(), cancellationTokenSource.Token);
                             if (!string.IsNullOrWhiteSpace(result))
-                                log = result;
+                                logger.LogCommandOutput(result);
                             else if (result == null)
-                                log = "The command has finished";
+                                logger.LogCommandOutput("The command has finished");
                         }
                         catch (OperationCanceledException)
                         {
@@ -223,15 +225,12 @@ namespace AutoSaliens.Console
                         }
                         catch (Exception ex)
                         {
-                            log = FormatExceptionOutput(ex);
+                            logger.LogException(ex);
                         }
                     }
                     else
-                        log = "Unknown command, use {command}help{reset} to get the list of available commands.";
-
-                    if (log != null)
-                        WriteLine(FormatCommandOuput(log), false);
-                    WriteLine("", false);
+                        logger.LogCommandOutput("Unknown command, use {command}help{reset} to get the list of available commands.");
+                    logger.LogCommandOutput("");
                 }
             });
         }
@@ -243,13 +242,8 @@ namespace AutoSaliens.Console
         }
 
 
-        public static void WriteLine(string format, params object[] args) => WriteLine(format, true, args);
-
-        public static void WriteLine(string format, bool includeTime, params object[] args)
+        internal static void WriteLine(string format, params object[] args)
         {
-            if (includeTime)
-                format = $"{{logtime}}[{DateTime.Now.ToString("dd HH:mm:ss.fff")}]{{reset}} {format}";
-
             if (SupportAnsiColors)
                 format = AnsiColors.Aggregate($"{format}{{reset}}", (result, kvp) => result.Replace(kvp.Key, kvp.Value));
             else
@@ -270,17 +264,5 @@ namespace AutoSaliens.Console
                     SConsole.Write($">{inputBuffer}");
             }
         }
-
-        public static void WriteLines(string[] lines, bool includeTime = true)
-        {
-            foreach (var line in lines)
-                WriteLine(line, includeTime);
-        }
-
-
-        public static string FormatCommandOuput(string text) =>
-            string.Join(Environment.NewLine, text.Split(new[] { Environment.NewLine }, StringSplitOptions.None));
-
-        public static string FormatExceptionOutput(Exception ex) => $"An error has occured: {ex.Message}{Environment.NewLine}{ex.StackTrace}";
     }
 }

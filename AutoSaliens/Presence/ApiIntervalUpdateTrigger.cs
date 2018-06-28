@@ -59,8 +59,7 @@ namespace AutoSaliens.Presence
                 }
                 catch (Exception ex)
                 {
-                    //TODO: Refactor this out
-                    Shell.WriteLine(Shell.FormatExceptionOutput(ex));
+                    this.presence.Logger?.LogException(ex);
                 }
 
                 this.cancelSource.Token.WaitHandle.WaitOne(timeToWait);

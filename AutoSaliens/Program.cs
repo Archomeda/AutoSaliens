@@ -19,6 +19,8 @@ namespace AutoSaliens
         private static readonly DiscordPresence presence = new DiscordPresence();
 
 
+        public static ILogger Logger { get; } = new ConsoleLogger();
+
         public static Saliens Saliens { get; } = new Saliens();
 
         public static Settings Settings { get; private set; }
