@@ -66,6 +66,7 @@ namespace AutoSaliens.Presence
             if (this.presenceStarted)
                 return;
 
+            this.stopRequested = false;
             this.presenceStarted = true;
 
             this.rpcClient = new DiscordRpcClient(clientId)
@@ -90,6 +91,7 @@ namespace AutoSaliens.Presence
             if (!this.presenceStarted)
                 return;
 
+            this.rpcClient?.DequeueAll();
             this.rpcClient?.Dispose();
             this.rpcClient = null;
             this.rpcReconnectTimer.Stop();

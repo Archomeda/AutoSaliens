@@ -35,6 +35,11 @@ namespace AutoSaliens
         {
             if (Settings.EnableDiscordPresence)
                 SetDiscordPresence(e.NewValue ? PresenceActivationType.EnabledWithBot : PresenceActivationType.EnabledPresenceOnly);
+
+            if (e.NewValue)
+                Saliens.Start();
+            else
+                Saliens.Stop();
         }
 
         private static void EnableDiscordPresence_Changed(object sender, PropertyChangedEventArgs<bool> e)
@@ -56,12 +61,13 @@ namespace AutoSaliens
         {
             if (type != PresenceActivationType.Disabled)
                 SetDiscordPresenceFormatter(Settings.DiscordPresenceTimeType);
+            if (type != PresenceActivationType.EnabledPresenceOnly)
+                (presence.UpdateTrigger as ApiIntervalUpdateTrigger)?.Stop();
 
             switch (type)
             {
                 case PresenceActivationType.Disabled:
                     presence.Stop();
-                    (presence.UpdateTrigger as ApiIntervalUpdateTrigger)?.Stop();
                     Saliens.PresenceUpdateTrigger = null;
                     break;
                 case PresenceActivationType.EnabledPresenceOnly:
