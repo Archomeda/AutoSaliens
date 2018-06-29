@@ -123,6 +123,10 @@ namespace AutoSaliens.Bot
                             await this.DoInZoneEnd();
                             break;
 
+                        case BotState.ForcedZoneLeave:
+                            await this.DoForcedZoneLeave();
+                            break;
+
                         case BotState.Invalid:
                         default:
                             await this.DoInvalid();
@@ -140,6 +144,8 @@ namespace AutoSaliens.Bot
                             this.Logger?.LogMessage($"{{action}}Updating states...");
                             await this.GetPlayerInfo(true);
                             await SaliensApi.GetPlanetsWithZonesAsync(true, true);
+                            if (this.State == BotState.InZone || this.State == BotState.InZoneEnd)
+                                this.State = BotState.ForcedZoneLeave;
                             break;
                     }
                 }
@@ -206,6 +212,17 @@ namespace AutoSaliens.Bot
             // Report score
             var score = this.CalculatePoints(this.ActiveZone?.Difficulty ?? Difficulty.Low, roundTime);
             await this.ReportScore(score);
+        }
+
+        private async Task DoForcedZoneLeave()
+        {
+            // We are forced to leave zone
+
+            // Make sure it happens
+            if (!string.IsNullOrWhiteSpace(this.ActiveZone?.GameId))
+                await this.LeaveGame(this.ActiveZone.GameId);
+            else
+                this.State = BotState.Invalid;
         }
 
         private async Task DoInvalid()
@@ -562,7 +579,7 @@ namespace AutoSaliens.Bot
                 this.ActiveZone = null;
                 this.PlayerInfo.ActiveZoneGame = null;
                 this.PlayerInfo.ActiveZonePosition = null;
-                this.State = BotState.OnPlanet;
+                this.State = BotState.ForcedZoneLeave;
             }
         }
 

@@ -31,5 +31,10 @@ namespace AutoSaliens.Bot
         /// In a zone, ending.
         /// </summary>
         InZoneEnd,
+
+        /// <summary>
+        /// Forced to leave zone.
+        /// </summary>
+        ForcedZoneLeave
     }
 }
