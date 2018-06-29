@@ -130,9 +130,6 @@ namespace AutoSaliens
                         await this.WaitForJoinedZoneToFinish();
                         var score = this.CalculatePoints(this.JoinedZone?.Difficulty ?? Difficulty.Low, maxGameTime);
                         await this.ReportScore(score);
-
-                        // Manually leave game to hopefully prevent invalid states
-                        await this.LeaveGame(this.JoinedZone.GameId);
                     }
 
                     // Get our most wanted planet
