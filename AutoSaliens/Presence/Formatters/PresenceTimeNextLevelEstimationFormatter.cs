@@ -10,6 +10,8 @@ namespace AutoSaliens.Presence.Formatters
 
         public DateTime MeasureStartTime { get; private set; }
 
+        public DateTime PredictedLevelUpDate { get; private set; }
+
 
         protected override Timestamps FormatTimestamps(PlayerInfoResponse playerInfo, DiscordPresence presence)
         {
@@ -22,22 +24,25 @@ namespace AutoSaliens.Presence.Formatters
                 long.TryParse(playerInfo.Score, out long xp) &&
                 long.TryParse(playerInfo.NextLevelScore, out long nextLevelXp))
             {
-                if (this.LastXp > 0 && xp > this.LastXp)
+                if (xp > this.LastXp)
                 {
-                    int diffXp = (int)(xp - this.LastXp);
-                    TimeSpan diffTime = DateTime.Now - this.MeasureStartTime - playerInfo.TimeInZone;
-                    TimeSpan eta = TimeSpan.FromSeconds(diffTime.TotalSeconds * ((nextLevelXp - xp) / diffXp));
-                    if (eta < TimeSpan.FromDays(1))
+                    if (this.LastXp > 0 && this.MeasureStartTime.Ticks > 0)
                     {
-                        // Only show when it's less than a day: Discord doesn't show days
-                        DateTime predictedLevelUpDate = DateTime.Now + eta - playerInfo.TimeInZone;
-                        timestamps = new Timestamps { End = predictedLevelUpDate.ToUniversalTime() };
+                        int diffXp = (int)(xp - this.LastXp);
+                        var diffTime = DateTime.Now - this.MeasureStartTime - playerInfo.TimeInZone;
+                        var eta = TimeSpan.FromSeconds(diffTime.TotalSeconds * ((nextLevelXp - xp) / diffXp));
+                        this.PredictedLevelUpDate = DateTime.Now + eta - playerInfo.TimeInZone;
                     }
+                    this.MeasureStartTime = DateTime.Now - playerInfo.TimeInZone;
                 }
-
                 this.LastXp = xp;
             }
 
+            // Only show when it's less than a day: Discord doesn't show days
+            if (this.PredictedLevelUpDate > DateTime.Now && this.PredictedLevelUpDate < DateTime.Now.AddDays(1))
+                timestamps = new Timestamps { End = this.PredictedLevelUpDate.ToUniversalTime() };
+
+            // Fallbacks
             if (timestamps == null && hasActivePlanet && hasActiveZone)
                 timestamps = new Timestamps { Start = (DateTime.Now - playerInfo.TimeInZone).ToUniversalTime() };
 

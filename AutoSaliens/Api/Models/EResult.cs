@@ -14,6 +14,7 @@ namespace AutoSaliens.Api.Models
         NoMatch = 42,
         ValueOutOfRange = 78,
         UnexpectedError = 79,
+        RateLimitExceeded = 84,
         TimeIsOutOfSync = 93
     }
 }

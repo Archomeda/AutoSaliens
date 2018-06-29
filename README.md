@@ -68,6 +68,7 @@ networktolerance [toggle]   - Shows or sets whether the network tolerance is ena
                               calls earlier to account for network latency (default: enable)
 planet <id>                 - Shows information about a planet
 planets [option]            - Shows the list of all planets
+playerinfo                  - Shows the player information
 strategy [strategy]         - Shows or sets the current active strategy (to reset to default, use: 0)
 zone <planet_id> <zone_pos> - Shows information about a zone
 zones <planet_id>           - Shows the list of the zones of a planet

@@ -73,7 +73,7 @@ namespace AutoSaliens
 
         public TimeSpan ReportScoreNetworkDelay { get; set; }
 
-        public float ReportScoreNetworkDelayTolerance { get; set; } = 0.2f;
+        public float ReportScoreNetworkDelayTolerance { get; set; } = 0.4f;
 
 
         public Task Start()
@@ -135,9 +135,6 @@ namespace AutoSaliens
                         await this.WaitForJoinedZoneToFinish();
                         var score = this.CalculatePoints(this.JoinedZone?.Difficulty ?? Difficulty.Low, maxGameTime);
                         await this.ReportScore(score);
-
-                        // Manually leave game to hopefully prevent invalid states
-                        await this.LeaveGame(this.JoinedZone.GameId);
                     }
 
                     // Get our most wanted planet
@@ -418,16 +415,27 @@ namespace AutoSaliens
                         Program.Logger.LogMessage($"XP: {{oldxp}}{long.Parse(response.OldScore).ToString("#,##0")}{{reset}} -> {{xp}}{long.Parse(response.NewScore).ToString("#,##0")}{{reset}} (next level at {{reqxp}}{long.Parse(response.NextLevelScore).ToString("#,##0")}{{reset}})");
                     if (response.NewLevel != response.OldLevel)
                         Program.Logger.LogMessage($"New level: {{oldlevel}}{response.OldLevel}{{reset}} -> {{level}}{response.NewLevel}{{reset}}");
+
+                    this.PlayerInfo.Score = response.NewScore;
+                    this.PlayerInfo.Level = response.NewLevel;
+                    this.PlayerInfo.NextLevelScore = response.NextLevelScore;
+
                     break;
                 }
                 catch (SaliensApiException ex)
                 {
-                    if (ex.EResult == EResult.TimeIsOutOfSync && i < 5)
+                    if (i < 5 && ex.EResult == EResult.TimeIsOutOfSync)
                     {
-                        // Gradually decrease the delay until we no longer get issues on future requests
-                        this.ReportScoreNetworkDelay -= TimeSpan.FromMilliseconds(10);
-                        Program.Logger.LogMessage($"{{warn}}Failed to submit score of {score.ToString("#,##0")}: Submitting too fast, giving it a second ({i + 1}/5)...");
-                        await Task.Delay(1000);
+                        // Decrease the delay with a small amount
+                        this.ReportScoreNetworkDelay -= TimeSpan.FromMilliseconds(25);
+                        Program.Logger.LogMessage($"{{warn}}Failed to submit score of {score.ToString("#,##0")}: Submitting too fast, giving it a few seconds ({i + 1}/5)...");
+                        await Task.Delay(2000);
+                        continue;
+                    }
+                    else if (ex.EResult == EResult.RateLimitExceeded)
+                    {
+                        Program.Logger.LogMessage($"{{warn}}Failed to submit score of {score.ToString("#,##0")}: Rate limit exceeded, giving it a few seconds ({i + 1}/5)...");
+                        await Task.Delay(2000);
                         continue;
                     }
                     else if (ex.EResult == EResult.Expired || ex.EResult == EResult.NoMatch)
