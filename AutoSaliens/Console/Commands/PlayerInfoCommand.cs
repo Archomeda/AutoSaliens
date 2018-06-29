@@ -1,6 +1,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using AutoSaliens.Api;
 
 namespace AutoSaliens.Console.Commands
 {
@@ -9,15 +10,13 @@ namespace AutoSaliens.Console.Commands
     {
         public override async Task RunAsync(string parameters, CancellationToken cancellationToken)
         {
-            if (string.IsNullOrWhiteSpace(Program.Saliens.Token))
+            if (string.IsNullOrWhiteSpace(Program.Settings.Token))
             {
                 this.Logger?.LogCommandOutput("{warn}No token has been set.");
                 return;
             }
 
             var info = await SaliensApi.GetPlayerInfoAsync(Program.Settings.Token);
-            Program.Saliens.PlayerInfo = info;
-
             this.Logger?.LogCommandOutput($"Level: {{level}}{info.Level}{{reset}}{Environment.NewLine}" +
                 $"XP: {{xp}}{long.Parse(info.Score).ToString("#,##0")}{{reset}} (required for next level: {{reqxp}}{long.Parse(info.NextLevelScore).ToString("#,##0")}{{reset}}){Environment.NewLine}" +
                 $"Clan: {info.ClanInfo.Name}{Environment.NewLine}" +

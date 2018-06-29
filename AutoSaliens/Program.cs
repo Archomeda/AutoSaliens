@@ -1,9 +1,11 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Threading.Tasks;
 using System.Timers;
 using AutoSaliens.Api.Converters;
+using AutoSaliens.Bot;
 using AutoSaliens.Console;
 using AutoSaliens.Presence;
 using AutoSaliens.Presence.Formatters;
@@ -16,6 +18,7 @@ namespace AutoSaliens
         public const string HomepageUrl = "https://github.com/Archomeda/AutoSaliens";
 
         private static readonly Timer updateCheckerTimer = new Timer(60 * 60 * 1000);
+        private static readonly SaliensBot bot = new SaliensBot();
         private static readonly DiscordPresence presence = new DiscordPresence();
 
 
@@ -23,15 +26,11 @@ namespace AutoSaliens
 
         public static bool Paused { get; private set; } = true;
 
-        public static Saliens Saliens { get; } = new Saliens();
-
         public static Settings Settings { get; private set; }
 
 
-        private static void DiscordPresenceTimeType_Changed(object sender, PropertyChangedEventArgs<PresenceFormatterType> e)
-        {
+        private static void DiscordPresenceTimeType_Changed(object sender, PropertyChangedEventArgs<PresenceFormatterType> e) =>
             SetDiscordPresenceFormatter(e.NewValue);
-        }
 
         private static void EnableBot_Changed(object sender, PropertyChangedEventArgs<bool> e)
         {
@@ -42,9 +41,9 @@ namespace AutoSaliens
                 SetDiscordPresence(e.NewValue ? PresenceActivationType.EnabledWithBot : PresenceActivationType.EnabledPresenceOnly);
 
             if (e.NewValue)
-                Saliens.Start();
+                bot.Start();
             else
-                Saliens.Stop();
+                bot.Stop();
         }
 
         private static void EnableDiscordPresence_Changed(object sender, PropertyChangedEventArgs<bool> e)
@@ -58,12 +57,47 @@ namespace AutoSaliens
                 SetDiscordPresence(PresenceActivationType.Disabled);
         }
 
+        private static void EnableNetworkTolerance_Changed(object sender, PropertyChangedEventArgs<bool> e) =>
+            bot.EnableNetworkTolerance = e.NewValue;
+
+        private static void GameTime_Changed(object sender, PropertyChangedEventArgs<int> e) =>
+            bot.GameTime = e.NewValue;
+
+        private static void OverridePlanetId_Changed(object sender, PropertyChangedEventArgs<string> e) =>
+            bot.OverridePlanetId = e.NewValue;
+
+        private static void Strategy_Changed(object sender, PropertyChangedEventArgs<BotStrategy> e) =>
+            bot.Strategy = e.NewValue;
+
         private static void Token_Changed(object sender, PropertyChangedEventArgs<string> e)
         {
             if (presence.UpdateTrigger is ApiIntervalUpdateTrigger)
                 ((ApiIntervalUpdateTrigger)presence.UpdateTrigger).ApiToken = e.NewValue;
+            bot.Token = e.NewValue;
         }
 
+
+        private static void SetSaliensBot(bool enabled)
+        {
+            if (enabled)
+            {
+                Logger?.LogMessage("{verb}Enabling bot...");
+                bot.EnableNetworkTolerance = Settings.EnableNetworkTolerance;
+                bot.GameTime = Settings.GameTime;
+                bot.OverridePlanetId = Settings.OverridePlanetId;
+                bot.Strategy = Settings.Strategy;
+                bot.Token = Settings.Token;
+                bot.Start();
+            }
+            else
+            {
+                Logger?.LogMessage("{verb}Disabling bot...");
+                bot.Stop();
+            }
+
+            if (Settings.EnableDiscordPresence)
+                SetDiscordPresence(enabled ? PresenceActivationType.EnabledWithBot : PresenceActivationType.EnabledPresenceOnly);
+        }
 
         private static void SetDiscordPresence(PresenceActivationType type)
         {
@@ -75,25 +109,19 @@ namespace AutoSaliens
             switch (type)
             {
                 case PresenceActivationType.Disabled:
+                    Logger?.LogMessage("{verb}Disabling Discord presence...");
                     presence.Stop();
-                    Saliens.PresenceUpdateTrigger = null;
                     break;
                 case PresenceActivationType.EnabledPresenceOnly:
-                    {
-                        var trigger = new ApiIntervalUpdateTrigger(Settings.Token);
-                        presence.UpdateTrigger = trigger;
-                        presence.Start();
-                        Saliens.PresenceUpdateTrigger = null;
-                        trigger.Start();
-                    }
+                    Logger?.LogMessage("{verb}Initializing Discord presence separately...");
+                    presence.UpdateTrigger = new ApiIntervalUpdateTrigger(Settings.Token);
+                    presence.Start();
+                    (presence.UpdateTrigger as ApiIntervalUpdateTrigger).Start();
                     break;
                 case PresenceActivationType.EnabledWithBot:
-                    {
-                        var trigger = new BotUpdateTrigger();
-                        presence.UpdateTrigger = trigger;
-                        presence.Start();
-                        Saliens.PresenceUpdateTrigger = trigger;
-                    }
+                    Logger?.LogMessage("{verb}Initializing Discord presence through bot...");
+                    presence.UpdateTrigger = bot.PresenceUpdateTrigger;
+                    presence.Start();
                     break;
             }
         }
@@ -140,8 +168,13 @@ namespace AutoSaliens
                 ContractResolver = new SnakeCasePropertyNamesContractResolver()
             };
             updateCheckerTimer.Elapsed += async (s, e) => await CheckForUpdates();
-            presence.Logger = new ConsoleLogger();
 
+            bot.BotActivated += Bot_BotActivated;
+            bot.BotDeactivated += Bot_BotDeactivated;
+            bot.Logger = Logger;
+            presence.PresenceActivated += Presence_PresenceActivated;
+            presence.PresenceDeactivated += Presence_PresenceDeactivated;
+            presence.Logger = Logger;
 
             if (File.Exists("settings.json"))
             {
@@ -150,27 +183,31 @@ namespace AutoSaliens
 
                 if (Settings.GameTime < 1)
                     Settings.GameTime.Value = 110;
-                if (Settings.Strategy == (AutomationStrategy)0)
+                if (Settings.Strategy == (BotStrategy)0)
                 {
                     Settings.Strategy.Value =
-                       AutomationStrategy.MostDifficultPlanetsFirst |
-                       AutomationStrategy.MostCompletedPlanetsFirst |
-                       AutomationStrategy.MostDifficultZonesFirst |
-                       AutomationStrategy.LeastCompletedZonesFirst |
-                       AutomationStrategy.TopDown;
+                       BotStrategy.MostDifficultPlanetsFirst |
+                       BotStrategy.MostCompletedPlanetsFirst |
+                       BotStrategy.MostDifficultZonesFirst |
+                       BotStrategy.LeastCompletedZonesFirst |
+                       BotStrategy.TopDown;
                 }
                 if (Settings.DiscordPresenceTimeType == (PresenceFormatterType)0)
                     Settings.DiscordPresenceTimeType.Value = PresenceFormatterType.TimeZoneElapsed;
             }
             else
             {
-                Shell.WriteLine("{inf}It seems like that this is your first time running this application! Type {command}getstarted{inf} to get started.", false);
+                Shell.WriteLine("{inf}It seems that this is your first time running this application! Type {command}getstarted{inf} to get started.", false);
                 Shell.WriteLine("", false);
             }
 
+            Settings.DiscordPresenceTimeType.Changed += DiscordPresenceTimeType_Changed;
             Settings.EnableBot.Changed += EnableBot_Changed;
             Settings.EnableDiscordPresence.Changed += EnableDiscordPresence_Changed;
-            Settings.DiscordPresenceTimeType.Changed += DiscordPresenceTimeType_Changed;
+            Settings.EnableNetworkTolerance.Changed += EnableNetworkTolerance_Changed;
+            Settings.GameTime.Changed += GameTime_Changed;
+            Settings.OverridePlanetId.Changed += OverridePlanetId_Changed;
+            Settings.Strategy.Changed += Strategy_Changed;
             Settings.Token.Changed += Token_Changed;
 
 #if DEBUG
@@ -182,6 +219,29 @@ namespace AutoSaliens
             await Shell.StartRead();
         }
 
+        private static void Bot_BotActivated(object sender, EventArgs e)
+        {
+            Logger.LogMessage("{inf}Bot activated");
+        }
+
+        private static void Bot_BotDeactivated(object sender, EventArgs e)
+        {
+            Logger.LogMessage("{inf}Bot deactivated");
+
+        }
+
+        private static void Presence_PresenceActivated(object sender, EventArgs e)
+        {
+            Logger.LogMessage("{inf}Discord presence activated");
+
+        }
+
+        private static void Presence_PresenceDeactivated(object sender, EventArgs e)
+        {
+            Logger.LogMessage("{inf}Discord presence deactivated");
+
+        }
+
         public static async Task Start()
         {
             if (!Paused)
@@ -191,17 +251,10 @@ namespace AutoSaliens
             updateCheckerTimer.Start();
             var tasks = new List<Task>() { CheckForUpdates() };
 
-            if (Settings.EnableBot)
-            {
-                Shell.WriteLine("{verb}Initializing bot...");
-                tasks.Add(Saliens.Start());
-            }
-
+            SetSaliensBot(Settings.EnableBot);
             if (Settings.EnableDiscordPresence)
-            {
-                Shell.WriteLine("{verb}Initializing Discord presence...");
                 SetDiscordPresence(Settings.EnableBot ? PresenceActivationType.EnabledWithBot : PresenceActivationType.EnabledPresenceOnly);
-            }
+
             await Task.WhenAll(tasks);
         }
 
@@ -212,7 +265,7 @@ namespace AutoSaliens
             Paused = true;
 
             updateCheckerTimer.Stop();
-            Saliens.Stop();
+            bot.Stop();
             presence.Stop();
             (presence.UpdateTrigger as ApiIntervalUpdateTrigger)?.Stop();
         }

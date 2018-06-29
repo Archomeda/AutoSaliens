@@ -13,7 +13,7 @@ namespace AutoSaliens.Console.Commands
             if (string.IsNullOrWhiteSpace(parameters))
             {
                 // Show the current game time
-                this.Logger?.LogCommandOutput($"The game time is currently set to: {{value}}{Program.Saliens.GameTime} seconds{{reset}}.");
+                this.Logger?.LogCommandOutput($"The game time is currently set to: {{value}}{Program.Settings.GameTime} seconds{{reset}}.");
 
                 this.Logger?.LogCommandOutput("You can change the game time by appending the game time to this command: {command}gametime {param}<seconds>");
                 this.Logger?.LogCommandOutput("where {param}<seconds>{reset} is replaced with the amount of seconds.");

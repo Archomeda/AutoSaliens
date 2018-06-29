@@ -1,7 +1,6 @@
 using System.Threading;
 using System.Threading.Tasks;
-
-#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
+using AutoSaliens.Api;
 
 namespace AutoSaliens.Console.Commands
 {
@@ -10,26 +9,31 @@ namespace AutoSaliens.Console.Commands
     {
         public override async Task RunAsync(string parameters, CancellationToken cancellationToken)
         {
-            if (string.IsNullOrWhiteSpace(Program.Saliens.Token))
+            if (string.IsNullOrWhiteSpace(Program.Settings.Token))
             {
                 this.Logger?.LogCommandOutput("{{warn}}No token has been set.");
                 return;
             }
 
-            if (Program.Saliens.PlanetDetails == null)
+            var playerInfo = await SaliensApi.GetPlayerInfoAsync(Program.Settings.Token);
+            if (string.IsNullOrWhiteSpace(playerInfo?.ActivePlanet))
             {
-                this.Logger?.LogCommandOutput("No planet information available yet.");
+                this.Logger?.LogCommandOutput("No planet has been joined.");
                 return;
             }
-
-            var zone = Program.Saliens.JoinedZone;
-            if (zone == null)
+            if (string.IsNullOrWhiteSpace(playerInfo?.ActiveZoneGame))
             {
                 this.Logger?.LogCommandOutput("No zone has been joined.");
                 return;
             }
 
-            this.Logger?.LogCommandOutput(zone.ToConsoleBlock());
+            if (!int.TryParse(playerInfo.ActiveZonePosition, out int zonePos))
+            {
+                this.Logger?.LogCommandOutput("Invalid zone.");
+                return;
+            }
+            var planet = await SaliensApi.GetPlanetAsync(playerInfo.ActivePlanet);
+            this.Logger?.LogCommandOutput(planet.Zones[zonePos].ToConsoleBlock());
         }
     }
 }

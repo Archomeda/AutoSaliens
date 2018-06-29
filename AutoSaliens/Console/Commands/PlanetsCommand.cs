@@ -3,9 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using AutoSaliens.Api;
 using AutoSaliens.Api.Models;
-
-#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
 
 namespace AutoSaliens.Console.Commands
 {
@@ -20,17 +19,11 @@ namespace AutoSaliens.Console.Commands
                 return;
             }
 
-            if (Program.Saliens.PlanetDetails == null)
-            {
-                this.Logger?.LogCommandOutput("No planet information available yet.");
-                return;
-            }
-
-            var planetDetails = Program.Saliens.PlanetDetails.OrderBy(p => p.State.Priority);
+            var planetDetails = (await SaliensApi.GetPlanetsAsync()).Values.OrderBy(p => p.State.Priority);
 
             var active = planetDetails.Where(p => p.State.Running);
             var future = planetDetails.Where(p => !p.State.Active && !p.State.Captured);
-            if (parameters == "all" || parameters == "live")
+            if (parameters == "all")
             {
                 var captured = planetDetails.Where(p => p.State.Captured);
                 this.Logger?.LogCommandOutput("Captured planets:");
@@ -46,26 +39,20 @@ namespace AutoSaliens.Console.Commands
             if (string.IsNullOrWhiteSpace(parameters))
             {
                 this.Logger?.LogCommandOutput("Upcoming planets:");
-                await PrintPlanets(future.Take(1));
+                await PrintPlanets(future.Take(2));
                 this.Logger?.LogCommandOutput("");
             }
 
-            this.Logger?.LogCommandOutput($"To get a list of all planets, use the command: {{command}}planets {{param}}all{{reset}}{Environment.NewLine}" +
-                $"To fully refresh the list of planets, use the command: {{command}}planets {{param}}live{{reset}}{Environment.NewLine}{Environment.NewLine}" +
+            this.Logger?.LogCommandOutput($"To get a list of all planets, use the command: {{command}}planets {{param}}all{{reset}}{Environment.NewLine}{Environment.NewLine}" +
 
                 $"To see more information about a planet, use the command: {{command}}planet {{param}}<id>{{reset}}{Environment.NewLine}" +
                 $"where {{param}}<id>{{reset}} is replaced with the planet id.");
 
             async Task PrintPlanets(IEnumerable<Planet> planets)
             {
-                var tasks = planets.Select(p => parameters == "live" || p.Zones == null ? SaliensApi.GetPlanetAsync(p.Id) : Task.FromResult(p));
-                foreach (var task in tasks)
-                {
-                    var planet = await task;
-                    var i = Program.Saliens.PlanetDetails.FindIndex(p => p.Id == planet.Id);
-                    Program.Saliens.PlanetDetails[i] = planet;
+                var results = await Task.WhenAll(planets.Select(p => p.Zones == null ? SaliensApi.GetPlanetAsync(p.Id) : Task.FromResult(p)));
+                foreach (var planet in results)
                     this.Logger?.LogCommandOutput(planet.ToConsoleLine());
-                }
             }
         }
     }

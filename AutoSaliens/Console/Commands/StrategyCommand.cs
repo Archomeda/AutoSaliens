@@ -15,8 +15,8 @@ namespace AutoSaliens.Console.Commands
             if (string.IsNullOrWhiteSpace(parameters))
             {
                 // Show the current strategy
-                var allValues = Enum.GetValues(typeof(AutomationStrategy)) as AutomationStrategy[];
-                var values = allValues.Where(v => Program.Saliens.Strategy.HasFlag(v));
+                var allValues = Enum.GetValues(typeof(BotStrategy)) as BotStrategy[];
+                var values = allValues.Where(v => Program.Settings.Strategy.Value.HasFlag(v));
                 this.Logger?.LogCommandOutput($"The strategy is set to: {{value}}{string.Join(", ", values.Select(v => v.ToString()))}{{reset}}.");
 
                 this.Logger?.LogCommandOutput($"You can change the strategy by appending any combination of the strategies to this command: {{command}}strategy {{param}}<strategy>{{reset}}");
@@ -33,15 +33,15 @@ namespace AutoSaliens.Console.Commands
                 string[] strategies = parameters.Split(new[] { ' ', ',' }, StringSplitOptions.RemoveEmptyEntries);
                 try
                 {
-                    var strategyValues = strategies.Select(s => (AutomationStrategy)Enum.Parse(typeof(AutomationStrategy), s));
-                    AutomationStrategy strategy = strategyValues.Aggregate((AutomationStrategy)0, (a, b) => a | b);
+                    var strategyValues = strategies.Select(s => (BotStrategy)Enum.Parse(typeof(BotStrategy), s));
+                    BotStrategy strategy = strategyValues.Aggregate((BotStrategy)0, (a, b) => a | b);
                     if (strategy == 0)
                         strategy =
-                            AutomationStrategy.MostDifficultPlanetsFirst |
-                            AutomationStrategy.MostCompletedPlanetsFirst |
-                            AutomationStrategy.MostDifficultZonesFirst |
-                            AutomationStrategy.MostCompletedZonesFirst |
-                            AutomationStrategy.TopDown;
+                            BotStrategy.MostDifficultPlanetsFirst |
+                            BotStrategy.MostCompletedPlanetsFirst |
+                            BotStrategy.MostDifficultZonesFirst |
+                            BotStrategy.MostCompletedZonesFirst |
+                            BotStrategy.TopDown;
                     Program.Settings.Strategy.Value = strategy;
                     this.Logger?.LogCommandOutput("Your strategy has been saved.");
                 }

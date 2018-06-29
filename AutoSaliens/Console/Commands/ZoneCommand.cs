@@ -1,6 +1,7 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using AutoSaliens.Api;
 
 namespace AutoSaliens.Console.Commands
 {
@@ -16,13 +17,7 @@ namespace AutoSaliens.Console.Commands
                 return;
             }
 
-            if (Program.Saliens.PlanetDetails == null)
-            {
-                this.Logger?.LogCommandOutput("No planet information available yet.");
-                return;
-            }
-
-            var planet = Program.Saliens.PlanetDetails.FirstOrDefault(p => p.Id == split[0]);
+            var planet = await SaliensApi.GetPlanetAsync(split[0]);
             if (planet == null)
             {
                 this.Logger?.LogCommandOutput("{err}Unknown planet id.");
@@ -35,21 +30,13 @@ namespace AutoSaliens.Console.Commands
                 return;
             }
 
-            if (planet.Zones == null || planet.Zones.Count == 0)
-            {
-                var index = Program.Saliens.PlanetDetails.FindIndex(p => p.Id == planet.Id);
-                planet = await SaliensApi.GetPlanetAsync(planet.Id);
-                Program.Saliens.PlanetDetails[index] = planet;
-            }
-
-            var zone = planet.Zones.FirstOrDefault(z => z.ZonePosition == zonePos);
-            if (zone == null)
+            if (zonePos >= planet.Zones.Count)
             {
                 this.Logger?.LogCommandOutput("{err}Unknown zone position.");
                 return;
             }
 
-            this.Logger?.LogCommandOutput(zone.ToConsoleBlock());
+            this.Logger?.LogCommandOutput(planet.Zones[zonePos].ToConsoleBlock());
         }
     }
 }

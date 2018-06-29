@@ -38,12 +38,12 @@ namespace AutoSaliens
         public NotifyProperty<string> OverridePlanetId { get; private set; } = "";
 
         [JsonProperty]
-        public NotifyProperty<AutomationStrategy> Strategy { get; private set; } =
-            AutomationStrategy.MostDifficultPlanetsFirst |
-            AutomationStrategy.MostCompletedPlanetsFirst |
-            AutomationStrategy.MostDifficultZonesFirst |
-            AutomationStrategy.LeastCompletedZonesFirst |
-            AutomationStrategy.TopDown;
+        public NotifyProperty<BotStrategy> Strategy { get; private set; } =
+            BotStrategy.MostDifficultPlanetsFirst |
+            BotStrategy.MostCompletedPlanetsFirst |
+            BotStrategy.MostDifficultZonesFirst |
+            BotStrategy.LeastCompletedZonesFirst |
+            BotStrategy.TopDown;
 
         [JsonProperty]
         public NotifyProperty<string> Token { get; private set; } = "";

@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using AutoSaliens.Api;
 
 namespace AutoSaliens.Console.Commands
 {
@@ -10,24 +11,11 @@ namespace AutoSaliens.Console.Commands
     {
         public override async Task RunAsync(string parameters, CancellationToken cancellationToken)
         {
-            if (Program.Saliens.PlanetDetails == null)
-            {
-                this.Logger?.LogCommandOutput("No planet information available yet.");
-            }
-
-            var planet = Program.Saliens.PlanetDetails.FirstOrDefault(p => p.Id == parameters);
+            var planet = await SaliensApi.GetPlanetAsync(parameters);
             if (planet == null)
             {
                 this.Logger?.LogCommandOutput("{err}Unknown planet id.");
                 return;
-            }
-
-            if (planet.Zones == null || planet.Zones.Count == 0)
-            {
-                // Zones not available yet, request them manually
-                var index = Program.Saliens.PlanetDetails.FindIndex(p => p.Id == planet.Id);
-                planet = await SaliensApi.GetPlanetAsync(planet.Id);
-                Program.Saliens.PlanetDetails[index] = planet;
             }
 
             var active = planet.Zones.Where(z => !z.Captured);
