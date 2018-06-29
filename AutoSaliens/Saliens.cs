@@ -68,7 +68,7 @@ namespace AutoSaliens
 
         public TimeSpan ReportScoreNetworkDelay { get; set; }
 
-        public float ReportScoreNetworkDelayTolerance { get; set; } = 0.2f;
+        public float ReportScoreNetworkDelayTolerance { get; set; } = 0.4f;
 
 
         public Task Start()
@@ -408,11 +408,6 @@ namespace AutoSaliens
                     // Don't want to be too eager for an occasional spike
                     if (this.ReportScoreNetworkDelay.TotalMilliseconds == 0 || stopwatch.Elapsed < this.ReportScoreNetworkDelay)
                         this.ReportScoreNetworkDelay = stopwatch.Elapsed;
-                    else
-                    {
-                        // Gradiually increase the delay in very small amounts
-                        this.ReportScoreNetworkDelay += TimeSpan.FromMilliseconds(1);
-                    }
 
                     if (!string.IsNullOrWhiteSpace(response.NewScore))
                         Shell.WriteLine($"XP: {{oldxp}}{long.Parse(response.OldScore).ToString("#,##0")}{{reset}} -> {{xp}}{long.Parse(response.NewScore).ToString("#,##0")}{{reset}} (next level at {{reqxp}}{long.Parse(response.NextLevelScore).ToString("#,##0")}{{reset}})");
@@ -427,12 +422,18 @@ namespace AutoSaliens
                 }
                 catch (SaliensApiException ex)
                 {
-                    if (ex.EResult == EResult.TimeIsOutOfSync && i < 5)
+                    if (i < 5 && ex.EResult == EResult.TimeIsOutOfSync)
                     {
                         // Decrease the delay with a small amount
-                        this.ReportScoreNetworkDelay -= TimeSpan.FromMilliseconds(10);
-                        Shell.WriteLine($"{{warn}}Failed to submit score of {score.ToString("#,##0")}: Submitting too fast, giving it a second ({i + 1}/5)...");
-                        await Task.Delay(1000);
+                        this.ReportScoreNetworkDelay -= TimeSpan.FromMilliseconds(25);
+                        Shell.WriteLine($"{{warn}}Failed to submit score of {score.ToString("#,##0")}: Submitting too fast, giving it a few seconds ({i + 1}/5)...");
+                        await Task.Delay(2000);
+                        continue;
+                    }
+                    else if (ex.EResult == EResult.RateLimitExceeded)
+                    {
+                        Shell.WriteLine($"{{warn}}Failed to submit score of {score.ToString("#,##0")}: Rate limit exceeded, giving it a few seconds ({i + 1}/5)...");
+                        await Task.Delay(2000);
                         continue;
                     }
                     else if (ex.EResult == EResult.Expired || ex.EResult == EResult.NoMatch)
