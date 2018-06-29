@@ -26,7 +26,7 @@ namespace AutoSaliens
 
         public static bool Paused { get; private set; } = true;
 
-        public static Settings Settings { get; private set; }
+        public static Settings Settings { get; private set; } = new Settings();
 
 
         private static void DiscordPresenceTimeType_Changed(object sender, PropertyChangedEventArgs<PresenceFormatterType> e) =>

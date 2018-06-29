@@ -497,7 +497,7 @@ namespace AutoSaliens.Bot
                         var diff = (startDate - (DateTime.Now - this.PlayerInfo.TimeInZone));
                         if (diff > TimeSpan.FromSeconds(0))
                         {
-                            this.Logger?.LogMessage($"{{action}}Recalibrated zone join time with {diff.Negate().TotalSeconds.ToString("0.###")} seconds");
+                            this.Logger?.LogMessage($"{{action}}Recalibrated zone join time with {{value}}{diff.Negate().TotalSeconds.ToString("0.###")} seconds");
                             startDate = DateTime.Now - this.PlayerInfo.TimeInZone;
                         }
                     }
