@@ -98,6 +98,7 @@ namespace AutoSaliens.Presence
             this.stopRequested = true;
             this.presenceStarted = false;
             this.IsPresenceActive = false;
+            this.PresenceDeactivated?.Invoke(this, null);
         }
 
         public virtual void SetSaliensPlayerState(PlayerInfoResponse playerInfo)
