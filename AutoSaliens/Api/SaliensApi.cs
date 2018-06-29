@@ -246,21 +246,7 @@ namespace AutoSaliens.Api
 #if DEBUG
                 Program.Logger.LogMessage($"{{verb}}{(isPost ? "[POST]" : "[GET]")} {uri}");
 #endif
-                string json = null;
-                for (int i = 0; i < 5 && json == null; i++)
-                {
-                    try
-                    {
-                        json = isPost ? webClient.UploadString(uri, "") : webClient.DownloadString(uri);
-                    }
-                    catch (WebException ex)
-                    {
-                        Program.Logger.LogMessage($"{{warn}}Request to {uri.GetLeftPart(UriPartial.Path)} failed ({i + 1}/5): {ex.Message}");
-                        Thread.Sleep(1000);
-                        if (i == 4)
-                            throw ex;
-                    }
-                }
+                var json = isPost ? webClient.UploadString(uri, "") : webClient.DownloadString(uri);
                 var eResult = webClient.ResponseHeaders["x-eresult"].ToString();
 #if DEBUG
                 Program.Logger.LogMessage($"{{verb}}EResult: {eResult}");
@@ -285,21 +271,7 @@ namespace AutoSaliens.Api
 #if DEBUG
                 Program.Logger.LogMessage($"{{verb}}{(isPost ? "[POST]" : "[GET]")} {uri}");
 #endif
-                string json = null;
-                for (int i = 0; i < 5 && json == null; i++)
-                {
-                    try
-                    {
-                        json = isPost ? await webClient.UploadStringTaskAsync(uri, "") : await webClient.DownloadStringTaskAsync(uri);
-                    }
-                    catch (WebException ex)
-                    {
-                        Program.Logger.LogMessage($"{{warn}}Request to {uri.GetLeftPart(UriPartial.Path)} failed ({i + 1}/5): {ex.Message}");
-                        await Task.Delay(1000);
-                        if (i == 4)
-                            throw ex;
-                    }
-                }
+                var json = isPost ? await webClient.UploadStringTaskAsync(uri, "") : await webClient.DownloadStringTaskAsync(uri);
                 var eResult = webClient.ResponseHeaders["x-eresult"].ToString();
 #if DEBUG
                 Program.Logger.LogMessage($"{{verb}}EResult: {eResult}");

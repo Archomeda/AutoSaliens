@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using AutoSaliens.Api;
@@ -136,16 +137,22 @@ namespace AutoSaliens.Bot
                 catch (OperationCanceledException) { }
                 catch (SaliensApiException ex)
                 {
+                    // Update states
+                    this.Logger?.LogMessage($"{{action}}Updating states...");
+                    await this.GetPlayerInfo(true);
+                    await SaliensApi.GetPlanetsWithZonesAsync(true, true);
+
                     switch (ex.EResult)
                     {
                         case EResult.Expired:
                         case EResult.NoMatch:
-                            // Update states
-                            this.Logger?.LogMessage($"{{action}}Updating states...");
-                            await this.GetPlayerInfo(true);
-                            await SaliensApi.GetPlanetsWithZonesAsync(true, true);
                             if (this.State == BotState.InZone || this.State == BotState.InZoneEnd)
                                 this.State = BotState.ForcedZoneLeave;
+                            break;
+
+                        case EResult.InvalidState:
+                        default:
+                            this.State = BotState.Invalid;
                             break;
                     }
                 }
@@ -446,6 +453,12 @@ namespace AutoSaliens.Bot
                             throw;
                     }
                 }
+                catch (WebException ex)
+                {
+                    this.Logger?.LogMessage($"{{warn}}Failed to join planet: {ex.Message} - Giving it a few seconds ({i + 1}/5)...");
+                    await Task.Delay(2000);
+                    continue;
+                }
             }
 
             // States, only set when failed
@@ -522,6 +535,12 @@ namespace AutoSaliens.Bot
                             throw;
                     }
                 }
+                catch (WebException ex)
+                {
+                    this.Logger?.LogMessage($"{{warn}}Failed to join zone: {ex.Message} - Giving it a few seconds ({i + 1}/5)...");
+                    await Task.Delay(2000);
+                    continue;
+                }
             }
 
             // States, only set when failed
@@ -593,6 +612,12 @@ namespace AutoSaliens.Bot
                             throw;
                     }
                 }
+                catch (WebException ex)
+                {
+                    this.Logger?.LogMessage($"{{warn}}Failed to submit score: {ex.Message} - Giving it a few seconds ({i + 1}/5)...");
+                    await Task.Delay(2000);
+                    continue;
+                }
             }
 
             // States, only set when failed
@@ -658,6 +683,12 @@ namespace AutoSaliens.Bot
                             ResetState();
                             throw;
                     }
+                }
+                catch (WebException ex)
+                {
+                    this.Logger?.LogMessage($"{{warn}}Failed to leave game: {ex.Message} - Giving it a few seconds ({i + 1}/5)...");
+                    await Task.Delay(2000);
+                    continue;
                 }
             }
 
