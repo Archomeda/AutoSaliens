@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Threading;
 using System.Threading.Tasks;
 using AutoSaliens.Api.Models;
 using Newtonsoft.Json;
@@ -242,11 +243,34 @@ namespace AutoSaliens.Api
             using (var webClient = new WebClient())
             {
                 webClient.Headers.Add("User-Agent", "AutoSaliens/1.0 (https://github.com/Archomeda/AutoAliens)");
-                var json = isPost ? webClient.UploadString(uri, "") : webClient.DownloadString(uri);
+#if DEBUG
+                Program.Logger.LogMessage($"{{verb}}{(isPost ? "[POST]" : "[GET]")} {uri}");
+#endif
+                string json = null;
+                for (int i = 0; i < 5 && json == null; i++)
+                {
+                    try
+                    {
+                        json = isPost ? webClient.UploadString(uri, "") : webClient.DownloadString(uri);
+                    }
+                    catch (WebException ex)
+                    {
+                        Program.Logger.LogMessage($"{{warn}}Request to {uri.GetLeftPart(UriPartial.Path)} failed ({i + 1}/5): {ex.Message}");
+                        Thread.Sleep(1000);
+                        if (i == 4)
+                            throw ex;
+                    }
+                }
                 var eResult = webClient.ResponseHeaders["x-eresult"].ToString();
+#if DEBUG
+                Program.Logger.LogMessage($"{{verb}}EResult: {eResult}");
+#endif
                 if (!string.IsNullOrWhiteSpace(eResult) && eResult != "1")
                 {
                     var message = webClient.ResponseHeaders["x-error_message"]?.ToString();
+#if DEBUG
+                    Program.Logger.LogMessage($"{{verb}}Error message: {message}");
+#endif
                     throw SaliensApiException.FromString(eResult, message);
                 }
                 return JsonConvert.DeserializeObject<T>(json);
@@ -261,7 +285,21 @@ namespace AutoSaliens.Api
 #if DEBUG
                 Program.Logger.LogMessage($"{{verb}}{(isPost ? "[POST]" : "[GET]")} {uri}");
 #endif
-                var json = isPost ? await webClient.UploadStringTaskAsync(uri, "") : await webClient.DownloadStringTaskAsync(uri);
+                string json = null;
+                for (int i = 0; i < 5 && json == null; i++)
+                {
+                    try
+                    {
+                        json = isPost ? await webClient.UploadStringTaskAsync(uri, "") : await webClient.DownloadStringTaskAsync(uri);
+                    }
+                    catch (WebException ex)
+                    {
+                        Program.Logger.LogMessage($"{{warn}}Request to {uri.GetLeftPart(UriPartial.Path)} failed ({i + 1}/5): {ex.Message}");
+                        await Task.Delay(1000);
+                        if (i == 4)
+                            throw ex;
+                    }
+                }
                 var eResult = webClient.ResponseHeaders["x-eresult"].ToString();
 #if DEBUG
                 Program.Logger.LogMessage($"{{verb}}EResult: {eResult}");
