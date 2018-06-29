@@ -34,9 +34,41 @@ namespace AutoSaliens.Presence.Formatters
 
         protected override Assets GetAssets(PlayerInfoResponse playerInfoResponse, DiscordPresence presence)
         {
+            string smallImageKey = null;
+            string smallImageText = null;
+            switch (playerInfoResponse.Level)
+            {
+                case var level when level > 0 && level < 6:
+                    smallImageKey = "badge1";
+                    smallImageText = "Rank 1";
+                    break;
+                case var level when level >= 6 && level < 9:
+                    smallImageKey = "badge2";
+                    smallImageText = "Rank 2";
+                    break;
+                case var level when level >= 9 && level < 11:
+                    smallImageKey = "badge3";
+                    smallImageText = "Rank 3";
+                    break;
+                case var level when level >= 11 && level < 16:
+                    smallImageKey = "badge4";
+                    smallImageText = "Rank 4";
+                    break;
+                case var level when level >= 16 && level < 21:
+                    smallImageKey = "badge5";
+                    smallImageText = "Rank 5";
+                    break;
+                case var level when level >= 21:
+                    smallImageKey = "badge6";
+                    smallImageText = "Rank 6";
+                    break;
+            }
             return new Assets
             {
-                LargeImageKey = "logo_large"
+                SmallImageKey = smallImageKey,
+                SmallImageText = smallImageText,
+                LargeImageKey = "logo_large",
+                LargeImageText = "Steam Summer Saliens"
             };
         }
     }
