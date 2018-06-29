@@ -383,16 +383,21 @@ namespace AutoSaliens.Bot
             this.PlayerInfo = await SaliensApi.GetPlayerInfoAsync(this.Token, forceLive);
             this.State = BotState.Idle;
 
-            if (!string.IsNullOrWhiteSpace(this.PlayerInfo.ActivePlanet))
+            var hasActivePlanet = !string.IsNullOrWhiteSpace(this.PlayerInfo.ActivePlanet);
+            var hasActiveZone = !string.IsNullOrWhiteSpace(this.PlayerInfo.ActiveZonePosition);
+            Planet activePlanet = null;
+            if (hasActivePlanet || hasActiveZone)
+                activePlanet = await SaliensApi.GetPlanetAsync(this.PlayerInfo.ActivePlanet, forceLive);
+
+            if (hasActivePlanet)
             {
-                this.ActivePlanet = await SaliensApi.GetPlanetAsync(this.PlayerInfo.ActivePlanet, forceLive);
+                this.ActivePlanet = activePlanet;
                 this.State = BotState.OnPlanet;
             }
 
-            if (!string.IsNullOrWhiteSpace(this.PlayerInfo.ActiveZonePosition) &&
-                int.TryParse(this.PlayerInfo.ActiveZonePosition, out int zonePosition))
+            if (hasActiveZone && int.TryParse(this.PlayerInfo.ActiveZonePosition, out int zonePosition))
             {
-                this.ActiveZone = (await SaliensApi.GetPlanetAsync(this.PlayerInfo.ActivePlanet, forceLive)).Zones[zonePosition];
+                this.ActiveZone = activePlanet.Zones[zonePosition];
                 this.ActiveZoneStartDate = DateTime.Now - this.PlayerInfo.TimeInZone;
                 this.State = BotState.InZone;
             }
@@ -465,11 +470,28 @@ namespace AutoSaliens.Bot
                 try
                 {
                     this.Logger?.LogMessage($"{{action}}Joining {{zone}}zone {zonePosition}{{action}}...");
+                    var stopwatch = new Stopwatch();
+                    stopwatch.Start();
                     await SaliensApi.JoinZoneAsync(this.Token, zonePosition);
+                    stopwatch.Stop();
+
+                    var startDate = DateTime.Now;
+
+                    // If the request took too long, resynchronize the start date
+                    if (stopwatch.Elapsed > TimeSpan.FromSeconds(1))
+                    {
+                        await this.GetPlayerInfo(true);
+                        var diff = (startDate - (DateTime.Now - this.PlayerInfo.TimeInZone));
+                        if (diff > TimeSpan.FromSeconds(0))
+                        {
+                            this.Logger?.LogMessage($"{{action}}Recalibrated zone join time with {diff.Negate().TotalSeconds.ToString("0.###")} seconds");
+                            startDate = DateTime.Now - this.PlayerInfo.TimeInZone;
+                        }
+                    }
 
                     // States
                     this.ActiveZone = this.ActivePlanet.Zones[zonePosition];
-                    this.ActiveZoneStartDate = DateTime.Now;
+                    this.ActiveZoneStartDate = startDate;
                     this.PlayerInfo.ActiveZoneGame = this.ActiveZone.GameId;
                     this.PlayerInfo.ActiveZonePosition = zonePosition.ToString();
                     this.State = BotState.InZone;
@@ -521,6 +543,7 @@ namespace AutoSaliens.Bot
                     stopwatch.Start();
                     var response = await SaliensApi.ReportScoreAsync(this.Token, score);
                     stopwatch.Stop();
+
                     // Only change the network delay if the last delay was lower
                     // Don't want to be too eager for an occasional spike
                     if (this.reportScoreNetworkDelay.TotalMilliseconds == 0 || stopwatch.Elapsed < this.reportScoreNetworkDelay)
