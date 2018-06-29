@@ -507,6 +507,7 @@ namespace AutoSaliens.Bot
                     this.ActiveZoneStartDate = startDate;
                     this.PlayerInfo.ActiveZoneGame = this.ActiveZone.GameId;
                     this.PlayerInfo.ActiveZonePosition = zonePosition.ToString();
+                    this.PlayerInfo.TimeInZone = TimeSpan.FromSeconds(0);
                     this.State = BotState.InZone;
 
                     this.PresenceUpdateTrigger.SetSaliensPlayerState(this.PlayerInfo);
@@ -580,6 +581,7 @@ namespace AutoSaliens.Bot
                     this.ActiveZone = null;
                     this.PlayerInfo.ActiveZoneGame = null;
                     this.PlayerInfo.ActiveZonePosition = null;
+                    this.PlayerInfo.TimeInZone = TimeSpan.FromSeconds(0);
                     this.State = BotState.OnPlanet;
 
                     return;
@@ -645,6 +647,7 @@ namespace AutoSaliens.Bot
                         // States
                         this.ActivePlanet = null;
                         this.PlayerInfo.ActivePlanet = null;
+                        this.PlayerInfo.TimeOnPlanet = TimeSpan.FromSeconds(0);
                         this.State = BotState.Idle;
                     }
                     else if (this.HasActiveZone && this.ActiveZone.GameId == gameId)
@@ -655,6 +658,7 @@ namespace AutoSaliens.Bot
                         this.ActiveZone = null;
                         this.PlayerInfo.ActiveZoneGame = null;
                         this.PlayerInfo.ActiveZonePosition = null;
+                        this.PlayerInfo.TimeInZone = TimeSpan.FromSeconds(0);
                         this.State = BotState.OnPlanet;
                     }
 
