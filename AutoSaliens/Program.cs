@@ -40,10 +40,7 @@ namespace AutoSaliens
             if (Settings.EnableDiscordPresence)
                 SetDiscordPresence(e.NewValue ? PresenceActivationType.EnabledWithBot : PresenceActivationType.EnabledPresenceOnly);
 
-            if (e.NewValue)
-                bot.Start();
-            else
-                bot.Stop();
+            SetSaliensBot(e.NewValue);
         }
 
         private static void EnableDiscordPresence_Changed(object sender, PropertyChangedEventArgs<bool> e)
@@ -190,7 +187,7 @@ namespace AutoSaliens
                 var settingsJson = File.ReadAllText("settings.json");
                 Settings = JsonConvert.DeserializeObject<Settings>(settingsJson);
 
-                if (Settings.GameTime < 1)
+                if (Settings.GameTime < 110)
                     Settings.GameTime.Value = 110;
                 if (Settings.Strategy == (BotStrategy)0)
                 {
