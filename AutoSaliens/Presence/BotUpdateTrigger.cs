@@ -10,6 +10,6 @@ namespace AutoSaliens.Presence
             this.presence = presence ?? throw new System.ArgumentNullException(nameof(presence));
 
         public virtual void SetSaliensPlayerState(PlayerInfoResponse playerInfo) =>
-            this.presence.SetSaliensPlayerState(playerInfo);
+            this.presence?.SetSaliensPlayerState(playerInfo);
     }
 }
