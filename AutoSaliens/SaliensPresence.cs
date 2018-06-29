@@ -41,6 +41,8 @@ namespace AutoSaliens
 
         public DateTime MeasureStartTime { get; private set; }
 
+        public DateTime PredictedLevelUpDate { get; private set; }
+
         public bool Started { get; private set; }
 
 
@@ -130,20 +132,27 @@ namespace AutoSaliens
                 state = $"Planet {playerInfo.ActivePlanet}";
 
             Timestamps time = null;
-            if (Program.Settings.DiscordPresenceTimeType == PresenceTimeType.NextLevelEstimation &&
-                this.LastXp > 0 && hasActivePlanet && hasActiveZone && xp > this.LastXp &&
-                long.TryParse(playerInfo.NextLevelScore, out long nextLevelXp))
+            if (Program.Settings.DiscordPresenceTimeType == PresenceTimeType.NextLevelEstimation)
             {
-                // We can predict when the next level up happens
-                int diffXp = (int)(xp - this.LastXp);
-                TimeSpan diffTime = DateTime.Now - this.MeasureStartTime - playerInfo.TimeInZone;
-                TimeSpan eta = TimeSpan.FromSeconds(diffTime.TotalSeconds * ((nextLevelXp - xp) / diffXp));
-                if (eta < TimeSpan.FromDays(1))
+                if (hasActivePlanet && hasActiveZone)
                 {
-                    // Only show when it's less than a day: Discord doesn't show days
-                    DateTime predictedLevelUpDate = DateTime.Now + eta - playerInfo.TimeInZone;
-                    time = new Timestamps { End = predictedLevelUpDate.ToUniversalTime() };
+                    if (xp > this.LastXp && long.TryParse(playerInfo.NextLevelScore, out long nextLevelXp))
+                    {
+                        if (this.LastXp > 0 && this.MeasureStartTime.Ticks > 0)
+                        {
+                            // We can predict when the next level up happens
+                            int diffXp = (int)(xp - this.LastXp);
+                            TimeSpan diffTime = DateTime.Now - this.MeasureStartTime - playerInfo.TimeInZone;
+                            var eta = TimeSpan.FromSeconds(diffTime.TotalSeconds * ((double)(nextLevelXp - xp) / diffXp));
+                            this.PredictedLevelUpDate = DateTime.Now + eta - playerInfo.TimeInZone;
+                        }
+                        this.MeasureStartTime = DateTime.Now - playerInfo.TimeInZone;
+                    }
+                    this.LastXp = xp;
                 }
+                // Only show when it's less than a day: Discord doesn't show days
+                if (this.PredictedLevelUpDate > DateTime.Now && this.PredictedLevelUpDate < DateTime.Now.AddDays(1))
+                    time = new Timestamps { End = this.PredictedLevelUpDate.ToUniversalTime() };
             }
 
             if ((Program.Settings.DiscordPresenceTimeType == PresenceTimeType.TimePlanetElapsed && hasActivePlanet) ||
@@ -153,10 +162,6 @@ namespace AutoSaliens
             // Fall back to regular elapsed time if we still lack a time
             if (time == null && hasActivePlanet && hasActiveZone)
                 time = new Timestamps { Start = (DateTime.Now - playerInfo.TimeInZone).ToUniversalTime() };
-
-            if (hasActivePlanet && hasActiveZone)
-                this.MeasureStartTime = DateTime.Now - playerInfo.TimeInZone;
-            this.LastXp = xp;
 
             this.presence.SetPresence(new RichPresence
             {

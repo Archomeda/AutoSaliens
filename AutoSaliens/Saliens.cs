@@ -418,6 +418,11 @@ namespace AutoSaliens
                         Shell.WriteLine($"XP: {{oldxp}}{long.Parse(response.OldScore).ToString("#,##0")}{{reset}} -> {{xp}}{long.Parse(response.NewScore).ToString("#,##0")}{{reset}} (next level at {{reqxp}}{long.Parse(response.NextLevelScore).ToString("#,##0")}{{reset}})");
                     if (response.NewLevel != response.OldLevel)
                         Shell.WriteLine($"New level: {{oldlevel}}{response.OldLevel}{{reset}} -> {{level}}{response.NewLevel}{{reset}}");
+
+                    this.PlayerInfo.Score = response.NewScore;
+                    this.PlayerInfo.Level = response.NewLevel;
+                    this.PlayerInfo.NextLevelScore = response.NextLevelScore;
+
                     break;
                 }
                 catch (SaliensApiException ex)
