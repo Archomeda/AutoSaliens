@@ -1,4 +1,5 @@
 using System.Globalization;
+using AutoSaliens.Api;
 using AutoSaliens.Api.Models;
 using DiscordRPC;
 
@@ -21,7 +22,16 @@ namespace AutoSaliens.Presence.Formatters
 
             var state = "Inactive";
             if (hasActivePlanet && hasActiveZone)
+            {
                 state = $"Planet {playerInfo.ActivePlanet} - Zone {playerInfo.ActiveZonePosition}";
+                var planet = SaliensApi.GetPlanet(playerInfo.ActivePlanet);
+                if (int.TryParse(playerInfo.ActiveZonePosition, out int zonePos))
+                {
+                    var zone = planet.Zones[zonePos];
+                    if (zone != null)
+                        state += $" ({zone.RealDifficulty.ToString().Substring(0, 1)})";
+                }
+            }
             else if (hasActivePlanet && !hasActiveZone)
                 state = $"Planet {playerInfo.ActivePlanet}";
             return state;
