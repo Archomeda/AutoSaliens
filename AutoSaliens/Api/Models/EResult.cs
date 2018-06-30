@@ -10,7 +10,6 @@ namespace AutoSaliens.Api.Models
         Busy = 10,
         InvalidState = 11,
         AccessDenied = 15,
-        Banned = 17,
         Expired = 27,
         NoMatch = 42,
         ValueOutOfRange = 78,
