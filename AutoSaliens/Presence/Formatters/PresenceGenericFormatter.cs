@@ -82,7 +82,7 @@ namespace AutoSaliens.Presence.Formatters
             {
                 SmallImageKey = smallImageKey,
                 SmallImageText = smallImageText,
-                LargeImageKey = "logo_large",
+                LargeImageKey = !string.IsNullOrWhiteSpace(playerInfoResponse.ActiveBossGame) ? "logo_boss" : "logo_large",
                 LargeImageText = "Steam Summer Saliens"
             };
         }
