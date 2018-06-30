@@ -37,7 +37,8 @@ namespace AutoSaliens.Api.Models
 
             return $"{{zone}}Z {this.ZonePosition.ToString().PadLeft(3)}{{reset}} - " +
                 $"{difficulty}{this.Difficulty.ToString().PadLeft(6)}{{reset}} - " +
-                $"{progress}{(this.Captured ? 1 : this.CaptureProgress).ToString("0.##%").PadLeft(7)}{{reset}}";
+                $"{progress}{(this.Captured ? 1 : this.CaptureProgress).ToString("0.##%").PadLeft(7)}{{reset}}" +
+                $"{(this.Type == ZoneType.Boss ? " (BOSS)" : "" )}{{reset}}";
         }
 
         public string ToConsoleBlock()

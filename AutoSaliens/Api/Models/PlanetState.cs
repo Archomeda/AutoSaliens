@@ -42,6 +42,8 @@ namespace AutoSaliens.Api.Models
 
         public string TagIds { get; set; }
 
+        public int? BossZonePosition { get; set; }
+
         [JsonIgnore]
         public bool Running => this.Active && !this.Captured;
     }
