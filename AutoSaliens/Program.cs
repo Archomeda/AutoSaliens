@@ -259,10 +259,8 @@ namespace AutoSaliens
             var tasks = new List<Task>() { CheckForUpdates() };
 
             SetSaliensBot(Settings.EnableBot);
-
-            // Discord presence is started in SetSaliensBot
-            if (!Settings.EnableBot && Settings.EnableDiscordPresence)
-                SetDiscordPresence(PresenceActivationType.EnabledPresenceOnly);
+            if (Settings.EnableDiscordPresence)
+                SetDiscordPresence(Settings.EnableBot ? PresenceActivationType.EnabledWithBot : PresenceActivationType.EnabledPresenceOnly);
 
             await Task.WhenAll(tasks);
         }
