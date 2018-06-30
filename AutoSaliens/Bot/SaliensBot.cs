@@ -404,7 +404,7 @@ namespace AutoSaliens.Bot
         private async Task PlayBossZoneUntilFinish()
         {
             var startLevel = this.PlayerInfo.Level;
-            var startXp = this.PlayerInfo.Score;
+            long.TryParse(this.PlayerInfo.Score, out long startXp);
 
             // Loop until the boss is dead
             BossLevelState bossState = BossLevelState.WaitingForPlayers;
@@ -418,6 +418,12 @@ namespace AutoSaliens.Bot
                 await this.ReportBossDamage(useHeal, damage, 0);
                 await Task.Delay(reportBossDamageDelay);
             }
+
+            await this.GetPlayerInfo();
+            if (long.TryParse(this.PlayerInfo.Score, out long score))
+                this.Logger?.LogMessage($"{{xp}}{(score - startXp).ToString("#,##0")} XP{{reset}} gained: {{oldxp}}{startXp.ToString("#,##0")}{{reset}} -> {{xp}}{score.ToString("#,##0")}");
+            if (this.PlayerInfo.Level > startLevel)
+                this.Logger?.LogMessage($"New level: {{oldlevel}}{startLevel}{{reset}} -> {{level}}{this.PlayerInfo.Level}{{reset}}");
 
             // States
             this.State = BotState.OnPlanet;
