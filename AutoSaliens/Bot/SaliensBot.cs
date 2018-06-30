@@ -232,7 +232,7 @@ namespace AutoSaliens.Bot
                     {
                         // Assume the zone is unjoinable, blacklist and go to the next one
                         var end = DateTime.Now + this.blacklistGamesDuration;
-                        this.BlacklistedGames.Add(zones[i].GameId, end);
+                        this.BlacklistedGames[zones[i].GameId] = end;
                         this.Logger?.LogMessage($"{{zone}}Zone {zones[i].ZonePosition}{{action}} on {{planet}}planet {planets[0].Id}{{action}} has been blacklisted until {end.ToString("HH:mm:ss")}");
                         continue; 
                     }
@@ -244,7 +244,7 @@ namespace AutoSaliens.Bot
             {
                 // We haven't joined a zone, blacklist and force another planet
                 var end = DateTime.Now + this.blacklistGamesDuration;
-                this.BlacklistedGames.Add(planets[0].Id, end);
+                this.BlacklistedGames[planets[0].Id] = end;
                 this.Logger?.LogMessage($"{{planet}}Planet {planets[0].Id}{{action}} has been blacklisted until {end.ToString("HH:mm:ss")}");
                 await this.LeaveGame(planets[0].Id);
             }
