@@ -28,6 +28,8 @@ namespace AutoSaliens.Bot
         private TimeSpan reportScoreNetworkDelay;
         private const double reportScoreNetworkDelayTolerance = 0.4;
 
+        private readonly TimeSpan blacklistGamesDuration = TimeSpan.FromMinutes(20);
+
         private const int reportBossDamageMin = 1;
         private const int reportBossDamageMax = 10;
         private const int reportBossDamageDelay = 5000;
@@ -58,6 +60,8 @@ namespace AutoSaliens.Bot
         public Zone ActiveZone { get; private set; }
 
         public DateTime ActiveZoneStartDate { get; private set; }
+
+        public Dictionary<string, DateTime> BlacklistedGames { get; private set; } = new Dictionary<string, DateTime>();
 
         public bool HasActivePlanet => this.ActivePlanet != null;
 
@@ -210,6 +214,7 @@ namespace AutoSaliens.Bot
             var zones = await FindMostWantedZones();
 
             // Join the first joinable zone
+            var joined = false;
             for (int i = 0; i < zones.Count; i++)
             {
                 try
@@ -218,17 +223,30 @@ namespace AutoSaliens.Bot
                         await this.JoinBossZone(zones[i].ZonePosition);
                     else
                         await this.JoinZone(zones[i].ZonePosition);
+                    joined = true;
                     break;
                 }
                 catch (SaliensApiException ex)
                 {
                     if (ex.EResult == EResult.Banned || zones[i].CaptureProgress == 0)
                     {
-                        // Assume the zone is unjoinable, go to the next one
+                        // Assume the zone is unjoinable, blacklist and go to the next one
+                        var end = DateTime.Now + this.blacklistGamesDuration;
+                        this.BlacklistedGames.Add(zones[i].GameId, end);
+                        this.Logger?.LogMessage($"{{zone}}Zone {zones[i].ZonePosition}{{action}} on {{planet}}planet {planets[0].Id}{{action}} has been blacklisted until {end.ToString("HH:mm:ss")}");
                         continue; 
                     }
                     throw;
                 }
+            }
+
+            if (!joined)
+            {
+                // We haven't joined a zone, blacklist and force another planet
+                var end = DateTime.Now + this.blacklistGamesDuration;
+                this.BlacklistedGames.Add(planets[0].Id, end);
+                this.Logger?.LogMessage($"{{planet}}Planet {planets[0].Id}{{action}} has been blacklisted until {end.ToString("HH:mm:ss")}");
+                await this.LeaveGame(planets[0].Id);
             }
         }
 
@@ -367,14 +385,19 @@ namespace AutoSaliens.Bot
                 mostWantedPlanets.AddRange(planets);
             }
 
-            return mostWantedPlanets;
+            // Filter out blacklisted games
+            return mostWantedPlanets
+                .Where(p => !(this.BlacklistedGames.ContainsKey(p.Id) && this.BlacklistedGames[p.Id] > DateTime.Now))
+                .ToList();
         }
 
         private async Task<List<Zone>> FindMostWantedZones()
         {
             var activeZones = (await SaliensApi.GetPlanetAsync(this.ActivePlanet.Id)).Zones.Where(z => !z.Captured);
 
+            // Filter out blacklisted games
             var zones = activeZones.OrderBy(p => 0);
+
             if (this.Strategy.HasFlag(BotStrategy.MostDifficultZonesFirst))
                 zones = zones.ThenByDescending(z => z.RealDifficulty);
             else if (this.Strategy.HasFlag(BotStrategy.LeastDifficultZonesFirst))
@@ -389,7 +412,10 @@ namespace AutoSaliens.Bot
             else if (this.Strategy.HasFlag(BotStrategy.BottomUp))
                 zones = zones.ThenByDescending(z => z.ZonePosition);
 
-            return zones.ToList();
+            // Filter out blacklisted games
+            return zones
+                .Where(z => !(this.BlacklistedGames.ContainsKey(z.GameId) && this.BlacklistedGames[z.GameId] > DateTime.Now))
+                .ToList();
         }
 
         private async Task WaitForActiveZoneToFinish()
