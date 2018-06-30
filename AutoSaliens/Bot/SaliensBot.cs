@@ -59,6 +59,8 @@ namespace AutoSaliens.Bot
 
         public DateTime ActiveZoneStartDate { get; private set; }
 
+        public HashSet<string> BannedGames { get; set; } = new HashSet<string>();
+
         public bool HasActivePlanet => this.ActivePlanet != null;
 
         public bool HasActiveZone => this.ActiveZone != null;
@@ -358,7 +360,7 @@ namespace AutoSaliens.Bot
         {
             var activeZones = (await SaliensApi.GetPlanetAsync(this.ActivePlanet.Id)).Zones.Where(z => !z.Captured);
 
-            var zones = activeZones.OrderBy(p => 0);
+            var zones = activeZones.Where(p => !this.BannedGames.Contains(p.GameId)).OrderBy(p => 0);
             if (this.Strategy.HasFlag(BotStrategy.MostDifficultZonesFirst))
                 zones = zones.ThenByDescending(z => z.RealDifficulty);
             else if (this.Strategy.HasFlag(BotStrategy.LeastDifficultZonesFirst))
@@ -557,6 +559,11 @@ namespace AutoSaliens.Bot
                             await Task.Delay(2000);
                             continue;
 
+                        case EResult.Banned:
+                            this.Logger?.LogMessage($"{{warn}}Failed to join zone: {ex.Message} - Blacklisting...");
+                            this.BannedGames.Add(this.ActivePlanet.Zones[zonePosition].GameId);
+                            break;
+
                         case EResult.Expired:
                         case EResult.NoMatch:
                         default:
@@ -612,6 +619,11 @@ namespace AutoSaliens.Bot
                             this.Logger?.LogMessage($"{{warn}}Failed to join boss zone: {ex.Message} - Giving it a few seconds ({i + 1}/5)...");
                             await Task.Delay(2000);
                             continue;
+
+                        case EResult.Banned:
+                            this.Logger?.LogMessage($"{{warn}}Failed to join boss zone: {ex.Message} - Blacklisting...");
+                            this.BannedGames.Add(this.ActivePlanet.Zones[zonePosition].GameId);
+                            break;
 
                         case EResult.Expired:
                         case EResult.NoMatch:
