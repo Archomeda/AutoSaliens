@@ -30,12 +30,9 @@ namespace AutoSaliens.Bot
 
         private readonly TimeSpan blacklistGamesDuration = TimeSpan.FromMinutes(6);
 
-        private const int reportBossDamageMin = 1;
-        private const int reportBossDamageMax = 10;
-        private const int reportBossDamageTakenMin = 0;
-        private const int reportBossDamageTakenMax = 10;
-        private const int reportBossDamageTakenDivision = 10; // This effectively makes it a 10% chance to take 1 damage
         private const int reportBossDamageDelay = 5000;
+        private const int reportBossDamageDealt = 1;
+        private const int reportBossDamageTakne = 0;
         private DateTime reportBossDamageHealUsed;
         private readonly TimeSpan reportBossDamageHealCooldown = TimeSpan.FromSeconds(120);
 
@@ -311,13 +308,6 @@ namespace AutoSaliens.Bot
                 this.pointsPerRound[Difficulty.High];
         }
 
-        private int GetRandomBossDamage() =>
-            new Random().Next(reportBossDamageMin, reportBossDamageMax);
-
-        private int GetRandomBossDamageTaken() =>
-            new Random().Next(reportBossDamageTakenMin, reportBossDamageTakenMax) / reportBossDamageTakenDivision;
-
-
         private async Task<List<Planet>> FindMostWantedPlanets()
         {
             var mostWantedPlanets = new List<Planet>();
@@ -462,12 +452,12 @@ namespace AutoSaliens.Bot
             BossLevelState bossState = BossLevelState.WaitingForPlayers;
             while (bossState != BossLevelState.GameOver)
             {
+                await Task.Delay(reportBossDamageDelay);
                 var useHeal = this.reportBossDamageHealUsed < DateTime.Now;
                 if (useHeal)
                     this.reportBossDamageHealUsed = DateTime.Now + this.reportBossDamageHealCooldown;
 
-                await this.ReportBossDamage(startLevel, startXp, useHeal, this.GetRandomBossDamage(), this.GetRandomBossDamageTaken());
-                await Task.Delay(reportBossDamageDelay);
+                await this.ReportBossDamage(startLevel, startXp, useHeal, reportBossDamageDealt, reportBossDamageTakne);
             }
 
             await this.GetPlayerInfo();
