@@ -21,8 +21,6 @@ namespace AutoSaliens.Presence
         private readonly Timer rpcReconnectTimer;
         private bool stopRequested = false;
 
-        private bool presenceStarted = false;
-
 
         public event EventHandler PresenceActivated;
         public event EventHandler PresenceDeactivated;
@@ -33,7 +31,7 @@ namespace AutoSaliens.Presence
             this.rpcReconnectTimer = new Timer(2 * 60 * 1000);
             this.rpcReconnectTimer.Elapsed += (e, a) =>
             {
-                if (!this.presenceStarted)
+                if (!this.HasPresenceStarted)
                     this.Start();
             };
         }
@@ -44,6 +42,8 @@ namespace AutoSaliens.Presence
             get => this.formatter;
             set => this.formatter = value ?? throw new ArgumentNullException(nameof(value));
         }
+
+        public virtual bool HasPresenceStarted { get; private set; }
 
         public virtual bool IsPresenceActive { get; private set; }
 
@@ -63,11 +63,11 @@ namespace AutoSaliens.Presence
 
         public virtual void Start()
         {
-            if (this.presenceStarted)
+            if (this.HasPresenceStarted)
                 return;
 
             this.stopRequested = false;
-            this.presenceStarted = true;
+            this.HasPresenceStarted = true;
 
             this.rpcClient = new DiscordRpcClient(clientId)
             {
@@ -88,7 +88,7 @@ namespace AutoSaliens.Presence
 
         public virtual void Stop()
         {
-            if (!this.presenceStarted)
+            if (!this.HasPresenceStarted)
                 return;
 
             this.rpcClient?.DequeueAll();
@@ -96,7 +96,7 @@ namespace AutoSaliens.Presence
             this.rpcClient = null;
             this.rpcReconnectTimer.Stop();
             this.stopRequested = true;
-            this.presenceStarted = false;
+            this.HasPresenceStarted = false;
             this.IsPresenceActive = false;
             this.PresenceDeactivated?.Invoke(this, null);
         }

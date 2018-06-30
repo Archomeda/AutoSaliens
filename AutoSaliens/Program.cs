@@ -106,13 +106,13 @@ namespace AutoSaliens
             switch (type)
             {
                 case PresenceActivationType.Disabled:
-                    if (!presence.IsPresenceActive)
+                    if (!presence.HasPresenceStarted)
                         break;
                     Logger?.LogMessage("{verb}Disabling Discord presence...");
                     presence.Stop();
                     break;
                 case PresenceActivationType.EnabledPresenceOnly:
-                    if (presence.IsPresenceActive)
+                    if (presence.HasPresenceStarted)
                         break;
                     Logger?.LogMessage("{verb}Initializing Discord presence separately...");
                     if (presence.UpdateTrigger == null)
@@ -123,7 +123,7 @@ namespace AutoSaliens
                     presence.Start();
                     break;
                 case PresenceActivationType.EnabledWithBot:
-                    if (presence.IsPresenceActive)
+                    if (presence.HasPresenceStarted)
                         break;
                     Logger?.LogMessage("{verb}Initializing Discord presence through bot...");
                     presence.UpdateTrigger = bot.PresenceUpdateTrigger;
