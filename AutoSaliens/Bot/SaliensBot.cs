@@ -457,7 +457,7 @@ namespace AutoSaliens.Bot
                 if (useHeal)
                     this.reportBossDamageHealUsed = DateTime.Now + this.reportBossDamageHealCooldown;
 
-                await this.ReportBossDamage(startLevel, startXp, useHeal, reportBossDamageDealt, reportBossDamageTakne);
+                bossState = await this.ReportBossDamage(startLevel, startXp, useHeal, reportBossDamageDealt, reportBossDamageTakne);
             }
 
             await this.GetPlayerInfo();
@@ -797,7 +797,7 @@ namespace AutoSaliens.Bot
                     var hpColor = MathUtils.ScaleColor(player.MaxHp - player.Hp, player.MaxHp, new[] { "{svlow}", "{slow}", "{smed}", "{shigh}", "{svhigh}" });
                     this.Logger?.LogMessage($"{playerColor}{(player.Name.Length > 16 ? player.Name.Substring(0, 16) : player.Name).PadLeft(16)}: " +
                         $"{hpColor}HP {player.Hp.ToString("#,##0").PadLeft(7)}/{player.MaxHp.ToString("#,##0").PadLeft(7)}{playerColor} - " +
-                        $"{player.XpEarned.ToString("#,##0").PadLeft(12)}/{(playerStartXp + player.XpEarned).ToString("#,##0").PadLeft(12)}");
+                        $"XP {player.XpEarned.ToString("#,##0").PadLeft(9)}/{(playerStartXp + player.XpEarned).ToString("#,##0").PadLeft(12)}");
                 }
                 return response.GameOver ? BossLevelState.GameOver : BossLevelState.Active;
             }
