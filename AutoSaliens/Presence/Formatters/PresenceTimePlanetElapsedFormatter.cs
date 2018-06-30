@@ -9,6 +9,15 @@ namespace AutoSaliens.Presence.Formatters
         protected override Timestamps FormatTimestamps(PlayerInfoResponse playerInfo, DiscordPresence presence)
         {
             bool hasActivePlanet = !string.IsNullOrWhiteSpace(playerInfo.ActivePlanet);
+            bool hasActiveBossZone = !string.IsNullOrWhiteSpace(playerInfo.ActiveBossGame);
+
+            if (hasActivePlanet && hasActiveBossZone)
+            {
+                return new Timestamps
+                {
+                    Start = (DateTime.Now - playerInfo.TimeInZone).ToUniversalTime()
+                };
+            }
 
             if (hasActivePlanet)
             {

@@ -19,13 +19,18 @@ namespace AutoSaliens.Presence.Formatters
         {
             bool hasActivePlanet = !string.IsNullOrWhiteSpace(playerInfo.ActivePlanet);
             bool hasActiveZone = !string.IsNullOrWhiteSpace(playerInfo.ActiveZonePosition);
+            bool hasActiveBossZone = !string.IsNullOrWhiteSpace(playerInfo.ActiveBossGame);
 
             var state = "Inactive";
-            if (hasActivePlanet && hasActiveZone)
+            if (hasActivePlanet && (hasActiveZone || hasActiveBossZone))
             {
-                state = $"Planet {playerInfo.ActivePlanet} - Zone {playerInfo.ActiveZonePosition}";
+                state = $"Planet {playerInfo.ActivePlanet} - ";
+                if (hasActiveZone)
+                    state += $"Zone {playerInfo.ActiveZonePosition}";
+                else if (hasActiveBossZone)
+                    state += $"Boss Zone";
                 var planet = SaliensApi.GetPlanet(playerInfo.ActivePlanet);
-                if (int.TryParse(playerInfo.ActiveZonePosition, out int zonePos))
+                if (hasActiveZone && int.TryParse(playerInfo.ActiveZonePosition, out int zonePos))
                 {
                     var zone = planet.Zones[zonePos];
                     if (zone != null)

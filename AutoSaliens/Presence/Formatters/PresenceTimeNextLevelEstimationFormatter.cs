@@ -17,6 +17,7 @@ namespace AutoSaliens.Presence.Formatters
         {
             bool hasActivePlanet = !string.IsNullOrWhiteSpace(playerInfo.ActivePlanet);
             bool hasActiveZone = !string.IsNullOrWhiteSpace(playerInfo.ActiveZonePosition);
+            bool hasActiveBossZone = !string.IsNullOrWhiteSpace(playerInfo.ActiveBossGame);
 
             Timestamps timestamps = null;
 
@@ -43,7 +44,7 @@ namespace AutoSaliens.Presence.Formatters
                 timestamps = new Timestamps { End = this.PredictedLevelUpDate.ToUniversalTime() };
 
             // Fallbacks
-            if (timestamps == null && hasActivePlanet && hasActiveZone)
+            if (timestamps == null && hasActivePlanet && (hasActiveZone || hasActiveBossZone))
                 timestamps = new Timestamps { Start = (DateTime.Now - playerInfo.TimeInZone).ToUniversalTime() };
 
             if (timestamps == null && hasActivePlanet)

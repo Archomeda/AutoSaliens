@@ -10,8 +10,9 @@ namespace AutoSaliens.Presence.Formatters
         {
             bool hasActivePlanet = !string.IsNullOrWhiteSpace(playerInfo.ActivePlanet);
             bool hasActiveZone = !string.IsNullOrWhiteSpace(playerInfo.ActiveZonePosition);
+            bool hasActiveBossZone = !string.IsNullOrWhiteSpace(playerInfo.ActiveBossGame);
 
-            if (hasActivePlanet && hasActiveZone)
+            if (hasActivePlanet && (hasActiveZone || hasActiveBossZone))
             {
                 return new Timestamps
                 {
