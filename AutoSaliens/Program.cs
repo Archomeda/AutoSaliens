@@ -168,7 +168,8 @@ namespace AutoSaliens
             if (!string.IsNullOrWhiteSpace(UpdateChecker.AppDate))
                 Shell.WriteLine($"Date: {{value}}{UpdateChecker.AppDate}", false);
             Shell.WriteLine("", false);
-            Shell.WriteLine("{warn}Hey there! If you're running the bot, please be advised that dealing with boss levels are experimental and untested.", false);
+            Shell.WriteLine("{warn}Hey there! If you're running the bot, please be advised that dealing with boss levels is experimental and untested.", false);
+            Shell.WriteLine("{warn}If either the bot and/or Discord presence is too unstable in this version, please revert to 1.0.103-stable.", false);
             Shell.WriteLine("{inf}This console is interactive, type {command}help{inf} to get the list of available commands.", false);
 
 
