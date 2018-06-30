@@ -144,8 +144,8 @@ namespace AutoSaliens.Api
         {
             if (forceLive || !cachedPlayerInfo.ContainsKey(accessToken) || cachedPlayerInfo[accessToken].Expires < DateTime.Now)
             {
-                var uri = new Uri(GetPlayerInfoUrl + $"?access_token={accessToken}");
-                UpdatePlayerInfo(accessToken, PostJson<ApiResponse<PlayerInfoResponse>>(uri));
+                var uri = new Uri(GetPlayerInfoUrl);
+                UpdatePlayerInfo(accessToken, PostJson<ApiResponse<PlayerInfoResponse>>(uri, $"access_token={accessToken}"));
             }
             return cachedPlayerInfo[accessToken].Item;
         }
@@ -154,8 +154,8 @@ namespace AutoSaliens.Api
         {
             if (forceLive || !cachedPlayerInfo.ContainsKey(accessToken) || cachedPlayerInfo[accessToken].Expires < DateTime.Now)
             {
-                var uri = new Uri(GetPlayerInfoUrl + $"?access_token={accessToken}");
-                UpdatePlayerInfo(accessToken, await PostJsonAsync<ApiResponse<PlayerInfoResponse>>(uri));
+                var uri = new Uri(GetPlayerInfoUrl);
+                UpdatePlayerInfo(accessToken, await PostJsonAsync<ApiResponse<PlayerInfoResponse>>(uri, $"access_token={accessToken}"));
             }
             return cachedPlayerInfo[accessToken].Item;
         }
@@ -169,27 +169,27 @@ namespace AutoSaliens.Api
 
         public static void JoinPlanet(string accessToken, string planetId)
         {
-            var uri = new Uri(JoinPlanetUrl + $"?access_token={accessToken}&id={planetId}");
-            PostJson<ApiResponse<object>>(uri);
+            var uri = new Uri(JoinPlanetUrl);
+            PostJson<ApiResponse<object>>(uri, $"access_token={accessToken}&id={planetId}");
         }
 
         public static async Task JoinPlanetAsync(string accessToken, string planetId)
         {
-            var uri = new Uri(JoinPlanetUrl + $"?access_token={accessToken}&id={planetId}");
-            await PostJsonAsync<ApiResponse<object>>(uri);
+            var uri = new Uri(JoinPlanetUrl);
+            await PostJsonAsync<ApiResponse<object>>(uri, $"access_token={accessToken}&id={planetId}");
         }
 
 
         public static Zone JoinZone(string accessToken, int zonePosition)
         {
-            var uri = new Uri(JoinZoneUrl + $"?access_token={accessToken}&zone_position={zonePosition}");
-            return ParseJoinZone(PostJson<ApiResponse<JoinZoneResponse>>(uri));
+            var uri = new Uri(JoinZoneUrl);
+            return ParseJoinZone(PostJson<ApiResponse<JoinZoneResponse>>(uri, $"access_token={accessToken}&zone_position={zonePosition}"));
         }
 
         public static async Task<Zone> JoinZoneAsync(string accessToken, int zonePosition)
         {
-            var uri = new Uri(JoinZoneUrl + $"?access_token={accessToken}&zone_position={zonePosition}");
-            return ParseJoinZone(await PostJsonAsync<ApiResponse<JoinZoneResponse>>(uri));
+            var uri = new Uri(JoinZoneUrl);
+            return ParseJoinZone(await PostJsonAsync<ApiResponse<JoinZoneResponse>>(uri, $"access_token={accessToken}&zone_position={zonePosition}"));
         }
 
         private static Zone ParseJoinZone(ApiResponse<JoinZoneResponse> response)
@@ -200,14 +200,14 @@ namespace AutoSaliens.Api
 
         public static JoinBossZoneResponse JoinBossZone(string accessToken, int zonePosition)
         {
-            var uri = new Uri(JoinBossZoneUrl + $"?access_token={accessToken}&zone_position={zonePosition}");
-            return ParseJoinBossZone(PostJson<ApiResponse<JoinBossZoneResponse>>(uri));
+            var uri = new Uri(JoinBossZoneUrl);
+            return ParseJoinBossZone(PostJson<ApiResponse<JoinBossZoneResponse>>(uri, $"access_token={accessToken}&zone_position={zonePosition}"));
         }
 
         public static async Task<JoinBossZoneResponse> JoinBossZoneAsync(string accessToken, int zonePosition)
         {
-            var uri = new Uri(JoinBossZoneUrl + $"?access_token={accessToken}&zone_position={zonePosition}");
-            return ParseJoinBossZone(await PostJsonAsync<ApiResponse<JoinBossZoneResponse>>(uri));
+            var uri = new Uri(JoinBossZoneUrl);
+            return ParseJoinBossZone(await PostJsonAsync<ApiResponse<JoinBossZoneResponse>>(uri, $"access_token={accessToken}&zone_position={zonePosition}"));
         }
 
         private static JoinBossZoneResponse ParseJoinBossZone(ApiResponse<JoinBossZoneResponse> response)
@@ -218,14 +218,14 @@ namespace AutoSaliens.Api
 
         public static ReportScoreResponse ReportScore(string accessToken, int score)
         {
-            var uri = new Uri(ReportScoreUrl + $"?access_token={accessToken}&score={score}");
-            return ParseReportScore(PostJson<ApiResponse<ReportScoreResponse>>(uri));
+            var uri = new Uri(ReportScoreUrl);
+            return ParseReportScore(PostJson<ApiResponse<ReportScoreResponse>>(uri, $"access_token={accessToken}&score={score}"));
         }
 
         public static async Task<ReportScoreResponse> ReportScoreAsync(string accessToken, int score)
         {
-            var uri = new Uri(ReportScoreUrl + $"?access_token={accessToken}&score={score}");
-            return ParseReportScore(await PostJsonAsync<ApiResponse<ReportScoreResponse>>(uri));
+            var uri = new Uri(ReportScoreUrl);
+            return ParseReportScore(await PostJsonAsync<ApiResponse<ReportScoreResponse>>(uri, $"access_token={accessToken}&score={score}"));
         }
 
         private static ReportScoreResponse ParseReportScore(ApiResponse<ReportScoreResponse> response)
@@ -236,14 +236,16 @@ namespace AutoSaliens.Api
 
         public static ReportBossDamageResponse ReportBossDamage(string accessToken, bool useHealAbility, int damageToBoss, int damageTaken)
         {
-            var uri = new Uri(ReportBossDamageUrl + $"?access_token={accessToken}&use_heal_ability={(useHealAbility ? "1" : "0")}&damage_to_boss={damageToBoss}&damage_taken={damageTaken}");
-            return ParseReportBossDamage(PostJson<ApiResponse<ReportBossDamageResponse>>(uri));
+            var uri = new Uri(ReportBossDamageUrl);
+            return ParseReportBossDamage(PostJson<ApiResponse<ReportBossDamageResponse>>(uri,
+                $"access_token={accessToken}&use_heal_ability={(useHealAbility ? "1" : "0")}&damage_to_boss={damageToBoss}&damage_taken={damageTaken}"));
         }
 
         public static async Task<ReportBossDamageResponse> ReportBossDamageAsync(string accessToken, bool useHealAbility, int damageToBoss, int damageTaken)
         {
-            var uri = new Uri(ReportScoreUrl + $"?access_token={accessToken}&use_heal_ability={(useHealAbility ? "1" : "0")}&damage_to_boss={damageToBoss}&damage_taken={damageTaken}");
-            return ParseReportBossDamage(await PostJsonAsync<ApiResponse<ReportBossDamageResponse>>(uri));
+            var uri = new Uri(ReportScoreUrl);
+            return ParseReportBossDamage(await PostJsonAsync<ApiResponse<ReportBossDamageResponse>>(uri,
+                $"access_token={accessToken}&use_heal_ability={(useHealAbility ? "1" : "0")}&damage_to_boss={damageToBoss}&damage_taken={damageTaken}"));
         }
 
         private static ReportBossDamageResponse ParseReportBossDamage(ApiResponse<ReportBossDamageResponse> response)
@@ -254,14 +256,14 @@ namespace AutoSaliens.Api
 
         public static void LeaveGame(string accessToken, string gameId)
         {
-            var uri = new Uri(LeaveGameUrl + $"?access_token={accessToken}&gameid={gameId}");
-            PostJson<ApiResponse<object>>(uri);
+            var uri = new Uri(LeaveGameUrl);
+            PostJson<ApiResponse<object>>(uri, $"access_token={accessToken}&gameid={gameId}");
         }
 
         public static async Task LeaveGameAsync(string accessToken, string gameId)
         {
-            var uri = new Uri(LeaveGameUrl + $"?access_token={accessToken}&gameid={gameId}");
-            await PostJsonAsync<ApiResponse<object>>(uri);
+            var uri = new Uri(LeaveGameUrl);
+            await PostJsonAsync<ApiResponse<object>>(uri, $"access_token={accessToken}&gameid={gameId}");
         }
 
         #endregion
@@ -272,19 +274,22 @@ namespace AutoSaliens.Api
 
         private static Task<T> GetJsonAsync<T>(Uri uri) => DoRequestAsync<T>(uri);
 
-        private static T PostJson<T>(Uri uri) => DoRequest<T>(uri, true);
+        private static T PostJson<T>(Uri uri, string data) => DoRequest<T>(uri, data);
 
-        private static Task<T> PostJsonAsync<T>(Uri uri) => DoRequestAsync<T>(uri, true);
+        private static Task<T> PostJsonAsync<T>(Uri uri, string data) => DoRequestAsync<T>(uri, data);
 
-        private static T DoRequest<T>(Uri uri, bool isPost = false)
+        private static T DoRequest<T>(Uri uri, string data = null)
         {
+            var isPost = data != null;
             using (var webClient = new WebClient())
             {
                 webClient.Headers.Add("User-Agent", "AutoSaliens/1.0 (https://github.com/Archomeda/AutoAliens)");
+                if (isPost)
+                    webClient.Headers.Add("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8");
 #if DEBUG
                 Program.Logger.LogMessage($"{{verb}}{(isPost ? "[POST]" : "[GET]")} {uri}");
 #endif
-                var json = isPost ? webClient.UploadString(uri, "") : webClient.DownloadString(uri);
+                var json = isPost ? webClient.UploadString(uri, data) : webClient.DownloadString(uri);
                 var eResult = webClient.ResponseHeaders["x-eresult"].ToString();
 #if DEBUG
                 Program.Logger.LogMessage($"{{verb}}EResult: {eResult}");
@@ -301,15 +306,18 @@ namespace AutoSaliens.Api
             }
         }
 
-        private static async Task<T> DoRequestAsync<T>(Uri uri, bool isPost = false)
+        private static async Task<T> DoRequestAsync<T>(Uri uri, string data = null)
         {
+            var isPost = data != null;
             using (var webClient = new WebClient())
             {
                 webClient.Headers.Add("User-Agent", "AutoSaliens/1.1 (https://github.com/Archomeda/AutoAliens)");
+                if (isPost)
+                    webClient.Headers.Add("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8");
 #if DEBUG
                 Program.Logger.LogMessage($"{{verb}}{(isPost ? "[POST]" : "[GET]")} {uri}");
 #endif
-                var json = isPost ? await webClient.UploadStringTaskAsync(uri, "") : await webClient.DownloadStringTaskAsync(uri);
+                var json = isPost ? await webClient.UploadStringTaskAsync(uri, data) : await webClient.DownloadStringTaskAsync(uri);
                 var eResult = webClient.ResponseHeaders["x-eresult"].ToString();
 #if DEBUG
                 Program.Logger.LogMessage($"{{verb}}EResult: {eResult}");
