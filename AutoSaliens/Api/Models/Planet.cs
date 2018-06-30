@@ -18,17 +18,17 @@ namespace AutoSaliens.Api.Models
         public List<Zone> Zones { get; set; }
 
 
-        public Difficulty MaxFreeZonesDifficulty =>
-            this.Zones?.Where(z => !z.Captured).Max(z => z.Difficulty) ?? Difficulty.Low;
+        public RealDifficulty MaxFreeZonesDifficulty =>
+            this.Zones?.Where(z => !z.Captured).Max(z => z.RealDifficulty) ?? RealDifficulty.Low;
 
         public double WeightedAverageFreeZonesDifficulty
         {
             get
             {
                 var zones = this.Zones?.Where(z => !z.Captured);
-                if (zones?.All(z => z.Difficulty == zones?.FirstOrDefault()?.Difficulty) == true)
-                    return (int)zones.First().Difficulty;
-                return zones?.Average(z => (int)z.Difficulty * (1 - z.CaptureProgress)) ?? 1;
+                if (zones?.All(z => z.RealDifficulty == zones?.FirstOrDefault()?.RealDifficulty) == true)
+                    return (int)zones.First().RealDifficulty;
+                return zones?.Average(z => (int)z.RealDifficulty * (1 - z.CaptureProgress)) ?? 1;
             }
         }
 

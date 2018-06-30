@@ -19,11 +19,15 @@ namespace AutoSaliens.Api.Models
 
         public Difficulty Difficulty { get; set; }
 
+        public RealDifficulty RealDifficulty => this.BossActive ? RealDifficulty.Boss : (RealDifficulty)this.Difficulty;
+
         public bool Captured { get; set; }
 
         public double CaptureProgress { get; set; }
 
         public List<ClanInfo> TopClans { get; set; }
+
+        public bool BossActive { get; set; }
 
         public string ToConsoleLine()
         {

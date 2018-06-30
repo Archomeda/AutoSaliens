@@ -33,6 +33,11 @@ namespace AutoSaliens.Bot
         InZoneEnd,
 
         /// <summary>
+        /// In a boss zone.
+        /// </summary>
+        InBossZone,
+
+        /// <summary>
         /// Forced to leave zone.
         /// </summary>
         ForcedZoneLeave

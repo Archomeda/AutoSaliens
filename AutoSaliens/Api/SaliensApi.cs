@@ -17,8 +17,10 @@ namespace AutoSaliens.Api
         private const string GetPlayerInfoUrl = BaseUrl + "ITerritoryControlMinigameService/GetPlayerInfo/v0001";
         private const string JoinPlanetUrl = BaseUrl + "ITerritoryControlMinigameService/JoinPlanet/v0001";
         private const string JoinZoneUrl = BaseUrl + "ITerritoryControlMinigameService/JoinZone/v0001";
-        private const string RepresentClanUrl = BaseUrl + "ITerritoryCOntrolMinigameService/RepresentClan/v0001";
-        private const string ReportScoreUrl = BaseUrl + "ITerritoryCOntrolMinigameService/ReportScore/v0001";
+        private const string JoinBossZoneUrl = BaseUrl + "ITerritoryControlMinigameService/JoinBossZone/v0001";
+        private const string RepresentClanUrl = BaseUrl + "ITerritoryControlMinigameService/RepresentClan/v0001";
+        private const string ReportScoreUrl = BaseUrl + "ITerritoryControlMinigameService/ReportScore/v0001";
+        private const string ReportBossDamageUrl = BaseUrl + "ITerritoryControlMinigameService/ReportBossDamage/v0001";
         private const string LeaveGameUrl = BaseUrl + "IMiniGameService/LeaveGame/v0001";
 
         private static readonly TimeSpan planetCacheDuration = TimeSpan.FromMinutes(1);
@@ -196,6 +198,24 @@ namespace AutoSaliens.Api
         }
 
 
+        public static JoinBossZoneResponse JoinBossZone(string accessToken, int zonePosition)
+        {
+            var uri = new Uri(JoinBossZoneUrl + $"?access_token={accessToken}&zone_position={zonePosition}");
+            return ParseJoinBossZone(PostJson<ApiResponse<JoinBossZoneResponse>>(uri));
+        }
+
+        public static async Task<JoinBossZoneResponse> JoinBossZoneAsync(string accessToken, int zonePosition)
+        {
+            var uri = new Uri(JoinBossZoneUrl + $"?access_token={accessToken}&zone_position={zonePosition}");
+            return ParseJoinBossZone(await PostJsonAsync<ApiResponse<JoinBossZoneResponse>>(uri));
+        }
+
+        private static JoinBossZoneResponse ParseJoinBossZone(ApiResponse<JoinBossZoneResponse> response)
+        {
+            return response?.Response ?? throw new SaliensApiException();
+        }
+
+
         public static ReportScoreResponse ReportScore(string accessToken, int score)
         {
             var uri = new Uri(ReportScoreUrl + $"?access_token={accessToken}&score={score}");
@@ -209,6 +229,24 @@ namespace AutoSaliens.Api
         }
 
         private static ReportScoreResponse ParseReportScore(ApiResponse<ReportScoreResponse> response)
+        {
+            return response?.Response ?? throw new SaliensApiException();
+        }
+
+
+        public static ReportBossDamageResponse ReportBossDamage(string accessToken, bool useHealAbility, int damageToBoss, int damageTaken)
+        {
+            var uri = new Uri(ReportBossDamageUrl + $"?access_token={accessToken}&use_heal_ability={(useHealAbility ? "1" : "0")}&damage_to_boss={damageToBoss}&damage_taken={damageTaken}");
+            return ParseReportBossDamage(PostJson<ApiResponse<ReportBossDamageResponse>>(uri));
+        }
+
+        public static async Task<ReportBossDamageResponse> ReportBossDamageAsync(string accessToken, bool useHealAbility, int damageToBoss, int damageTaken)
+        {
+            var uri = new Uri(ReportScoreUrl + $"?access_token={accessToken}&use_heal_ability={(useHealAbility ? "1" : "0")}&damage_to_boss={damageToBoss}&damage_taken={damageTaken}");
+            return ParseReportBossDamage(await PostJsonAsync<ApiResponse<ReportBossDamageResponse>>(uri));
+        }
+
+        private static ReportBossDamageResponse ParseReportBossDamage(ApiResponse<ReportBossDamageResponse> response)
         {
             return response?.Response ?? throw new SaliensApiException();
         }

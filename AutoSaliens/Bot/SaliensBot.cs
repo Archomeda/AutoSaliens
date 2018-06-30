@@ -26,8 +26,13 @@ namespace AutoSaliens.Bot
         private CancellationTokenSource cancelSource;
         private bool botStarted = false;
         private TimeSpan reportScoreNetworkDelay;
-        private readonly double reportScoreNetworkDelayTolerance = 0.4;
+        private const double reportScoreNetworkDelayTolerance = 0.4;
 
+        private const int reportBossDamageMin = 1;
+        private const int reportBossDamageMax = 10;
+        private const int reportBossDamageDelay = 5000;
+        private DateTime reportBossDamageHealUsed;
+        private readonly TimeSpan reportBossDamageHealCooldown = TimeSpan.FromSeconds(120);
 
         public event EventHandler BotActivated;
         public event EventHandler BotDeactivated;
@@ -124,6 +129,10 @@ namespace AutoSaliens.Bot
                             await this.DoInZoneEnd();
                             break;
 
+                        case BotState.InBossZone:
+                            await this.DoInBossZone();
+                            break;
+
                         case BotState.ForcedZoneLeave:
                             await this.DoForcedZoneLeave();
                             break;
@@ -201,7 +210,10 @@ namespace AutoSaliens.Bot
             var zones = await FindMostWantedZones();
 
             // Join the first zone
-            await this.JoinZone(zones[0].ZonePosition);
+            if (zones[0].RealDifficulty == RealDifficulty.Boss)
+                await this.JoinBossZone(zones[0].ZonePosition);
+            else
+                await this.JoinZone(zones[0].ZonePosition);
         }
 
         private async Task DoInZone()
@@ -210,6 +222,14 @@ namespace AutoSaliens.Bot
 
             // We have to wait until time runs out
             await this.WaitForActiveZoneToFinish();
+        }
+
+        private async Task DoInBossZone()
+        {
+            // We are in a boss zone
+
+            // We have to do stuff until time runs out
+            await this.PlayBossZoneUntilFinish();
         }
 
         private async Task DoInZoneEnd()
@@ -340,9 +360,9 @@ namespace AutoSaliens.Bot
 
             var zones = activeZones.OrderBy(p => 0);
             if (this.Strategy.HasFlag(BotStrategy.MostDifficultZonesFirst))
-                zones = zones.ThenByDescending(z => z.Difficulty);
+                zones = zones.ThenByDescending(z => z.RealDifficulty);
             else if (this.Strategy.HasFlag(BotStrategy.LeastDifficultZonesFirst))
-                zones = zones.ThenBy(z => z.Difficulty);
+                zones = zones.ThenBy(z => z.RealDifficulty);
             if (this.Strategy.HasFlag(BotStrategy.MostCompletedZonesFirst))
                 zones = zones.ThenByDescending(z => z.CaptureProgress);
             else if (this.Strategy.HasFlag(BotStrategy.LeastCompletedZonesFirst))
@@ -360,7 +380,7 @@ namespace AutoSaliens.Bot
         {
             var targetTime = this.ActiveZoneStartDate + TimeSpan.FromSeconds(this.GameTime);
             if (this.EnableNetworkTolerance)
-                targetTime -= TimeSpan.FromMilliseconds(this.reportScoreNetworkDelay.TotalMilliseconds * (1 - this.reportScoreNetworkDelayTolerance));
+                targetTime -= TimeSpan.FromMilliseconds(this.reportScoreNetworkDelay.TotalMilliseconds * (1 - reportScoreNetworkDelayTolerance));
 
             var timeLeft = targetTime - DateTime.Now;
             if (timeLeft.TotalSeconds > 0)
@@ -379,6 +399,28 @@ namespace AutoSaliens.Bot
 
             // States
             this.State = BotState.InZoneEnd;
+        }
+
+        private async Task PlayBossZoneUntilFinish()
+        {
+            var startLevel = this.PlayerInfo.Level;
+            var startXp = this.PlayerInfo.Score;
+
+            // Loop until the boss is dead
+            BossLevelState bossState = BossLevelState.WaitingForPlayers;
+            while (bossState != BossLevelState.GameOver)
+            {
+                var useHeal = this.reportBossDamageHealUsed < DateTime.Now;
+                if (useHeal)
+                    this.reportBossDamageHealUsed = DateTime.Now + this.reportBossDamageHealCooldown;
+                var damage = new Random().Next(reportBossDamageMin, reportBossDamageMax);
+
+                await this.ReportBossDamage(useHeal, damage, 0);
+                await Task.Delay(reportBossDamageDelay);
+            }
+
+            // States
+            this.State = BotState.OnPlanet;
         }
 
 
@@ -444,11 +486,8 @@ namespace AutoSaliens.Bot
 
                         case EResult.Expired:
                         case EResult.NoMatch:
-                            this.Logger?.LogMessage($"{{warn}}Failed to join planet: {ex.Message}");
-                            ResetState();
-                            throw;
-
                         default:
+                            this.Logger?.LogMessage($"{{warn}}Failed to join planet: {ex.Message}");
                             ResetState();
                             throw;
                     }
@@ -467,13 +506,6 @@ namespace AutoSaliens.Bot
             {
                 this.State = BotState.Idle;
             }
-        }
-
-        private Task JoinZone(string zonePosition)
-        {
-            if (!int.TryParse(zonePosition, out int zonePositionInt))
-                throw new ArgumentException("Not an integer", nameof(zonePosition));
-            return this.JoinZone(zonePositionInt);
         }
 
         private async Task JoinZone(int zonePosition)
@@ -527,11 +559,8 @@ namespace AutoSaliens.Bot
 
                         case EResult.Expired:
                         case EResult.NoMatch:
-                            this.Logger?.LogMessage($"{{warn}}Failed to join zone: {ex.Message}");
-                            ResetState();
-                            throw;
-
                         default:
+                            this.Logger?.LogMessage($"{{warn}}Failed to join zone: {ex.Message}");
                             ResetState();
                             throw;
                     }
@@ -539,6 +568,62 @@ namespace AutoSaliens.Bot
                 catch (WebException ex)
                 {
                     this.Logger?.LogMessage($"{{warn}}Failed to join zone: {ex.Message} - Giving it a few seconds ({i + 1}/5)...");
+                    await Task.Delay(2000);
+                    continue;
+                }
+            }
+
+            // States, only set when failed
+            ResetState();
+            void ResetState()
+            {
+                this.State = BotState.OnPlanet;
+            }
+        }
+
+        private async Task JoinBossZone(int zonePosition)
+        {
+            for (int i = 0; i < 5; i++)
+            {
+                try
+                {
+                    this.Logger?.LogMessage($"{{action}}Joining {{zone}}BOSS zone {zonePosition}{{action}}...");
+                    await SaliensApi.JoinBossZoneAsync(this.Token, zonePosition);
+
+                    // States
+                    this.ActiveZone = this.ActivePlanet.Zones[zonePosition];
+                    this.ActiveZoneStartDate = DateTime.Now;
+                    this.PlayerInfo.ActiveZoneGame = this.ActiveZone.GameId;
+                    this.PlayerInfo.ActiveZonePosition = zonePosition.ToString();
+                    this.PlayerInfo.TimeInZone = TimeSpan.FromSeconds(0);
+                    this.State = BotState.InBossZone;
+
+                    this.PresenceUpdateTrigger.SetSaliensPlayerState(this.PlayerInfo);
+
+                    return;
+                }
+                catch (SaliensApiException ex)
+                {
+                    switch (ex.EResult)
+                    {
+                        case EResult.Fail:
+                        case EResult.Busy:
+                        case EResult.RateLimitExceeded:
+                            this.Logger?.LogMessage($"{{warn}}Failed to join boss zone: {ex.Message} - Giving it a few seconds ({i + 1}/5)...");
+                            await Task.Delay(2000);
+                            continue;
+
+                        case EResult.Expired:
+                        case EResult.NoMatch:
+                        default:
+                            this.Logger?.LogMessage($"{{warn}}Failed to join boss zone: {ex.Message}");
+                            ResetState();
+                            throw;
+                    }
+                }
+                catch (WebException ex)
+                {
+                    this.Logger?.LogMessage($"{{warn}}Failed to join boss zone: {ex.Message} - Giving it a few seconds ({i + 1}/5)...");
                     await Task.Delay(2000);
                     continue;
                 }
@@ -605,11 +690,8 @@ namespace AutoSaliens.Bot
 
                         case EResult.Expired:
                         case EResult.NoMatch:
-                            this.Logger?.LogMessage($"{{warn}}Failed to submit score: {ex.Message}");
-                            ResetState();
-                            throw;
-
                         default:
+                            this.Logger?.LogMessage($"{{warn}}Failed to submit score: {ex.Message}");
                             ResetState();
                             throw;
                     }
@@ -631,6 +713,57 @@ namespace AutoSaliens.Bot
                 this.PlayerInfo.ActiveZonePosition = null;
                 this.State = BotState.ForcedZoneLeave;
             }
+        }
+
+        public async Task<BossLevelState> ReportBossDamage(bool useHealAbility, int damageToBoss, int damageTaken)
+        {
+            try
+            {
+                this.Logger?.LogMessage($"{{action}}Reporting boss damage {{value}}{damageToBoss.ToString("#,##0")}{{action}}...");
+                var response = await SaliensApi.ReportBossDamageAsync(this.Token, useHealAbility, damageToBoss, damageTaken);
+
+                if (response.BossStatus == null)
+                    return BossLevelState.WaitingForPlayers;
+
+                this.Logger?.LogMessage($"Boss HP: {response.BossStatus.BossHp.ToString("#,##0")}/{response.BossStatus.BossMaxHp.ToString("#,##0")}");
+                foreach (var player in response.BossStatus.BossPlayers.OrderBy(p => p.Name))
+                {
+                    long.TryParse(player.ScoreOnJoin, out long oldScore);
+                    this.Logger?.LogMessage($"Player {player.Name} - " +
+                        $"HP: {player.Hp.ToString("#,##0")}/{player.MaxHp.ToString("#,##0")} - " +
+                        $"Score: {player.XpEarned.ToString("#,##0")} - " +
+                        $"XP: {(oldScore + player.XpEarned).ToString("#,##0")}");
+                }
+                return response.GameOver ? BossLevelState.GameOver : BossLevelState.Active;
+            }
+            catch (SaliensApiException ex)
+            {
+                switch (ex.EResult)
+                {
+                    case EResult.Expired:
+                    case EResult.NoMatch:
+                    default:
+                        this.Logger?.LogMessage($"{{warn}}Failed to report boss damage: {ex.Message}");
+                        ResetState();
+                        throw;
+                }
+            }
+            catch (WebException)
+            {
+                //TODO
+            }
+
+            // States, only set when failed
+            ResetState();
+            void ResetState()
+            {
+                this.ActiveZone = null;
+                this.PlayerInfo.ActiveZoneGame = null;
+                this.PlayerInfo.ActiveZonePosition = null;
+                this.State = BotState.ForcedZoneLeave;
+            }
+
+            return BossLevelState.Active;
         }
 
         private async Task LeaveGame(string gameId)
@@ -679,11 +812,8 @@ namespace AutoSaliens.Bot
 
                         case EResult.Expired:
                         case EResult.NoMatch:
-                            this.Logger?.LogMessage($"{{warn}}Failed to join planet: {ex.Message}");
-                            ResetState();
-                            throw;
-
                         default:
+                            this.Logger?.LogMessage($"{{warn}}Failed to join planet: {ex.Message}");
                             ResetState();
                             throw;
                     }

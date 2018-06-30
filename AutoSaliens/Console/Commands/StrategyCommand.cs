@@ -40,7 +40,7 @@ namespace AutoSaliens.Console.Commands
                             BotStrategy.MostDifficultPlanetsFirst |
                             BotStrategy.MostCompletedPlanetsFirst |
                             BotStrategy.MostDifficultZonesFirst |
-                            BotStrategy.MostCompletedZonesFirst |
+                            BotStrategy.LeastCompletedZonesFirst |
                             BotStrategy.TopDown;
                     Program.Settings.Strategy.Value = strategy;
                     this.Logger?.LogCommandOutput("Your strategy has been saved.");
