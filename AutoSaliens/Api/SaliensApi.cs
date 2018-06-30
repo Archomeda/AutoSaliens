@@ -243,7 +243,7 @@ namespace AutoSaliens.Api
 
         public static async Task<ReportBossDamageResponse> ReportBossDamageAsync(string accessToken, bool useHealAbility, int damageToBoss, int damageTaken)
         {
-            var uri = new Uri(ReportScoreUrl);
+            var uri = new Uri(ReportBossDamageUrl);
             return ParseReportBossDamage(await PostJsonAsync<ApiResponse<ReportBossDamageResponse>>(uri,
                 $"access_token={accessToken}&use_heal_ability={(useHealAbility ? "1" : "0")}&damage_to_boss={damageToBoss}&damage_taken={damageTaken}"));
         }

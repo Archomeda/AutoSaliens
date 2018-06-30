@@ -12,7 +12,9 @@ namespace AutoSaliens.Utils
                 return colors.Last();
 
             var scale = (colors.Count - 1) * value / maxValue;
-            return colors[(int)Math.Ceiling(scale)];
+            var index = (int)Math.Ceiling(scale);
+            index = index < 0 ? 0 : index >= colors.Count ? colors.Count - 1 : index;
+            return colors[index];
         }
     }
 }

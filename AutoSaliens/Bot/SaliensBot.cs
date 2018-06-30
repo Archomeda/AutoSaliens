@@ -481,8 +481,9 @@ namespace AutoSaliens.Bot
 
             var hasActivePlanet = !string.IsNullOrWhiteSpace(this.PlayerInfo.ActivePlanet);
             var hasActiveZone = !string.IsNullOrWhiteSpace(this.PlayerInfo.ActiveZonePosition);
+            var hasActiveBossZone = !string.IsNullOrWhiteSpace(this.PlayerInfo.ActiveBossGame);
             Planet activePlanet = null;
-            if (hasActivePlanet || hasActiveZone)
+            if (hasActivePlanet || hasActiveZone || hasActiveBossZone)
                 activePlanet = await SaliensApi.GetPlanetAsync(this.PlayerInfo.ActivePlanet, forceLive);
 
             if (hasActivePlanet)
@@ -496,6 +497,13 @@ namespace AutoSaliens.Bot
                 this.ActiveZone = activePlanet.Zones[zonePosition];
                 this.ActiveZoneStartDate = DateTime.Now - this.PlayerInfo.TimeInZone;
                 this.State = BotState.InZone;
+            }
+
+            if (hasActiveBossZone)
+            {
+                this.ActiveZone = activePlanet.Zones.FirstOrDefault(z => z.GameId == this.PlayerInfo.ActiveBossGame);
+                this.ActiveZoneStartDate = DateTime.Now - this.PlayerInfo.TimeInZone;
+                this.State = BotState.InBossZone;
             }
 
             this.PresenceUpdateTrigger.SetSaliensPlayerState(this.PlayerInfo);
@@ -785,9 +793,9 @@ namespace AutoSaliens.Bot
                     var playerStartLevel = player.LevelOnJoin;
                     long.TryParse(player.ScoreOnJoin, out long playerStartXp);
 
-                    var playerColor = playerStartLevel == startLevel && playerStartXp == startXp ? "{{player}}" : "{{reset}}";
+                    var playerColor = playerStartLevel == startLevel && playerStartXp == startXp ? "{player}" : "{reset}";
                     var hpColor = MathUtils.ScaleColor(player.MaxHp - player.Hp, player.MaxHp, new[] { "{svlow}", "{slow}", "{smed}", "{shigh}", "{svhigh}" });
-                    this.Logger?.LogMessage($"{playerColor}{player.Name.Substring(0, 16).PadLeft(16)}: " +
+                    this.Logger?.LogMessage($"{playerColor}{(player.Name.Length > 16 ? player.Name.Substring(0, 16) : player.Name).PadLeft(16)}: " +
                         $"{hpColor}HP {player.Hp.ToString("#,##0").PadLeft(7)}/{player.MaxHp.ToString("#,##0").PadLeft(7)}{playerColor} - " +
                         $"{player.XpEarned.ToString("#,##0").PadLeft(12)}/{(playerStartXp + player.XpEarned).ToString("#,##0").PadLeft(12)}");
                 }
@@ -870,7 +878,7 @@ namespace AutoSaliens.Bot
                         case EResult.Expired:
                         case EResult.NoMatch:
                         default:
-                            this.Logger?.LogMessage($"{{warn}}Failed to join planet: {ex.Message}");
+                            this.Logger?.LogMessage($"{{warn}}Failed to leave game: {ex.Message}");
                             ResetState();
                             throw;
                     }

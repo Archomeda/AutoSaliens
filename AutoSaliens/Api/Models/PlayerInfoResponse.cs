@@ -8,6 +8,8 @@ namespace AutoSaliens.Api.Models
     {
         public string ActivePlanet { get; set; }
 
+        public string ActiveBossGame { get; set; }
+
         public string ActiveZoneGame { get; set; }
 
         public string ActiveZonePosition { get; set; }
