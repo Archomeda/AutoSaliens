@@ -32,6 +32,9 @@ namespace AutoSaliens.Bot
 
         private const int reportBossDamageMin = 1;
         private const int reportBossDamageMax = 10;
+        private const int reportBossDamageTakenMin = 0;
+        private const int reportBossDamageTakenMax = 10;
+        private const int reportBossDamageTakenDivision = 10; // This effectively makes it a 10% chance to take 1 damage
         private const int reportBossDamageDelay = 5000;
         private DateTime reportBossDamageHealUsed;
         private readonly TimeSpan reportBossDamageHealCooldown = TimeSpan.FromSeconds(120);
@@ -308,6 +311,13 @@ namespace AutoSaliens.Bot
                 this.pointsPerRound[Difficulty.High];
         }
 
+        private int GetRandomBossDamage() =>
+            new Random().Next(reportBossDamageMin, reportBossDamageMax);
+
+        private int GetRandomBossDamageTaken() =>
+            new Random().Next(reportBossDamageTakenMin, reportBossDamageTakenMax) / reportBossDamageTakenDivision;
+
+
         private async Task<List<Planet>> FindMostWantedPlanets()
         {
             var mostWantedPlanets = new List<Planet>();
@@ -455,9 +465,8 @@ namespace AutoSaliens.Bot
                 var useHeal = this.reportBossDamageHealUsed < DateTime.Now;
                 if (useHeal)
                     this.reportBossDamageHealUsed = DateTime.Now + this.reportBossDamageHealCooldown;
-                var damage = new Random().Next(reportBossDamageMin, reportBossDamageMax);
 
-                await this.ReportBossDamage(useHeal, damage, 0);
+                await this.ReportBossDamage(startLevel, startXp, useHeal, this.GetRandomBossDamage(), this.GetRandomBossDamageTaken());
                 await Task.Delay(reportBossDamageDelay);
             }
 
@@ -763,11 +772,18 @@ namespace AutoSaliens.Bot
             }
         }
 
-        public async Task<BossLevelState> ReportBossDamage(bool useHealAbility, int damageToBoss, int damageTaken)
+        public async Task<BossLevelState> ReportBossDamage(int startLevel, long startXp, bool useHealAbility, int damageToBoss, int damageTaken)
         {
             try
             {
-                this.Logger?.LogMessage($"{{action}}Reporting boss damage {{value}}{damageToBoss.ToString("#,##0")}{{action}}...");
+                var message = $"{{action}}Reporting boss damage {{value}}+{damageToBoss.ToString("#,##0")}";
+                if (damageTaken > 0)
+                    message += $"{{action}}, {{negvalue}}-{damageTaken.ToString("#,##0")}";
+                if (useHealAbility)
+                    message += $"{{action}}, {{value}}+Heal";
+                message += $"{{action}}...";
+                this.Logger?.LogMessage(message);
+
                 var response = await SaliensApi.ReportBossDamageAsync(this.Token, useHealAbility, damageToBoss, damageTaken);
 
                 if (response.BossStatus == null)
@@ -776,11 +792,14 @@ namespace AutoSaliens.Bot
                 this.Logger?.LogMessage($"Boss HP: {response.BossStatus.BossHp.ToString("#,##0")}/{response.BossStatus.BossMaxHp.ToString("#,##0")}");
                 foreach (var player in response.BossStatus.BossPlayers.OrderBy(p => p.Name))
                 {
-                    long.TryParse(player.ScoreOnJoin, out long oldScore);
-                    this.Logger?.LogMessage($"Player {player.Name} - " +
-                        $"HP: {player.Hp.ToString("#,##0")}/{player.MaxHp.ToString("#,##0")} - " +
-                        $"Score: {player.XpEarned.ToString("#,##0")} - " +
-                        $"XP: {(oldScore + player.XpEarned).ToString("#,##0")}");
+                    var playerStartLevel = player.LevelOnJoin;
+                    long.TryParse(player.ScoreOnJoin, out long playerStartXp);
+
+                    var playerColor = playerStartLevel == startLevel && playerStartXp == startXp ? "{{player}}" : "{{reset}}";
+                    var hpColor = MathUtils.ScaleColor(player.MaxHp - player.Hp, player.MaxHp, new[] { "{svlow}", "{slow}", "{smed}", "{shigh}", "{svhigh}" });
+                    this.Logger?.LogMessage($"{playerColor}{player.Name.Substring(0, 16).PadLeft(16)}: " +
+                        $"{hpColor}HP {player.Hp.ToString("#,##0").PadLeft(7)}/{player.MaxHp.ToString("#,##0").PadLeft(7)}{playerColor} - " +
+                        $"{player.XpEarned.ToString("#,##0").PadLeft(12)}/{(playerStartXp + player.XpEarned).ToString("#,##0").PadLeft(12)}");
                 }
                 return response.GameOver ? BossLevelState.GameOver : BossLevelState.Active;
             }

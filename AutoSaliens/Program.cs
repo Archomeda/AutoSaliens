@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Net;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Timers;
 using AutoSaliens.Api.Converters;
@@ -10,6 +12,7 @@ using AutoSaliens.Console;
 using AutoSaliens.Presence;
 using AutoSaliens.Presence.Formatters;
 using Newtonsoft.Json;
+using Timer = System.Timers.Timer;
 
 namespace AutoSaliens
 {
@@ -170,6 +173,7 @@ namespace AutoSaliens
 
 
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+            Thread.CurrentThread.CurrentCulture = new CultureInfo("en-US");
             JsonConvert.DefaultSettings = () => new JsonSerializerSettings
             {
                 ContractResolver = new SnakeCasePropertyNamesContractResolver()
