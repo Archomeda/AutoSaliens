@@ -6,20 +6,10 @@ namespace AutoSaliens.Console.Commands
     [CommandVerb("resume")]
     internal class ResumeCommand : CommandBase
     {
-        public override async Task<string> Run(string parameters, CancellationToken cancellationToken)
+        public override async Task RunAsync(string parameters, CancellationToken cancellationToken)
         {
-            if (Program.Saliens.AutomationActive)
-                return "Automation is already running.";
-
-            Program.Settings.EnableBot = true;
-            Program.Settings.Save();
-            await Program.Saliens.Start();
-
-            // Deactivate checking periodically
-            if (Program.Settings.EnableDiscordPresence)
-                Program.Presence.CheckPeriodically = false;
-
-            return "Automation has been resumed.";
+            this.Logger?.LogCommandOutput("Starting tasks...");
+            await Program.Start();
         }
     }
 }

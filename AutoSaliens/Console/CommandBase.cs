@@ -1,5 +1,3 @@
-using System;
-using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,6 +7,8 @@ namespace AutoSaliens.Console
     internal abstract class CommandBase : ICommand
     {
         private string verb;
+
+        public ILogger Logger { get; set; }
 
         public string Verb
         {
@@ -20,9 +20,6 @@ namespace AutoSaliens.Console
             }
         }
 
-        public abstract Task<string> Run(string parameters, CancellationToken cancellationToken);
-
-        protected void WriteConsole(string format, params string[] args) =>
-            Shell.WriteLine(format, false, args);
+        public abstract Task RunAsync(string parameters, CancellationToken cancellationToken);
     }
 }

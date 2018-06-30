@@ -7,7 +7,7 @@ namespace AutoSaliens
     /// Some flags are incompatible with each other. If this happens, the higher priority flag will be chosen.
     /// </summary>
     [Flags]
-    internal enum AutomationStrategy
+    internal enum BotStrategy
     {
         /// <summary>
         /// Mainly focus on the current joined planet.

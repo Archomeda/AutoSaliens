@@ -5,8 +5,10 @@ namespace AutoSaliens.Console
 {
     internal interface ICommand
     {
+        ILogger Logger { get; set; }
+
         string Verb { get; }
 
-        Task<string> Run(string parameters, CancellationToken cancellationToken);
+        Task RunAsync(string parameters, CancellationToken cancellationToken);
     }
 }

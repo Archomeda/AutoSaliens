@@ -1,29 +1,22 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using AutoSaliens.Api;
 
 namespace AutoSaliens.Console.Commands
 {
     [CommandVerb("planet")]
     internal class PlanetCommand : CommandBase
     {
-        public override async Task<string> Run(string parameters, CancellationToken cancellationToken)
+        public override async Task RunAsync(string parameters, CancellationToken cancellationToken)
         {
-            if (Program.Saliens.PlanetDetails == null)
-                return "No planet information available yet.";
-
-            var planet = Program.Saliens.PlanetDetails.FirstOrDefault(p => p.Id == parameters);
+            var planet = await SaliensApi.GetPlanetAsync(parameters);
             if (planet == null)
-                return "{err}Unknown planet id.";
-
-            if (planet.Zones == null)
             {
-                planet = await SaliensApi.GetPlanet(parameters);
-                var index = Program.Saliens.PlanetDetails.FindIndex(p => p.Id == parameters);
-                Program.Saliens.PlanetDetails[index] = planet;
+                this.Logger?.LogCommandOutput("{err}Unknown planet id.");
+                return;
             }
-
-            return planet.ToConsoleBlock();
+            this.Logger?.LogCommandOutput(planet.ToConsoleBlock());
         }
     }
 }

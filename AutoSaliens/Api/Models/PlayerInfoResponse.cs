@@ -26,4 +26,11 @@ namespace AutoSaliens.Api.Models
         [JsonConverter(typeof(TimeConverter))]
         public TimeSpan TimeOnPlanet { get; set; }
     }
+
+    internal static class PlayerInfoExtensions
+    {
+        public static bool HasActivePlanet(this PlayerInfoResponse playerInfo) => !string.IsNullOrWhiteSpace(playerInfo.ActivePlanet);
+
+        public static bool HasActiveZone(this PlayerInfoResponse playerInfo) => !string.IsNullOrWhiteSpace(playerInfo.ActiveZoneGame);
+    }
 }

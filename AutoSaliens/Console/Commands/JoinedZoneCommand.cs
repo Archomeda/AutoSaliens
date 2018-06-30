@@ -1,26 +1,39 @@
 using System.Threading;
 using System.Threading.Tasks;
-
-#pragma warning disable CS1998
+using AutoSaliens.Api;
 
 namespace AutoSaliens.Console.Commands
 {
     [CommandVerb("joinedzone")]
     internal class JoinedZoneCommand : CommandBase
     {
-        public override async Task<string> Run(string parameters, CancellationToken cancellationToken)
+        public override async Task RunAsync(string parameters, CancellationToken cancellationToken)
         {
-            if (string.IsNullOrWhiteSpace(Program.Saliens.Token))
-                return "{{warn}}No token has been set.";
+            if (string.IsNullOrWhiteSpace(Program.Settings.Token))
+            {
+                this.Logger?.LogCommandOutput("{{warn}}No token has been set.");
+                return;
+            }
 
-            if (Program.Saliens.PlanetDetails == null)
-                return "No planet information available yet.";
+            var playerInfo = await SaliensApi.GetPlayerInfoAsync(Program.Settings.Token);
+            if (string.IsNullOrWhiteSpace(playerInfo?.ActivePlanet))
+            {
+                this.Logger?.LogCommandOutput("No planet has been joined.");
+                return;
+            }
+            if (string.IsNullOrWhiteSpace(playerInfo?.ActiveZoneGame))
+            {
+                this.Logger?.LogCommandOutput("No zone has been joined.");
+                return;
+            }
 
-            var zone = Program.Saliens.JoinedZone;
-            if (zone == null)
-                return "No zone has been joined.";
-
-            return zone.ToConsoleBlock();
+            if (!int.TryParse(playerInfo.ActiveZonePosition, out int zonePos))
+            {
+                this.Logger?.LogCommandOutput("Invalid zone.");
+                return;
+            }
+            var planet = await SaliensApi.GetPlanetAsync(playerInfo.ActivePlanet);
+            this.Logger?.LogCommandOutput(planet.Zones[zonePos].ToConsoleBlock());
         }
     }
 }

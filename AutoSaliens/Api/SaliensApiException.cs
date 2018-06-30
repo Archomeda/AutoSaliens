@@ -1,13 +1,13 @@
 using System;
 using AutoSaliens.Api.Models;
 
-namespace AutoSaliens
+namespace AutoSaliens.Api
 {
     internal class SaliensApiException : Exception
     {
         public SaliensApiException() : this(0, "Unknown error") { }
 
-        public SaliensApiException(EResult eResult, string message) : base($"Error {eResult.ToString()} ({(int)eResult}): {message}") =>
+        public SaliensApiException(EResult eResult, string message) : base($"{eResult.ToString()} ({(int)eResult}) - {message}") =>
             this.EResult = eResult;
 
         public static SaliensApiException FromString(string eResult, string message)

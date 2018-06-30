@@ -1,31 +1,29 @@
 using System.Threading;
 using System.Threading.Tasks;
+using AutoSaliens.Api;
 
 namespace AutoSaliens.Console.Commands
 {
     [CommandVerb("joinedplanet")]
     internal class JoinedPlanetCommand : CommandBase
     {
-        public override async Task<string> Run(string parameters, CancellationToken cancellationToken)
+        public override async Task RunAsync(string parameters, CancellationToken cancellationToken)
         {
-            if (string.IsNullOrWhiteSpace(Program.Saliens.Token))
-                return "{{warn}}No token has been set.";
-
-            if (Program.Saliens.PlanetDetails == null)
-                return "No planet information available yet.";
-
-            var planet = Program.Saliens.JoinedPlanet;
-            if (planet == null)
-                return "No planet has been joined.";
-
-            if (planet.Zones == null)
+            if (string.IsNullOrWhiteSpace(Program.Settings.Token))
             {
-                planet = await SaliensApi.GetPlanet(parameters);
-                var index = Program.Saliens.PlanetDetails.FindIndex(p => p.Id == parameters);
-                Program.Saliens.PlanetDetails[index] = planet;
+                this.Logger?.LogCommandOutput("{{warn}}No token has been set.");
+                return;
             }
 
-            return planet.ToConsoleBlock();
+            var playerInfo = await SaliensApi.GetPlayerInfoAsync(Program.Settings.Token);
+            if (string.IsNullOrWhiteSpace(playerInfo?.ActivePlanet))
+            {
+                this.Logger?.LogCommandOutput("No planet has been joined.");
+                return;
+            }
+
+            var planet = await SaliensApi.GetPlanetAsync(playerInfo.ActivePlanet);
+            this.Logger?.LogCommandOutput(planet.ToConsoleBlock());
         }
     }
 }

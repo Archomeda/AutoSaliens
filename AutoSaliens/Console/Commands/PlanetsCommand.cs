@@ -3,63 +3,56 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using AutoSaliens.Api;
 using AutoSaliens.Api.Models;
-
-#pragma warning disable CS1998
 
 namespace AutoSaliens.Console.Commands
 {
     [CommandVerb("planets")]
     internal class PlanetsCommand : CommandBase
     {
-        public override async Task<string> Run(string parameters, CancellationToken cancellationToken)
+        public override async Task RunAsync(string parameters, CancellationToken cancellationToken)
         {
             if (!string.IsNullOrWhiteSpace(parameters) && parameters != "all" && parameters != "live")
-                return "{err}Invalid parameter.";
+            {
+                this.Logger?.LogCommandOutput("{err}Invalid parameter.");
+                return;
+            }
 
-            if (Program.Saliens.PlanetDetails == null)
-                return "No planet information available yet.";
-
-            var planetDetails = Program.Saliens.PlanetDetails.OrderBy(p => p.State.Priority);
+            var planetDetails = (await SaliensApi.GetPlanetsAsync()).Values.OrderBy(p => p.State.Priority);
 
             var active = planetDetails.Where(p => p.State.Running);
             var future = planetDetails.Where(p => !p.State.Active && !p.State.Captured);
-            if (parameters == "all" || parameters == "live")
+            if (parameters == "all")
             {
                 var captured = planetDetails.Where(p => p.State.Captured);
-                this.WriteConsole("Captured planets:");
+                this.Logger?.LogCommandOutput("Captured planets:");
                 await PrintPlanets(captured);
-                this.WriteConsole("");
-                this.WriteConsole("Upcoming planets:");
+                this.Logger?.LogCommandOutput("");
+                this.Logger?.LogCommandOutput("Upcoming planets:");
                 await PrintPlanets(future);
-                this.WriteConsole("");
+                this.Logger?.LogCommandOutput("");
             }
-            this.WriteConsole("Active planets:");
+            this.Logger?.LogCommandOutput("Active planets:");
             await PrintPlanets(active);
-            this.WriteConsole("");
+            this.Logger?.LogCommandOutput("");
             if (string.IsNullOrWhiteSpace(parameters))
             {
-                this.WriteConsole("Upcoming planets:");
-                await PrintPlanets(future.Take(1));
-                this.WriteConsole("");
+                this.Logger?.LogCommandOutput("Upcoming planets:");
+                await PrintPlanets(future.Take(2));
+                this.Logger?.LogCommandOutput("");
             }
 
-            return $"To get a list of all planets, use the command: {{command}}planets {{param}}all{{reset}}{Environment.NewLine}" +
-                $"To fully refresh the list of planets, use the command: {{command}}planets {{param}}live{{reset}}{Environment.NewLine}{Environment.NewLine}" +
+            this.Logger?.LogCommandOutput($"To get a list of all planets, use the command: {{command}}planets {{param}}all{{reset}}{Environment.NewLine}{Environment.NewLine}" +
 
                 $"To see more information about a planet, use the command: {{command}}planet {{param}}<id>{{reset}}{Environment.NewLine}" +
-                $"where {{param}}<id>{{reset}} is replaced with the planet id.";
+                $"where {{param}}<id>{{reset}} is replaced with the planet id.");
 
             async Task PrintPlanets(IEnumerable<Planet> planets)
             {
-                var tasks = planets.Select(p => parameters == "live" || p.Zones == null ? SaliensApi.GetPlanet(p.Id) : Task.FromResult(p));
-                foreach (var task in tasks)
-                {
-                    var planet = await task;
-                    var i = Program.Saliens.PlanetDetails.FindIndex(p => p.Id == planet.Id);
-                    Program.Saliens.PlanetDetails[i] = planet;
-                    this.WriteConsole(planet.ToConsoleLine());
-                }
+                var results = await Task.WhenAll(planets.Select(p => p.Zones == null ? SaliensApi.GetPlanetAsync(p.Id) : Task.FromResult(p)));
+                foreach (var planet in results)
+                    this.Logger?.LogCommandOutput(planet.ToConsoleLine());
             }
         }
     }

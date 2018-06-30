@@ -1,40 +1,42 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using AutoSaliens.Api;
 
 namespace AutoSaliens.Console.Commands
 {
     [CommandVerb("zone")]
     internal class ZoneCommand : CommandBase
     {
-        public override async Task<string> Run(string parameters, CancellationToken cancellationToken)
+        public override async Task RunAsync(string parameters, CancellationToken cancellationToken)
         {
             var split = parameters.Split(' ');
             if (split.Length != 2)
-                return "{err}Invalid amount of parameters.";
-
-            if (Program.Saliens.PlanetDetails == null)
-                return "No planet information available yet.";
-
-            var planet = Program.Saliens.PlanetDetails.FirstOrDefault(p => p.Id == split[0]);
-            if (planet == null)
-                return "{err}Unknown planet id.";
-
-            if (!int.TryParse(split[1], out int zonePos))
-                return "{err}Invalid zone position.";
-
-            if (planet.Zones == null || planet.Zones.Count == 0)
             {
-                var index = Program.Saliens.PlanetDetails.FindIndex(p => p.Id == planet.Id);
-                planet = await SaliensApi.GetPlanet(planet.Id);
-                Program.Saliens.PlanetDetails[index] = planet;
+                this.Logger?.LogCommandOutput("{err}Invalid amount of parameters.");
+                return;
             }
 
-            var zone = planet.Zones.FirstOrDefault(z => z.ZonePosition == zonePos);
-            if (zone == null)
-                return "{err}Unknown zone position.";
+            var planet = await SaliensApi.GetPlanetAsync(split[0]);
+            if (planet == null)
+            {
+                this.Logger?.LogCommandOutput("{err}Unknown planet id.");
+                return;
+            }
 
-            return zone.ToConsoleBlock();
+            if (!int.TryParse(split[1], out int zonePos))
+            {
+                this.Logger?.LogCommandOutput("{err}Invalid zone position.");
+                return;
+            }
+
+            if (zonePos >= planet.Zones.Count)
+            {
+                this.Logger?.LogCommandOutput("{err}Unknown zone position.");
+                return;
+            }
+
+            this.Logger?.LogCommandOutput(planet.Zones[zonePos].ToConsoleBlock());
         }
     }
 }

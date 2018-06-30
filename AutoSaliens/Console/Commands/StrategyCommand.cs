@@ -3,31 +3,29 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-#pragma warning disable CS1998
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
 
 namespace AutoSaliens.Console.Commands
 {
     [CommandVerb("strategy")]
     internal class StrategyCommand : CommandBase
     {
-        public override async Task<string> Run(string parameters, CancellationToken cancellationToken)
+        public override async Task RunAsync(string parameters, CancellationToken cancellationToken)
         {
             if (string.IsNullOrWhiteSpace(parameters))
             {
                 // Show the current strategy
-                var allValues = Enum.GetValues(typeof(AutomationStrategy)) as AutomationStrategy[];
-                var values = allValues.Where(v => Program.Saliens.Strategy.HasFlag(v));
-                this.WriteConsole($"The strategy is set to: {{value}}{string.Join(", ", values.Select(v => v.ToString()))}{{reset}}.");
+                var allValues = Enum.GetValues(typeof(BotStrategy)) as BotStrategy[];
+                var values = allValues.Where(v => Program.Settings.Strategy.Value.HasFlag(v));
+                this.Logger?.LogCommandOutput($"The strategy is set to: {{value}}{string.Join(", ", values.Select(v => v.ToString()))}{{reset}}.");
 
-                this.WriteConsole($"You can change the strategy by appending any combination of the strategies to this command: {{command}}strategy {{param}}<strategy>{{reset}}");
-                this.WriteConsole($"where {{param}}<strategy>{{reset}} is replaced with a list of strategies, seperated by either spaces or commas.");
-                this.WriteConsole("");
-                this.WriteConsole($"Keep in mind that some strategies are incompatible with each other.");
-                this.WriteConsole($"If this happens, the first in the defined list below will take priority.");
-                this.WriteConsole($"Possible strategies are:");
-                this.WriteConsole($"  {string.Join($"{Environment.NewLine}  ", allValues.Select(v => $"{{value}}{v}{{reset}}"))}");
-
-                return "";
+                this.Logger?.LogCommandOutput($"You can change the strategy by appending any combination of the strategies to this command: {{command}}strategy {{param}}<strategy>{{reset}}");
+                this.Logger?.LogCommandOutput($"where {{param}}<strategy>{{reset}} is replaced with a list of strategies, seperated by either spaces or commas.");
+                this.Logger?.LogCommandOutput("");
+                this.Logger?.LogCommandOutput($"Keep in mind that some strategies are incompatible with each other.");
+                this.Logger?.LogCommandOutput($"If this happens, the first in the defined list below will take priority.");
+                this.Logger?.LogCommandOutput($"Possible strategies are:");
+                this.Logger?.LogCommandOutput($"  {string.Join($"{Environment.NewLine}  ", allValues.Select(v => $"{{value}}{v}{{reset}}"))}");
             }
             else
             {
@@ -35,22 +33,21 @@ namespace AutoSaliens.Console.Commands
                 string[] strategies = parameters.Split(new[] { ' ', ',' }, StringSplitOptions.RemoveEmptyEntries);
                 try
                 {
-                    var strategyValues = strategies.Select(s => (AutomationStrategy)Enum.Parse(typeof(AutomationStrategy), s));
-                    AutomationStrategy strategy = strategyValues.Aggregate((AutomationStrategy)0, (a, b) => a | b);
+                    var strategyValues = strategies.Select(s => (BotStrategy)Enum.Parse(typeof(BotStrategy), s));
+                    BotStrategy strategy = strategyValues.Aggregate((BotStrategy)0, (a, b) => a | b);
                     if (strategy == 0)
                         strategy =
-                            AutomationStrategy.MostDifficultPlanetsFirst |
-                            AutomationStrategy.MostCompletedPlanetsFirst |
-                            AutomationStrategy.MostDifficultZonesFirst |
-                            AutomationStrategy.MostCompletedZonesFirst |
-                            AutomationStrategy.TopDown;
-                    Program.Settings.Strategy = strategy;
-                    Program.Settings.Save();
-                    return "Your strategy has been saved.";
+                            BotStrategy.MostDifficultPlanetsFirst |
+                            BotStrategy.MostCompletedPlanetsFirst |
+                            BotStrategy.MostDifficultZonesFirst |
+                            BotStrategy.LeastCompletedZonesFirst |
+                            BotStrategy.TopDown;
+                    Program.Settings.Strategy.Value = strategy;
+                    this.Logger?.LogCommandOutput("Your strategy has been saved.");
                 }
                 catch (ArgumentException)
                 {
-                    return "{err}Invalid input.";
+                    this.Logger?.LogCommandOutput("{err}Invalid input.");
                 }
             }
         }
