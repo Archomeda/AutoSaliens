@@ -209,11 +209,27 @@ namespace AutoSaliens.Bot
             // Get our most wanted zones
             var zones = await FindMostWantedZones();
 
-            // Join the first zone
-            if (zones[0].RealDifficulty == RealDifficulty.Boss)
-                await this.JoinBossZone(zones[0].ZonePosition);
-            else
-                await this.JoinZone(zones[0].ZonePosition != 0 ? zones[0].ZonePosition : zones[1].ZonePosition);
+            // Join the first joinable zone
+            for (int i = 0; i < zones.Count; i++)
+            {
+                try
+                {
+                    if (zones[i].RealDifficulty == RealDifficulty.Boss)
+                        await this.JoinBossZone(zones[i].ZonePosition);
+                    else
+                        await this.JoinZone(zones[i].ZonePosition);
+                    break;
+                }
+                catch (SaliensApiException ex)
+                {
+                    if (ex.EResult == EResult.Banned || zones[i].CaptureProgress == 0)
+                    {
+                        // Assume the zone is unjoinable, go to the next one
+                        continue; 
+                    }
+                    throw;
+                }
+            }
         }
 
         private async Task DoInZone()
