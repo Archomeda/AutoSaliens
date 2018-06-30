@@ -28,7 +28,7 @@ namespace AutoSaliens.Bot
         private TimeSpan reportScoreNetworkDelay;
         private const double reportScoreNetworkDelayTolerance = 0.4;
 
-        private readonly TimeSpan blacklistGamesDuration = TimeSpan.FromMinutes(20);
+        private readonly TimeSpan blacklistGamesDuration = TimeSpan.FromMinutes(6);
 
         private const int reportBossDamageMin = 1;
         private const int reportBossDamageMax = 10;
