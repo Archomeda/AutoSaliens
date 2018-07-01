@@ -24,7 +24,7 @@ namespace AutoSaliens.Api
         private const string LeaveGameUrl = BaseUrl + "IMiniGameService/LeaveGame/v0001";
 
         private static readonly TimeSpan planetCacheDuration = TimeSpan.FromMinutes(1);
-        private static readonly TimeSpan playerInfoDuration = TimeSpan.FromSeconds(10);
+        private static readonly TimeSpan playerInfoCacheDuration = TimeSpan.FromSeconds(10);
 
         private static Dictionary<string, CacheItem<Planet>> cachedPlanets = new Dictionary<string, CacheItem<Planet>>();
         private static Dictionary<string, CacheItem<Planet>> cachedPlanetsWithZones = new Dictionary<string, CacheItem<Planet>>();
@@ -33,9 +33,10 @@ namespace AutoSaliens.Api
 
         #region API functions
 
-        public static Dictionary<string, Planet> GetPlanets(bool activeOnly = false, bool forceLive = false)
+        public static Dictionary<string, Planet> GetPlanets(bool activeOnly = false, TimeSpan? forceCacheExpiryTime = null)
         {
-            if (forceLive || cachedPlanets.Count == 0 || cachedPlanets.Any(kvp => kvp.Value.Expires < DateTime.Now))
+            if (cachedPlanets.Count == 0 ||
+                cachedPlanets.Any(kvp => kvp.Value.Expires < (forceCacheExpiryTime.HasValue ? DateTime.Now + planetCacheDuration + forceCacheExpiryTime : DateTime.Now)))
             {
                 var requestActiveOnly = cachedPlanets.Count > 0 && activeOnly;
                 var uri = new Uri(GetPlanetsUrl + (requestActiveOnly ? "&active_only=1" : ""));
@@ -47,9 +48,10 @@ namespace AutoSaliens.Api
             return e.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.Item);
         }
 
-        public static async Task<Dictionary<string, Planet>> GetPlanetsAsync(bool activeOnly = false, bool forceLive = false)
+        public static async Task<Dictionary<string, Planet>> GetPlanetsAsync(bool activeOnly = false, TimeSpan? forceCacheExpiryTime = null)
         {
-            if (forceLive || cachedPlanets.Count == 0 || cachedPlanets.Any(kvp => kvp.Value.Expires < DateTime.Now))
+            if (cachedPlanets.Count == 0 ||
+                cachedPlanets.Any(kvp => kvp.Value.Expires < (forceCacheExpiryTime.HasValue ? DateTime.Now + planetCacheDuration + forceCacheExpiryTime : DateTime.Now)))
             {
                 var requestActiveOnly = cachedPlanets.Count > 0 && activeOnly;
                 var uri = new Uri(GetPlanetsUrl + (requestActiveOnly ? "&active_only=1" : ""));
@@ -72,9 +74,10 @@ namespace AutoSaliens.Api
         }
 
 
-        public static Dictionary<string, Planet> GetPlanetsWithZones(bool activeOnly = false, bool forceLive = false)
+        public static Dictionary<string, Planet> GetPlanetsWithZones(bool activeOnly = false, TimeSpan? forceCacheExpiryTime = null)
         {
-            if (forceLive || cachedPlanetsWithZones.Count == 0 || cachedPlanetsWithZones.Any(kvp => kvp.Value.Expires < DateTime.Now))
+            if (cachedPlanetsWithZones.Count == 0 ||
+                cachedPlanetsWithZones.Any(kvp => kvp.Value.Expires < (forceCacheExpiryTime.HasValue ? DateTime.Now + planetCacheDuration + forceCacheExpiryTime : DateTime.Now)))
             {
                 var planets = GetPlanets(activeOnly);
                 var responses = planets.Values.Select(p => GetPlanet(p.Id));
@@ -86,9 +89,10 @@ namespace AutoSaliens.Api
             return e.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.Item);
         }
 
-        public static async Task<Dictionary<string, Planet>> GetPlanetsWithZonesAsync(bool activeOnly = false, bool forceLive = false)
+        public static async Task<Dictionary<string, Planet>> GetPlanetsWithZonesAsync(bool activeOnly = false, TimeSpan? forceCacheExpiryTime = null)
         {
-            if (forceLive || cachedPlanetsWithZones.Count == 0 || cachedPlanetsWithZones.Any(kvp => kvp.Value.Expires < DateTime.Now))
+            if (cachedPlanetsWithZones.Count == 0 ||
+                cachedPlanetsWithZones.Any(kvp => kvp.Value.Expires < (forceCacheExpiryTime.HasValue ? DateTime.Now + planetCacheDuration + forceCacheExpiryTime : DateTime.Now)))
             {
                 var planets = await GetPlanetsAsync(activeOnly);
                 var responses = await Task.WhenAll(planets.Values.Select(p => GetPlanetAsync(p.Id)));
@@ -111,9 +115,10 @@ namespace AutoSaliens.Api
         }
 
 
-        public static Planet GetPlanet(string id, bool forceLive = false)
+        public static Planet GetPlanet(string id, TimeSpan? forceCacheExpiryTime = null)
         {
-            if (forceLive || !cachedPlanetsWithZones.ContainsKey(id) || cachedPlanetsWithZones[id].Expires < DateTime.Now)
+            if (!cachedPlanetsWithZones.ContainsKey(id) ||
+                cachedPlanetsWithZones[id].Expires < (forceCacheExpiryTime.HasValue ? DateTime.Now + planetCacheDuration + forceCacheExpiryTime : DateTime.Now))
             {
                 var uri = new Uri(GetPlanetUrl + $"&id={id}");
                 UpdatePlanet(GetJson<ApiResponse<PlanetsResponse>>(uri));
@@ -121,9 +126,10 @@ namespace AutoSaliens.Api
             return cachedPlanetsWithZones[id].Item;
         }
 
-        public static async Task<Planet> GetPlanetAsync(string id, bool forceLive = false)
+        public static async Task<Planet> GetPlanetAsync(string id, TimeSpan? forceCacheExpiryTime = null)
         {
-            if (forceLive || !cachedPlanetsWithZones.ContainsKey(id) || cachedPlanetsWithZones[id].Expires < DateTime.Now)
+            if (!cachedPlanetsWithZones.ContainsKey(id) ||
+                cachedPlanetsWithZones[id].Expires < (forceCacheExpiryTime.HasValue ? DateTime.Now + planetCacheDuration + forceCacheExpiryTime : DateTime.Now))
             {
                 var uri = new Uri(GetPlanetUrl + $"&id={id}");
                 UpdatePlanet(await GetJsonAsync<ApiResponse<PlanetsResponse>>(uri));
@@ -140,9 +146,10 @@ namespace AutoSaliens.Api
         }
 
 
-        public static PlayerInfoResponse GetPlayerInfo(string accessToken, bool forceLive = false)
+        public static PlayerInfoResponse GetPlayerInfo(string accessToken, TimeSpan? forceCacheExpiryTime = null)
         {
-            if (forceLive || !cachedPlayerInfo.ContainsKey(accessToken) || cachedPlayerInfo[accessToken].Expires < DateTime.Now)
+            if (!cachedPlayerInfo.ContainsKey(accessToken) ||
+                cachedPlayerInfo[accessToken].Expires < (forceCacheExpiryTime.HasValue ? DateTime.Now + playerInfoCacheDuration + forceCacheExpiryTime : DateTime.Now))
             {
                 var uri = new Uri(GetPlayerInfoUrl);
                 UpdatePlayerInfo(accessToken, PostJson<ApiResponse<PlayerInfoResponse>>(uri, $"access_token={accessToken}"));
@@ -150,9 +157,10 @@ namespace AutoSaliens.Api
             return cachedPlayerInfo[accessToken].Item;
         }
 
-        public static async Task<PlayerInfoResponse> GetPlayerInfoAsync(string accessToken, bool forceLive = false)
+        public static async Task<PlayerInfoResponse> GetPlayerInfoAsync(string accessToken, TimeSpan? forceCacheExpiryTime = null)
         {
-            if (forceLive || !cachedPlayerInfo.ContainsKey(accessToken) || cachedPlayerInfo[accessToken].Expires < DateTime.Now)
+            if (!cachedPlayerInfo.ContainsKey(accessToken) ||
+                cachedPlayerInfo[accessToken].Expires < (forceCacheExpiryTime.HasValue ? DateTime.Now + playerInfoCacheDuration + forceCacheExpiryTime : DateTime.Now))
             {
                 var uri = new Uri(GetPlayerInfoUrl);
                 UpdatePlayerInfo(accessToken, await PostJsonAsync<ApiResponse<PlayerInfoResponse>>(uri, $"access_token={accessToken}"));
@@ -163,7 +171,7 @@ namespace AutoSaliens.Api
         private static void UpdatePlayerInfo(string accessToken, ApiResponse<PlayerInfoResponse> response)
         {
             var playerInfo = response?.Response ?? throw new SaliensApiException();
-            cachedPlayerInfo[accessToken] = new CacheItem<PlayerInfoResponse>(playerInfo, playerInfoDuration);
+            cachedPlayerInfo[accessToken] = new CacheItem<PlayerInfoResponse>(playerInfo, playerInfoCacheDuration);
         }
 
 

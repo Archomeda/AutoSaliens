@@ -155,8 +155,8 @@ namespace AutoSaliens.Bot
                 {
                     // Update states
                     this.Logger?.LogMessage($"{{action}}Updating states...");
-                    await this.GetPlayerInfo(true);
-                    await SaliensApi.GetPlanetsWithZonesAsync(true, true);
+                    await this.UpdatePlayerInfo(TimeSpan.FromSeconds(5));
+                    await SaliensApi.GetPlanetsWithZonesAsync(true, TimeSpan.FromSeconds(5));
 
                     switch (ex.EResult)
                     {
@@ -198,7 +198,7 @@ namespace AutoSaliens.Bot
             // We are resuming
 
             // Update player state
-            await this.GetPlayerInfo();
+            await this.UpdatePlayerInfo();
         }
 
         private async Task DoOnPlanet()
@@ -297,7 +297,7 @@ namespace AutoSaliens.Bot
 
             this.Logger?.LogMessage("{action}Attempting to restart in 10 seconds...");
             await Task.Delay(TimeSpan.FromSeconds(10), this.cancelSource.Token);
-            await this.GetPlayerInfo();
+            await this.UpdatePlayerInfo();
             if (this.HasActiveZone)
                 await this.LeaveGame(this.ActiveZone.GameId);
             if (this.HasActivePlanet)
@@ -481,17 +481,17 @@ namespace AutoSaliens.Bot
         }
 
 
-        private async Task GetPlayerInfo(bool forceLive = false)
+        private async Task UpdatePlayerInfo(TimeSpan? forceCacheExpiryTime = null)
         {
             if (string.IsNullOrEmpty(this.Token))
                 return;
 
-            this.PlayerInfo = await SaliensApi.GetPlayerInfoAsync(this.Token, forceLive);
+            this.PlayerInfo = await SaliensApi.GetPlayerInfoAsync(this.Token, forceCacheExpiryTime);
             this.State = BotState.Idle;
 
             if (!string.IsNullOrWhiteSpace(this.PlayerInfo.ActivePlanet))
             {
-                this.ActivePlanet = await SaliensApi.GetPlanetAsync(this.PlayerInfo.ActivePlanet, forceLive);
+                this.ActivePlanet = await SaliensApi.GetPlanetAsync(this.PlayerInfo.ActivePlanet, forceCacheExpiryTime);
                 this.State = BotState.OnPlanet;
 
                 if (int.TryParse(this.PlayerInfo.ActiveZonePosition, out int zonePosition))
@@ -602,12 +602,12 @@ namespace AutoSaliens.Bot
                     // If the request took too long, resynchronize the start date
                     if (stopwatch.Elapsed > TimeSpan.FromSeconds(1))
                     {
-                        await this.GetPlayerInfo(true);
-                        var diff = (startDate - (DateTime.Now - this.PlayerInfo.TimeInZone));
+                        var playerInfo = await SaliensApi.GetPlayerInfoAsync(this.Token, TimeSpan.FromSeconds(0));
+                        var diff = (startDate - (DateTime.Now - playerInfo.TimeInZone));
                         if (diff > TimeSpan.FromSeconds(0))
                         {
                             this.Logger?.LogMessage($"{{action}}Recalibrated zone join time with {{value}}{diff.Negate().TotalSeconds.ToString("0.###")} seconds");
-                            startDate = DateTime.Now - this.PlayerInfo.TimeInZone;
+                            startDate = DateTime.Now - playerInfo.TimeInZone;
                         }
                     }
 
