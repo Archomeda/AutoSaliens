@@ -61,17 +61,22 @@ The list below might not be up-to-date. You can find the up-to-date command list
 Salien commands:
 joinedplanet                - Shows the current joined planet
 joinedzone                  - Shows the current joined zone
+planet <id>                 - Shows information about a planet
+planets [option]            - Shows the list of all planets
+playerinfo                  - Shows the player information
+zone <planet_id> <zone_pos> - Shows information about a zone
+zones <planet_id>           - Shows the list of the zones of a planet
+
+Bot commands:
+bossdamagemax [damage]      - Shows or sets the maximum damage dealt to bosses
+bossdamagemin [damage]      - Shows or sets the minimum damage dealt to bosses
+bot [toggle]                - Shows or sets whether the bot is enabled or not
 overrideplanetid [id]       - Shows or sets the current overridden planet id;
                               Overridden planets will always be joined, unless it's fully captured
 networktolerance [toggle]   - Shows or sets whether the network tolerance is enabled or not;
                               Enabling this will cause the application to try to send certain API
                               calls earlier to account for network latency (default: enable)
-planet <id>                 - Shows information about a planet
-planets [option]            - Shows the list of all planets
-playerinfo                  - Shows the player information
 strategy [strategy]         - Shows or sets the current active strategy (to reset to default, use: 0)
-zone <planet_id> <zone_pos> - Shows information about a zone
-zones <planet_id>           - Shows the list of the zones of a planet
 
 Discord presence commands:
 presence [toggle]           - Shows or sets whether Discord presence is enabled or not

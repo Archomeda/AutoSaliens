@@ -30,11 +30,7 @@ namespace AutoSaliens.Bot
 
         private readonly TimeSpan blacklistGamesDuration = TimeSpan.FromMinutes(6);
 
-        private const int reportBossDamageMin = 1;
-        private const int reportBossDamageMax = 100;
-        private const int reportBossDamageTakenMin = 0;
-        private const int reportBossDamageTakenMax = 10;
-        private const int reportBossDamageTakenDivision = 10; // This effectively makes it a 10% chance to take 1 damage
+        private const int reportBossDamageTaken = 0;
         private const int reportBossDamageDelay = 5000;
         private DateTime reportBossDamageHealUsed;
         private readonly TimeSpan reportBossDamageHealCooldown = TimeSpan.FromSeconds(120);
@@ -44,6 +40,10 @@ namespace AutoSaliens.Bot
 
 
         // Settings
+        public int BossDamageDealtMin { get; set; }
+
+        public int BossDamageDealtMax { get; set; }
+
         public bool EnableNetworkTolerance { get; set; }
 
         public int GameTime { get; set; }
@@ -312,11 +312,7 @@ namespace AutoSaliens.Bot
         }
 
         private int GetRandomBossDamage() =>
-            new Random().Next(reportBossDamageMin, reportBossDamageMax);
-
-        private int GetRandomBossDamageTaken() =>
-            new Random().Next(reportBossDamageTakenMin, reportBossDamageTakenMax) / reportBossDamageTakenDivision;
-
+            new Random().Next(this.BossDamageDealtMin, this.BossDamageDealtMax);
 
         private async Task<List<Planet>> FindMostWantedPlanets()
         {
@@ -467,7 +463,7 @@ namespace AutoSaliens.Bot
                 if (useHeal)
                     this.reportBossDamageHealUsed = DateTime.Now + this.reportBossDamageHealCooldown;
 
-                bossState = await this.ReportBossDamage(startLevel, startXp, useHeal, this.GetRandomBossDamage(), this.GetRandomBossDamageTaken());
+                bossState = await this.ReportBossDamage(startLevel, startXp, useHeal, this.GetRandomBossDamage(), reportBossDamageTaken);
             }
 
             await this.LeaveGame(this.PlayerInfo.ActiveBossGame);

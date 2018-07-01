@@ -13,21 +13,25 @@ namespace AutoSaliens.Console.Commands
         {
             this.Logger?.LogCommandOutput($"The following commands are available:{Environment.NewLine}{Environment.NewLine}" +
 
-                $"Bot commands:{Environment.NewLine}" +
-                $"{{command}}bot {{param}}[toggle]{{reset}}                - Shows or sets whether the bot is enabled or not{Environment.NewLine}" +
+                $"Salien commands:{Environment.NewLine}" +
                 $"{{command}}joinedplanet{{reset}}                - Shows the current joined planet{Environment.NewLine}" +
                 $"{{command}}joinedzone{{reset}}                  - Shows the current joined zone{Environment.NewLine}" +
+                $"{{command}}planet {{param}}<id>{{reset}}                 - Shows information about a planet{Environment.NewLine}" +
+                $"{{command}}planets {{param}}[option]{{reset}}            - Shows the list of all planets{Environment.NewLine}" +
+                $"{{command}}playerinfo{{reset}}                  - Shows the player information{Environment.NewLine}" +
+                $"{{command}}zone {{param}}<planet_id> <zone_pos>{{reset}} - Shows information about a zone{Environment.NewLine}" +
+                $"{{command}}zones {{param}}<planet_id>{{reset}}           - Shows the list of the zones of a planet{Environment.NewLine}{Environment.NewLine}" +
+
+                $"Bot commands:{Environment.NewLine}" +
+                $"{{command}}bossdamagemax {{param}}[damage]{{reset}}      - Shows or sets the maximum damage dealt to bosses{Environment.NewLine}" +
+                $"{{command}}bossdamagemin {{param}}[damage]{{reset}}      - Shows or sets the minimum damage dealt to bosses{Environment.NewLine}" +
+                $"{{command}}bot {{param}}[toggle]{{reset}}                - Shows or sets whether the bot is enabled or not{Environment.NewLine}" +
                 $"{{command}}overrideplanetid {{param}}[id]{{reset}}       - Shows or sets the current overridden planet id;{Environment.NewLine}" +
                 $"                              Overridden planets will always be joined, unless it's fully captured{Environment.NewLine}" +
                 $"{{command}}networktolerance {{param}}[toggle]{{reset}}   - Shows or sets whether the network tolerance is enabled or not;{Environment.NewLine}" +
                 $"                              Enabling this will cause the application to try to send certain API{Environment.NewLine}" +
                 $"                              calls earlier to account for network latency (default: enable){Environment.NewLine}" +
-                $"{{command}}planet {{param}}<id>{{reset}}                 - Shows information about a planet{Environment.NewLine}" +
-                $"{{command}}planets {{param}}[option]{{reset}}            - Shows the list of all planets{Environment.NewLine}" +
-                $"{{command}}playerinfo{{reset}}                  - Shows the player information{Environment.NewLine}" +
-                $"{{command}}strategy {{param}}[strategy]{{reset}}         - Shows or sets the current active strategy (to reset to default, use: 0){Environment.NewLine}" +
-                $"{{command}}zone {{param}}<planet_id> <zone_pos>{{reset}} - Shows information about a zone{Environment.NewLine}" +
-                $"{{command}}zones {{param}}<planet_id>{{reset}}           - Shows the list of the zones of a planet{Environment.NewLine}{Environment.NewLine}" +
+                $"{{command}}strategy {{param}}[strategy]{{reset}}         - Shows or sets the current active strategy (to reset to default, use: 0){Environment.NewLine}{Environment.NewLine}" +
 
                 $"Discord presence commands:{Environment.NewLine}" +
                 $"{{command}}presence {{param}}[toggle]{{reset}}           - Shows or sets whether Discord presence is enabled or not{Environment.NewLine}" +

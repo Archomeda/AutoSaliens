@@ -32,6 +32,12 @@ namespace AutoSaliens
         public static Settings Settings { get; private set; } = new Settings();
 
 
+        private static void BossDamageDealtMin_Changed(object sender, PropertyChangedEventArgs<int> e) =>
+            bot.BossDamageDealtMin = e.NewValue;
+
+        private static void BossDamageDealtMax_Changed(object sender, PropertyChangedEventArgs<int> e) =>
+            bot.BossDamageDealtMax = e.NewValue;
+
         private static void DiscordPresenceTimeType_Changed(object sender, PropertyChangedEventArgs<PresenceFormatterType> e) =>
             SetDiscordPresenceFormatter(e.NewValue);
 
@@ -193,6 +199,16 @@ namespace AutoSaliens
                 var settingsJson = File.ReadAllText("settings.json");
                 Settings = JsonConvert.DeserializeObject<Settings>(settingsJson);
 
+                if (Settings.BossDamageDealtMin < 1)
+                    Settings.BossDamageDealtMin.Value = 1;
+                if (Settings.BossDamageDealtMax < 1)
+                    Settings.BossDamageDealtMax.Value = 1;
+                if (Settings.BossDamageDealtMin > Settings.BossDamageDealtMax)
+                {
+                    int min = Settings.BossDamageDealtMin;
+                    Settings.BossDamageDealtMin.Value = Settings.BossDamageDealtMax;
+                    Settings.BossDamageDealtMax.Value = min;
+                }
                 if (Settings.GameTime < 110)
                     Settings.GameTime.Value = 110;
                 if (Settings.Strategy == (BotStrategy)0)
@@ -213,6 +229,8 @@ namespace AutoSaliens
                 Shell.WriteLine("", false);
             }
 
+            Settings.BossDamageDealtMin.Changed += BossDamageDealtMin_Changed;
+            Settings.BossDamageDealtMax.Changed += BossDamageDealtMax_Changed;
             Settings.DiscordPresenceTimeType.Changed += DiscordPresenceTimeType_Changed;
             Settings.EnableBot.Changed += EnableBot_Changed;
             Settings.EnableDiscordPresence.Changed += EnableDiscordPresence_Changed;
