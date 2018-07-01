@@ -51,6 +51,8 @@ namespace AutoSaliens.Console
             { "{planet}", "\x1b[36;1m" },
             { "{zone}", "\x1b[38;5;208m" },
             { "{player}", "\x1b[38;5;211m" },
+            { "{heals}", "\x1b[38;5;85m" },
+            { "{lasers}", "\x1b[38;5;124m" },
             { "{svlow}", "\x1b[38;5;193m" },
             { "{slow}", "\x1b[38;5;228m" },
             { "{smed}", "\x1b[38;5;222m" },

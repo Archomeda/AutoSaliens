@@ -787,7 +787,8 @@ namespace AutoSaliens.Bot
                 if (response.BossStatus == null)
                     return BossLevelState.WaitingForPlayers;
 
-                this.Logger?.LogMessage($"Boss HP: {response.BossStatus.BossHp.ToString("#,##0")}/{response.BossStatus.BossMaxHp.ToString("#,##0")}");
+                var bossHpColor = MathUtils.ScaleColor(response.BossStatus.BossMaxHp - response.BossStatus.BossHp, response.BossStatus.BossMaxHp, new[] { "{svlow}", "{slow}", "{smed}", "{shigh}", "{svhigh}" });
+                this.Logger?.LogMessage($"{bossHpColor}Boss HP: {response.BossStatus.BossHp.ToString("#,##0")}/{response.BossStatus.BossMaxHp.ToString("#,##0")}{{reset}} - {{lasers}}{response.NumLaserUses} lasers{{reset}} - {{heals}}{response.NumTeamHeals} heals");
                 foreach (var player in response.BossStatus.BossPlayers.OrderBy(p => p.Name))
                 {
                     var playerStartLevel = player.LevelOnJoin;
