@@ -31,7 +31,7 @@ namespace AutoSaliens.Presence.Formatters
                     {
                         int diffXp = (int)(xp - this.LastXp);
                         var diffTime = DateTime.Now - this.MeasureStartTime - playerInfo.TimeInZone;
-                        var eta = TimeSpan.FromSeconds(diffTime.TotalSeconds * ((nextLevelXp - xp) / diffXp));
+                        var eta = TimeSpan.FromSeconds(diffTime.TotalSeconds * ((double)(nextLevelXp - xp) / diffXp));
                         this.PredictedLevelUpDate = DateTime.Now + eta - playerInfo.TimeInZone;
                     }
                     this.MeasureStartTime = DateTime.Now - playerInfo.TimeInZone;
