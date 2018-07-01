@@ -85,7 +85,7 @@ namespace AutoSaliens
 
         private static void SetSaliensBot(bool enabled)
         {
-            if (enabled)
+            if (enabled && !bot.IsBotActive)
             {
                 Logger?.LogMessage("{verb}Enabling bot...");
                 bot.BossDamageDealtMin = Settings.BossDamageDealtMin;
@@ -97,7 +97,7 @@ namespace AutoSaliens
                 bot.Token = Settings.Token;
                 bot.Start();
             }
-            else
+            else if (!enabled && bot.IsBotActive)
             {
                 Logger?.LogMessage("{verb}Disabling bot...");
                 bot.Stop();
@@ -224,9 +224,10 @@ namespace AutoSaliens
                 if (Settings.DiscordPresenceTimeType == (PresenceFormatterType)0)
                     Settings.DiscordPresenceTimeType.Value = PresenceFormatterType.TimeZoneElapsed;
             }
-            else
+
+            if (!Settings.EnableBot && !Settings.EnableDiscordPresence)
             {
-                Shell.WriteLine("{inf}It seems that this is your first time running this application! Type {command}getstarted{inf} to get started.", false);
+                Shell.WriteLine("{inf}Both the bot and Discord presence are disabled. Type {command}getstarted{inf} to get started.", false);
                 Shell.WriteLine("", false);
             }
 
