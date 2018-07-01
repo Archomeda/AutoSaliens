@@ -458,6 +458,7 @@ namespace AutoSaliens.Bot
 
             // Loop until the boss is dead
             BossLevelState bossState = BossLevelState.WaitingForPlayers;
+            this.reportBossDamageHealUsed = DateTime.Now + TimeSpan.FromSeconds(new Random().Next((int)this.reportBossDamageHealCooldown.TotalSeconds));
             while (bossState != BossLevelState.GameOver && bossState != BossLevelState.Error)
             {
                 await Task.Delay(reportBossDamageDelay);
