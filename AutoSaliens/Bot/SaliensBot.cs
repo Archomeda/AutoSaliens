@@ -460,7 +460,10 @@ namespace AutoSaliens.Bot
                 bossState = await this.ReportBossDamage(startLevel, startXp, useHeal, reportBossDamageDealt, reportBossDamageTakne);
             }
 
+            await this.LeaveGame(this.PlayerInfo.ActiveBossGame);
+            await Task.Delay(reportBossDamageDelay);
             await this.GetPlayerInfo();
+
             if (long.TryParse(this.PlayerInfo.Score, out long score))
                 this.Logger?.LogMessage($"{{xp}}{(score - startXp).ToString("#,##0")} XP{{reset}} gained: {{oldxp}}{startXp.ToString("#,##0")}{{reset}} -> {{xp}}{score.ToString("#,##0")}");
             if (this.PlayerInfo.Level > startLevel)
@@ -852,6 +855,7 @@ namespace AutoSaliens.Bot
 
                         // States
                         this.ActiveZone = null;
+                        this.PlayerInfo.ActiveBossGame = null;
                         this.PlayerInfo.ActiveZoneGame = null;
                         this.PlayerInfo.ActiveZonePosition = null;
                         this.PlayerInfo.TimeInZone = TimeSpan.FromSeconds(0);
