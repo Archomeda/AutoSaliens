@@ -714,7 +714,12 @@ namespace AutoSaliens.Bot
                         this.reportScoreNetworkDelay = stopwatch.Elapsed;
 
                     if (!string.IsNullOrWhiteSpace(response.NewScore))
-                        this.Logger?.LogMessage($"XP: {{oldxp}}{long.Parse(response.OldScore).ToString("#,##0")}{{reset}} -> {{xp}}{long.Parse(response.NewScore).ToString("#,##0")}{{reset}} (next level at {{reqxp}}{long.Parse(response.NextLevelScore).ToString("#,##0")}{{reset}})");
+                    {
+                        if (!string.IsNullOrWhiteSpace(response.NextLevelScore))
+                            this.Logger?.LogMessage($"XP: {{oldxp}}{long.Parse(response.OldScore).ToString("#,##0")}{{reset}} -> {{xp}}{long.Parse(response.NewScore).ToString("#,##0")}{{reset}} (next level at {{reqxp}}{long.Parse(response.NextLevelScore).ToString("#,##0")}{{reset}})");
+                        else
+                            this.Logger?.LogMessage($"XP: {{oldxp}}{long.Parse(response.OldScore).ToString("#,##0")}{{reset}} -> {{xp}}{long.Parse(response.NewScore).ToString("#,##0")}");
+                    }
                     if (response.NewLevel != response.OldLevel)
                         this.Logger?.LogMessage($"New level: {{oldlevel}}{response.OldLevel}{{reset}} -> {{level}}{response.NewLevel}{{reset}}");
 
