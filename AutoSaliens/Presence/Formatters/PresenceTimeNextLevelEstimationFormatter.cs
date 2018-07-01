@@ -21,27 +21,30 @@ namespace AutoSaliens.Presence.Formatters
 
             Timestamps timestamps = null;
 
-            if (hasActivePlanet && hasActiveZone &&
-                long.TryParse(playerInfo.Score, out long xp) &&
-                long.TryParse(playerInfo.NextLevelScore, out long nextLevelXp))
+            if (!hasActiveBossZone)
             {
-                if (xp > this.LastXp)
+                if (hasActivePlanet && hasActiveZone &&
+                    long.TryParse(playerInfo.Score, out long xp) &&
+                    long.TryParse(playerInfo.NextLevelScore, out long nextLevelXp))
                 {
-                    if (this.LastXp > 0 && this.MeasureStartTime.Ticks > 0)
+                    if (xp > this.LastXp)
                     {
-                        int diffXp = (int)(xp - this.LastXp);
-                        var diffTime = DateTime.Now - this.MeasureStartTime - playerInfo.TimeInZone;
-                        var eta = TimeSpan.FromSeconds(diffTime.TotalSeconds * ((double)(nextLevelXp - xp) / diffXp));
-                        this.PredictedLevelUpDate = DateTime.Now + eta - playerInfo.TimeInZone;
+                        if (this.LastXp > 0 && this.MeasureStartTime.Ticks > 0)
+                        {
+                            int diffXp = (int)(xp - this.LastXp);
+                            var diffTime = DateTime.Now - this.MeasureStartTime - playerInfo.TimeInZone;
+                            var eta = TimeSpan.FromSeconds(diffTime.TotalSeconds * ((double)(nextLevelXp - xp) / diffXp));
+                            this.PredictedLevelUpDate = DateTime.Now + eta - playerInfo.TimeInZone;
+                        }
+                        this.MeasureStartTime = DateTime.Now - playerInfo.TimeInZone;
                     }
-                    this.MeasureStartTime = DateTime.Now - playerInfo.TimeInZone;
+                    this.LastXp = xp;
                 }
-                this.LastXp = xp;
-            }
 
-            // Only show when it's less than a day: Discord doesn't show days
-            if (this.PredictedLevelUpDate > DateTime.Now && this.PredictedLevelUpDate < DateTime.Now.AddDays(1))
-                timestamps = new Timestamps { End = this.PredictedLevelUpDate.ToUniversalTime() };
+                // Only show when it's less than a day: Discord doesn't show days
+                if (this.PredictedLevelUpDate > DateTime.Now && this.PredictedLevelUpDate < DateTime.Now.AddDays(1))
+                    timestamps = new Timestamps { End = this.PredictedLevelUpDate.ToUniversalTime() };
+            }
 
             // Fallbacks
             if (timestamps == null && hasActivePlanet && (hasActiveZone || hasActiveBossZone))

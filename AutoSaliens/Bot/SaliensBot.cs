@@ -467,6 +467,9 @@ namespace AutoSaliens.Bot
                 this.Logger?.LogMessage($"New level: {{oldlevel}}{startLevel}{{reset}} -> {{level}}{this.PlayerInfo.Level}{{reset}}");
 
             // States
+            this.ActiveZone = null;
+            this.PlayerInfo.ActiveBossGame = null;
+            this.PlayerInfo.ActiveZonePosition = null;
             this.State = BotState.OnPlanet;
         }
 
@@ -479,31 +482,24 @@ namespace AutoSaliens.Bot
             this.PlayerInfo = await SaliensApi.GetPlayerInfoAsync(this.Token, forceLive);
             this.State = BotState.Idle;
 
-            var hasActivePlanet = !string.IsNullOrWhiteSpace(this.PlayerInfo.ActivePlanet);
-            var hasActiveZone = !string.IsNullOrWhiteSpace(this.PlayerInfo.ActiveZonePosition);
-            var hasActiveBossZone = !string.IsNullOrWhiteSpace(this.PlayerInfo.ActiveBossGame);
-            Planet activePlanet = null;
-            if (hasActivePlanet || hasActiveZone || hasActiveBossZone)
-                activePlanet = await SaliensApi.GetPlanetAsync(this.PlayerInfo.ActivePlanet, forceLive);
-
-            if (hasActivePlanet)
+            if (!string.IsNullOrWhiteSpace(this.PlayerInfo.ActivePlanet))
             {
-                this.ActivePlanet = activePlanet;
+                this.ActivePlanet = await SaliensApi.GetPlanetAsync(this.PlayerInfo.ActivePlanet, forceLive);
                 this.State = BotState.OnPlanet;
-            }
 
-            if (hasActiveZone && int.TryParse(this.PlayerInfo.ActiveZonePosition, out int zonePosition))
-            {
-                this.ActiveZone = activePlanet.Zones[zonePosition];
-                this.ActiveZoneStartDate = DateTime.Now - this.PlayerInfo.TimeInZone;
-                this.State = BotState.InZone;
-            }
+                if (int.TryParse(this.PlayerInfo.ActiveZonePosition, out int zonePosition))
+                {
+                    this.ActiveZone = this.ActivePlanet.Zones[zonePosition];
+                    this.ActiveZoneStartDate = DateTime.Now - this.PlayerInfo.TimeInZone;
+                    this.State = BotState.InZone;
+                }
 
-            if (hasActiveBossZone)
-            {
-                this.ActiveZone = activePlanet.Zones.FirstOrDefault(z => z.GameId == this.PlayerInfo.ActiveBossGame);
-                this.ActiveZoneStartDate = DateTime.Now - this.PlayerInfo.TimeInZone;
-                this.State = BotState.InBossZone;
+                if (!string.IsNullOrWhiteSpace(this.PlayerInfo.ActiveBossGame))
+                {
+                    this.ActiveZone = this.ActivePlanet.Zones.FirstOrDefault(z => z.GameId == this.PlayerInfo.ActiveBossGame);
+                    this.ActiveZoneStartDate = DateTime.Now - this.PlayerInfo.TimeInZone;
+                    this.State = BotState.InBossZone;
+                }
             }
 
             this.PresenceUpdateTrigger.SetSaliensPlayerState(this.PlayerInfo);
@@ -648,7 +644,8 @@ namespace AutoSaliens.Bot
                     // States
                     this.ActiveZone = this.ActivePlanet.Zones[zonePosition];
                     this.ActiveZoneStartDate = DateTime.Now;
-                    this.PlayerInfo.ActiveZoneGame = this.ActiveZone.GameId;
+                    this.PlayerInfo.ActiveZoneGame = null;
+                    this.PlayerInfo.ActiveBossGame = this.ActiveZone.GameId;
                     this.PlayerInfo.ActiveZonePosition = zonePosition.ToString();
                     this.PlayerInfo.TimeInZone = TimeSpan.FromSeconds(0);
                     this.State = BotState.InBossZone;
@@ -824,7 +821,7 @@ namespace AutoSaliens.Bot
             void ResetState()
             {
                 this.ActiveZone = null;
-                this.PlayerInfo.ActiveZoneGame = null;
+                this.PlayerInfo.ActiveBossGame = null;
                 this.PlayerInfo.ActiveZonePosition = null;
                 this.State = BotState.ForcedZoneLeave;
             }

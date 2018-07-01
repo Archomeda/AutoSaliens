@@ -25,10 +25,10 @@ namespace AutoSaliens.Presence.Formatters
             if (hasActivePlanet && (hasActiveZone || hasActiveBossZone))
             {
                 state = $"Planet {playerInfo.ActivePlanet} - ";
-                if (hasActiveZone)
-                    state += $"Zone {playerInfo.ActiveZonePosition}";
-                else if (hasActiveBossZone)
+                if (hasActiveBossZone)
                     state += $"Boss Zone";
+                else if (hasActiveZone)
+                    state += $"Zone {playerInfo.ActiveZonePosition}";
                 var planet = SaliensApi.GetPlanet(playerInfo.ActivePlanet);
                 if (hasActiveZone && int.TryParse(playerInfo.ActiveZonePosition, out int zonePos))
                 {
