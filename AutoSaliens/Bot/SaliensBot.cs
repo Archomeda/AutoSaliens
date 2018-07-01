@@ -461,8 +461,6 @@ namespace AutoSaliens.Bot
             }
 
             await this.LeaveGame(this.PlayerInfo.ActiveBossGame);
-            await Task.Delay(reportBossDamageDelay);
-            await this.GetPlayerInfo();
 
             if (long.TryParse(this.PlayerInfo.Score, out long score))
                 this.Logger?.LogMessage($"{{xp}}{(score - startXp).ToString("#,##0")} XP{{reset}} gained: {{oldxp}}{startXp.ToString("#,##0")}{{reset}} -> {{xp}}{score.ToString("#,##0")}");
@@ -787,6 +785,7 @@ namespace AutoSaliens.Bot
                 if (response.BossStatus == null)
                     return BossLevelState.WaitingForPlayers;
 
+                BossPlayer currentPlayer = null;
                 var bossHpColor = MathUtils.ScaleColor(response.BossStatus.BossMaxHp - response.BossStatus.BossHp, response.BossStatus.BossMaxHp, new[] { "{svlow}", "{slow}", "{smed}", "{shigh}", "{svhigh}" });
                 this.Logger?.LogMessage($"{bossHpColor}Boss HP: {response.BossStatus.BossHp.ToString("#,##0")}/{response.BossStatus.BossMaxHp.ToString("#,##0")}{{reset}} - {{lasers}}{response.NumLaserUses} lasers{{reset}} - {{heals}}{response.NumTeamHeals} heals");
                 foreach (var player in response.BossStatus.BossPlayers.OrderBy(p => p.Name))
@@ -794,11 +793,22 @@ namespace AutoSaliens.Bot
                     var playerStartLevel = player.LevelOnJoin;
                     long.TryParse(player.ScoreOnJoin, out long playerStartXp);
 
-                    var playerColor = playerStartLevel == startLevel && playerStartXp == startXp ? "{player}" : "{reset}";
+                    var isCurrentPlayer = playerStartLevel == startLevel && playerStartXp == startXp;
+                    if (isCurrentPlayer)
+                        currentPlayer = player;
+                    var playerColor = isCurrentPlayer ? "{player}" : "{reset}";
                     var hpColor = MathUtils.ScaleColor(player.MaxHp - player.Hp, player.MaxHp, new[] { "{svlow}", "{slow}", "{smed}", "{shigh}", "{svhigh}" });
                     this.Logger?.LogMessage($"{playerColor}{(player.Name.Length > 16 ? player.Name.Substring(0, 16) : player.Name).PadLeft(16)}: " +
                         $"{hpColor}HP {player.Hp.ToString("#,##0").PadLeft(7)}/{player.MaxHp.ToString("#,##0").PadLeft(7)}{playerColor} - " +
                         $"XP {player.XpEarned.ToString("#,##0").PadLeft(9)}/{(playerStartXp + player.XpEarned).ToString("#,##0").PadLeft(12)}");
+                }
+
+                if (response.GameOver && currentPlayer != null && long.TryParse(this.PlayerInfo.Score, out long oldScore))
+                {
+                    // States
+                    this.PlayerInfo.Score = (oldScore + currentPlayer.XpEarned).ToString();
+                    this.PlayerInfo.Level = currentPlayer.NewLevel;
+                    this.PlayerInfo.NextLevelScore = currentPlayer.NextLevelScore;
                 }
                 return response.GameOver ? BossLevelState.GameOver : BossLevelState.Active;
             }
