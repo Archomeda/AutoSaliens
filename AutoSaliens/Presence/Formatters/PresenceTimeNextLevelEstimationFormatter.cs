@@ -40,6 +40,8 @@ namespace AutoSaliens.Presence.Formatters
                     }
                     this.LastXp = xp;
                 }
+                else if (string.IsNullOrWhiteSpace(playerInfo.NextLevelScore))
+                    this.PredictedLevelUpDate = DateTime.Now;
 
                 // Only show when it's less than a day: Discord doesn't show days
                 if (this.PredictedLevelUpDate > DateTime.Now && this.PredictedLevelUpDate < DateTime.Now.AddDays(1))
