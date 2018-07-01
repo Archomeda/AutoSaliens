@@ -4,6 +4,7 @@ namespace AutoSaliens.Bot
     {
         WaitingForPlayers,
         Active,
-        GameOver
+        GameOver,
+        Error
     }
 }

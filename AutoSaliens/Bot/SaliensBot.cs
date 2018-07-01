@@ -456,7 +456,7 @@ namespace AutoSaliens.Bot
 
             // Loop until the boss is dead
             BossLevelState bossState = BossLevelState.WaitingForPlayers;
-            while (bossState != BossLevelState.GameOver)
+            while (bossState != BossLevelState.GameOver && bossState != BossLevelState.Error)
             {
                 await Task.Delay(reportBossDamageDelay);
                 var useHeal = this.reportBossDamageHealUsed < DateTime.Now;
@@ -465,8 +465,6 @@ namespace AutoSaliens.Bot
 
                 bossState = await this.ReportBossDamage(startLevel, startXp, useHeal, this.GetRandomBossDamage(), reportBossDamageTaken);
             }
-
-            await this.LeaveGame(this.PlayerInfo.ActiveBossGame);
 
             if (long.TryParse(this.PlayerInfo.Score, out long score))
                 this.Logger?.LogMessage($"{{xp}}{(score - startXp).ToString("#,##0")} XP{{reset}} gained: {{oldxp}}{startXp.ToString("#,##0")}{{reset}} -> {{xp}}{score.ToString("#,##0")}");
@@ -477,7 +475,7 @@ namespace AutoSaliens.Bot
             this.ActiveZone = null;
             this.PlayerInfo.ActiveBossGame = null;
             this.PlayerInfo.ActiveZonePosition = null;
-            this.State = BotState.OnPlanet;
+            this.State = bossState == BossLevelState.GameOver ? BotState.OnPlanet : BotState.Invalid;
         }
 
 
@@ -781,63 +779,75 @@ namespace AutoSaliens.Bot
 
         public async Task<BossLevelState> ReportBossDamage(int startLevel, long startXp, bool useHealAbility, int damageToBoss, int damageTaken)
         {
-            try
+            for (int i = 0; i < 5; i++)
             {
-                var message = $"{{action}}Reporting boss damage {{value}}+{damageToBoss.ToString("#,##0")}";
-                if (damageTaken > 0)
-                    message += $"{{action}}, {{negvalue}}-{damageTaken.ToString("#,##0")}";
-                if (useHealAbility)
-                    message += $"{{action}}, {{value}}+Heal";
-                message += $"{{action}}...";
-                this.Logger?.LogMessage(message);
-
-                var response = await SaliensApi.ReportBossDamageAsync(this.Token, useHealAbility, damageToBoss, damageTaken);
-
-                if (response.BossStatus == null)
-                    return BossLevelState.WaitingForPlayers;
-
-                BossPlayer currentPlayer = null;
-                var bossHpColor = MathUtils.ScaleColor(response.BossStatus.BossMaxHp - response.BossStatus.BossHp, response.BossStatus.BossMaxHp, new[] { "{svlow}", "{slow}", "{smed}", "{shigh}", "{svhigh}" });
-                this.Logger?.LogMessage($"{bossHpColor}Boss HP: {response.BossStatus.BossHp.ToString("#,##0")}/{response.BossStatus.BossMaxHp.ToString("#,##0")}{{reset}} - {{lasers}}{response.NumLaserUses} lasers{{reset}} - {{heals}}{response.NumTeamHeals} heals");
-                foreach (var player in response.BossStatus.BossPlayers.OrderBy(p => p.Name))
+                try
                 {
-                    var playerStartLevel = player.LevelOnJoin;
-                    long.TryParse(player.ScoreOnJoin, out long playerStartXp);
+                    var message = $"{{action}}Reporting boss damage {{value}}+{damageToBoss.ToString("#,##0")}";
+                    if (damageTaken > 0)
+                        message += $"{{action}}, {{negvalue}}-{damageTaken.ToString("#,##0")}";
+                    if (useHealAbility)
+                        message += $"{{action}}, {{value}}+Heal";
+                    message += $"{{action}}...";
+                    this.Logger?.LogMessage(message);
 
-                    var isCurrentPlayer = playerStartLevel == startLevel && playerStartXp == startXp;
-                    if (isCurrentPlayer)
-                        currentPlayer = player;
-                    var playerColor = isCurrentPlayer ? "{player}" : "{reset}";
-                    var hpColor = MathUtils.ScaleColor(player.MaxHp - player.Hp, player.MaxHp, new[] { "{svlow}", "{slow}", "{smed}", "{shigh}", "{svhigh}" });
-                    this.Logger?.LogMessage($"{playerColor}{(player.Name.Length > 16 ? player.Name.Substring(0, 16) : player.Name).PadLeft(16)}: " +
-                        $"{hpColor}HP {player.Hp.ToString("#,##0").PadLeft(7)}/{player.MaxHp.ToString("#,##0").PadLeft(7)}{playerColor} - " +
-                        $"XP {player.XpEarned.ToString("#,##0").PadLeft(9)}/{(playerStartXp + player.XpEarned).ToString("#,##0").PadLeft(12)}");
-                }
+                    var response = await SaliensApi.ReportBossDamageAsync(this.Token, useHealAbility, damageToBoss, damageTaken);
 
-                if (response.GameOver && currentPlayer != null && long.TryParse(this.PlayerInfo.Score, out long oldScore))
-                {
-                    // States
-                    this.PlayerInfo.Score = (oldScore + currentPlayer.XpEarned).ToString();
-                    this.PlayerInfo.Level = currentPlayer.NewLevel;
-                    this.PlayerInfo.NextLevelScore = currentPlayer.NextLevelScore;
+                    if (response.BossStatus == null)
+                        return BossLevelState.WaitingForPlayers;
+
+                    BossPlayer currentPlayer = null;
+                    var bossHpColor = MathUtils.ScaleColor(response.BossStatus.BossMaxHp - response.BossStatus.BossHp, response.BossStatus.BossMaxHp, new[] { "{svlow}", "{slow}", "{smed}", "{shigh}", "{svhigh}" });
+                    this.Logger?.LogMessage($"{bossHpColor}Boss HP: {response.BossStatus.BossHp.ToString("#,##0")}/{response.BossStatus.BossMaxHp.ToString("#,##0")}{{reset}} - {{lasers}}{response.NumLaserUses} lasers{{reset}} - {{heals}}{response.NumTeamHeals} heals");
+                    foreach (var player in response.BossStatus.BossPlayers.OrderBy(p => p.Name))
+                    {
+                        var playerStartLevel = player.LevelOnJoin;
+                        long.TryParse(player.ScoreOnJoin, out long playerStartXp);
+
+                        var isCurrentPlayer = playerStartLevel == startLevel && playerStartXp == startXp;
+                        if (isCurrentPlayer)
+                            currentPlayer = player;
+                        var playerColor = isCurrentPlayer ? "{player}" : "{reset}";
+                        var hpColor = MathUtils.ScaleColor(player.MaxHp - player.Hp, player.MaxHp, new[] { "{svlow}", "{slow}", "{smed}", "{shigh}", "{svhigh}" });
+                        this.Logger?.LogMessage($"{playerColor}{(player.Name.Length > 16 ? player.Name.Substring(0, 16) : player.Name).PadLeft(16)}: " +
+                            $"{hpColor}HP {player.Hp.ToString("#,##0").PadLeft(7)}/{player.MaxHp.ToString("#,##0").PadLeft(7)}{playerColor} - " +
+                            $"XP {player.XpEarned.ToString("#,##0").PadLeft(9)}/{(playerStartXp + player.XpEarned).ToString("#,##0").PadLeft(12)}");
+                    }
+
+                    if (response.GameOver && currentPlayer != null && long.TryParse(this.PlayerInfo.Score, out long oldScore))
+                    {
+                        // States
+                        this.PlayerInfo.Score = (oldScore + currentPlayer.XpEarned).ToString();
+                        this.PlayerInfo.Level = currentPlayer.NewLevel;
+                        this.PlayerInfo.NextLevelScore = currentPlayer.NextLevelScore;
+                    }
+                    return response.GameOver ? BossLevelState.GameOver : BossLevelState.Active;
                 }
-                return response.GameOver ? BossLevelState.GameOver : BossLevelState.Active;
-            }
-            catch (SaliensApiException ex)
-            {
-                switch (ex.EResult)
+                catch (SaliensApiException ex)
                 {
-                    case EResult.Expired:
-                    case EResult.NoMatch:
-                    default:
-                        this.Logger?.LogMessage($"{{warn}}Failed to report boss damage: {ex.Message}");
-                        ResetState();
-                        throw;
+                    switch (ex.EResult)
+                    {
+                        case EResult.Fail:
+                        case EResult.Busy:
+                        case EResult.RateLimitExceeded:
+                            this.Logger?.LogMessage($"{{warn}}Failed to report boss damage: {ex.Message} - Giving it a second ({i + 1}/5)...");
+                            await Task.Delay(1000);
+                            continue;
+
+                        case EResult.Expired:
+                        case EResult.NoMatch:
+                        default:
+                            this.Logger?.LogMessage($"{{warn}}Failed to report boss damage: {ex.Message}");
+                            ResetState();
+                            throw;
+                    }
                 }
-            }
-            catch (WebException)
-            {
-                //TODO
+                catch (WebException ex)
+                {
+                    this.Logger?.LogMessage($"{{warn}}Failed to report boss damage: {ex.Message} - Giving it a second ({i + 1}/5)...");
+                    await Task.Delay(1000);
+                    continue;
+                }
             }
 
             // States, only set when failed
@@ -850,7 +860,7 @@ namespace AutoSaliens.Bot
                 this.State = BotState.ForcedZoneLeave;
             }
 
-            return BossLevelState.Active;
+            return BossLevelState.Error;
         }
 
         private async Task LeaveGame(string gameId)
