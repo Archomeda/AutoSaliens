@@ -88,6 +88,8 @@ namespace AutoSaliens
             if (enabled)
             {
                 Logger?.LogMessage("{verb}Enabling bot...");
+                bot.BossDamageDealtMin = Settings.BossDamageDealtMin;
+                bot.BossDamageDealtMax = Settings.BossDamageDealtMax;
                 bot.EnableNetworkTolerance = Settings.EnableNetworkTolerance;
                 bot.GameTime = Settings.GameTime;
                 bot.OverridePlanetId = Settings.OverridePlanetId;
