@@ -251,6 +251,8 @@ namespace AutoSaliens.Bot
                 this.Logger?.LogMessage($"{{planet}}Planet {planets[0].Id}{{action}} has been blacklisted until {end.ToString("HH:mm:ss")}");
                 await this.LeaveGame(planets[0].Id);
             }
+            else
+                await this.PrintActivePlanets();
         }
 
         private async Task DoInZone()
@@ -439,7 +441,7 @@ namespace AutoSaliens.Bot
                 {
                     // Schedule to print planets 5 seconds before the zone is finished
                     tasks.Add(Task.Delay(timeLeft - TimeSpan.FromSeconds(5), this.cancelSource.Token)
-                        .ContinueWith(t => this.PrintActivePlanets()));
+                        .ContinueWith(t => this.GetActivePlanets()));
                 }
                 tasks.Add(Task.Delay(timeLeft, this.cancelSource.Token));
                 await Task.WhenAll(tasks);
@@ -479,7 +481,7 @@ namespace AutoSaliens.Bot
         }
 
 
-        public async Task GetPlayerInfo(bool forceLive = false)
+        private async Task GetPlayerInfo(bool forceLive = false)
         {
             if (string.IsNullOrEmpty(this.Token))
                 return;
@@ -509,6 +511,25 @@ namespace AutoSaliens.Bot
 
             this.PresenceUpdateTrigger.SetSaliensPlayerState(this.PlayerInfo);
         }
+
+        private async Task<List<Planet>> GetActivePlanets()
+        {
+            var planets = (await SaliensApi.GetPlanetsAsync()).Values
+                .OrderBy(p => p.State.Priority);
+
+            var activePlanets = await Task.WhenAll(planets
+                .Where(p => p.State.Running)
+                .Select(p => SaliensApi.GetPlanetAsync(p.Id)));
+
+            // Get the next 2 future planets, if available
+            var lastPlanetIndex = planets.ToList().FindIndex(p => p.Id == activePlanets.Last().Id);
+            var lastPlanets = (await Task.WhenAll(planets.Skip(lastPlanetIndex + 1)
+                .Take(2)
+                .Select(p => SaliensApi.GetPlanetAsync(p.Id))));
+
+            return activePlanets.Concat(lastPlanets).ToList();
+        }
+
 
         private async Task JoinPlanet(string planetId)
         {
@@ -935,30 +956,21 @@ namespace AutoSaliens.Bot
 
         private async Task PrintActivePlanets()
         {
-            var planets = (await SaliensApi.GetPlanetsAsync()).Values
-                .OrderBy(p => p.State.Priority);
-
-            var activePlanets = await Task.WhenAll(planets
-                .Where(p => p.State.Running)
-                .Select(p => SaliensApi.GetPlanetAsync(p.Id)));
+            var activePlanets = await this.GetActivePlanets();
 
             this.Logger?.LogMessage("Active planets:");
-            foreach (var planet in activePlanets)
+            foreach (var planet in activePlanets.Where(p => p.State.Running))
             {
                 this.Logger?.LogMessage(planet.ToConsoleLine());
                 if (this.ActivePlanet?.Id == planet.Id && this.HasActiveZone)
                     this.Logger?.LogMessage(this.ActiveZone.ToConsoleLine());
             }
 
-            // Get the next 2 future planets, if available
-            var lastPlanetIndex = planets.ToList().FindIndex(p => p.Id == activePlanets.Last().Id);
-            var lastPlanets = (await Task.WhenAll(planets.Skip(lastPlanetIndex + 1)
-                .Take(2)
-                .Select(p => SaliensApi.GetPlanetAsync(p.Id))));
-            if (lastPlanets.Length > 0)
+            var futurePlanets = activePlanets.Where(p => !p.State.Active && !p.State.Captured).ToList();
+            if (futurePlanets.Count > 0)
             {
                 this.Logger?.LogMessage("Upcoming planets:");
-                foreach (var planet in lastPlanets)
+                foreach (var planet in futurePlanets)
                     this.Logger?.LogMessage(planet.ToConsoleLine());
             }
         }
