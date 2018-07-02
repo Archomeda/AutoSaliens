@@ -422,7 +422,7 @@ namespace AutoSaliens.Bot
 
             // Filter out blacklisted games
             return zones
-                .Where(z => !(this.BlacklistedGames.ContainsKey(z.GameId) && this.BlacklistedGames[z.GameId] > DateTime.Now))
+                .Where(z => !string.IsNullOrWhiteSpace(z.GameId) && !(this.BlacklistedGames.ContainsKey(z.GameId) && this.BlacklistedGames[z.GameId] > DateTime.Now))
                 .ToList();
         }
 
