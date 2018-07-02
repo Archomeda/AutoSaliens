@@ -366,6 +366,9 @@ namespace AutoSaliens.Bot
             {
                 // As of 26th June, the planet difficulty is always low, so let's skip it for now
                 var planets = activePlanets.OrderBy(p => 0);
+
+                if (this.Strategy.HasFlag(BotStrategy.FocusBosses))
+                    planets = planets.ThenByDescending(p => p.Zones.Any(z => z.BossActive) ? 1 : 0);
                 if (this.Strategy.HasFlag(BotStrategy.MostDifficultPlanetsFirst))
                 {
                     planets = planets
@@ -406,6 +409,8 @@ namespace AutoSaliens.Bot
             // Filter out blacklisted games
             var zones = activeZones.OrderBy(p => 0);
 
+            if (this.Strategy.HasFlag(BotStrategy.FocusBosses))
+                zones = zones.ThenByDescending(z => z.BossActive ? 1 : 0);
             if (this.Strategy.HasFlag(BotStrategy.MostDifficultZonesFirst))
                 zones = zones.ThenByDescending(z => z.RealDifficulty);
             else if (this.Strategy.HasFlag(BotStrategy.LeastDifficultZonesFirst))

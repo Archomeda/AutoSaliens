@@ -19,6 +19,11 @@ namespace AutoSaliens
         /// </summary>
         FocusRandomPlanet = 0x2,
 
+        /// <summary>
+        /// Go for planets and zones that contain bosses.
+        /// </summary>
+        FocusBosses = 0x4,
+
 
         /// <summary>
         /// Go for the most difficult planets first.

@@ -45,6 +45,7 @@ namespace AutoSaliens
 
         [JsonProperty]
         public NotifyProperty<BotStrategy> Strategy { get; private set; } =
+            BotStrategy.FocusBosses |
             BotStrategy.MostDifficultPlanetsFirst |
             BotStrategy.MostCompletedPlanetsFirst |
             BotStrategy.MostDifficultZonesFirst |

@@ -215,11 +215,12 @@ namespace AutoSaliens
                 if (Settings.Strategy == (BotStrategy)0)
                 {
                     Settings.Strategy.Value =
-                       BotStrategy.MostDifficultPlanetsFirst |
-                       BotStrategy.MostCompletedPlanetsFirst |
-                       BotStrategy.MostDifficultZonesFirst |
-                       BotStrategy.LeastCompletedZonesFirst |
-                       BotStrategy.TopDown;
+                        BotStrategy.FocusBosses |
+                        BotStrategy.MostDifficultPlanetsFirst |
+                        BotStrategy.MostCompletedPlanetsFirst |
+                        BotStrategy.MostDifficultZonesFirst |
+                        BotStrategy.LeastCompletedZonesFirst |
+                        BotStrategy.TopDown;
                 }
                 if (Settings.DiscordPresenceTimeType == (PresenceFormatterType)0)
                     Settings.DiscordPresenceTimeType.Value = PresenceFormatterType.TimeZoneElapsed;

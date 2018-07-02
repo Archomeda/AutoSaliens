@@ -37,6 +37,7 @@ namespace AutoSaliens.Console.Commands
                     BotStrategy strategy = strategyValues.Aggregate((BotStrategy)0, (a, b) => a | b);
                     if (strategy == 0)
                         strategy =
+                            BotStrategy.FocusBosses |
                             BotStrategy.MostDifficultPlanetsFirst |
                             BotStrategy.MostCompletedPlanetsFirst |
                             BotStrategy.MostDifficultZonesFirst |
